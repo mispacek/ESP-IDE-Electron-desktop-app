@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=0.66, maximum-scale=0.66, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <!-- Ostatní zdroje načítáme s defer, aby neblokovaly rendering -->
+  <link rel="stylesheet" href="xterm.css?v=25_05_2025">
+  <script src="xterm.js?v=25_05_2025"></script>
+  <script src="split.min.js?v=25_05_2025"></script>
+  <script src="ace.js?v=25_05_2025" defer></script>
+  <script src="ext-language_tools.js?v=25_05_2025" defer></script>
+  <script src="blockly_compressed.js?v=25_05_2025" defer></script>
+  <script src="blocks_compressed.js?v=25_05_2025" defer></script>
+  <script src="python_compressed.js?v=25_05_2025" defer></script>
+  <script src="cs.js?v=25_05_2025" defer></script>
+  <script src="sweetalert2.all.min.js?v=25_05_2025"></script>
+  <link rel="stylesheet" href="sweetalert2.min.css?v=25_05_2025"> 
+  
+  <!-- Ošetření chybějících dialogů v electronu -->
+  <script src="custom-dialog.js"></script>
+
+
+  <!-- Funkce pro dynamickou úpravu toolboxu a ukládání nastavení -->
+  <script>
+    // Globální proměnné
+    var originalToolboxXML = "";   // obdrží čistý toolbox při startu
+    var userSettings = null; // např. { processor: "ESP32", filters: { "Komunikace": {enabled: true, subcategories: {"Komunikace_0": true, "Komunikace_1": true} }, ... } }
+    
+    var extensions = JSON.parse(localStorage.getItem("extensions") || "{}");   // {name:{js,xml,enabled}}
+    var addons_toolbox = "";   // sloučí vybrané XML
+
+    const TOOLBOX_MAP = {
+      ESP32: "toolbox_ESP32.xml",
+      ESP32C3: "toolbox_ESP32C3.xml",
+      ESP32S3: "toolbox_ESP32S3.xml",
+      RP2040:  "toolbox_RP2040.xml"
+      //ESPBIT:  "toolbox_ESPBIT.xml"
+    };
+
+    function safeLoadExtensionsOnStartup() {
+      try {
+        // 1) pokus se vzít rovnou sloučené zdroje (nejrychlejší)
+        let js = localStorage.getItem("new_blocks_js")  || "";
+        let xml= localStorage.getItem("new_blocks_xml") || "";
+
+        // 2) když nic, vezmi detailní záznamy a postav je znovu
+        if (!(js || xml) && Object.keys(extensions).length) {
+          Object.values(extensions).forEach(e=>{
+            if (e.enabled !== false) {          // default = zapnuto
+              js  += e.js  || "";
+              xml += e.xml || "";
+            }
+          });
+        }
+
+        // 3) jestli je co načíst → integruj
+        if (js || xml) integrateExtensions(js, xml);
+      } catch (e) {
+        console.error("Auto-load EXT error:", e);
+        Swal.fire("Chyba", "Rozšíření se nepodařilo načíst: "+e.message, "error");
+      }
+    }
+
+
+    function refreshExtList(){
+      const list   = document.getElementById("ext_list");
+      list.innerHTML = "";
+
+      Object.keys(extensions).forEach(name=>{
+        const row      = document.createElement("div"); row.className="ext_row";
+        const chk      = document.createElement("input"); chk.type="checkbox";
+        chk.checked    = extensions[name].enabled;
+        chk.onchange   = ()=>extensions[name].enabled = chk.checked;
+
+        const lbl      = document.createElement("label"); lbl.textContent = name;
+        const del      = document.createElement("button"); del.textContent="✖";
+        del.className  = "ext_btn";
+        del.onclick    = ()=>{ delete extensions[name]; refreshExtList(); };
+
+        row.append(chk,lbl,del);
+        list.appendChild(row);
+      });
+    }
+
+    function openExtensionsDialog(){
+      refreshExtList();
+      document.getElementById("extensions_dialog").style.display="block";
+    }
+
+    function closeExtensionsDialog(){
+      document.getElementById("extensions_dialog").style.display="none";
+    }
+    
+    
+    function applyStoredFilter() {
+      if (!originalToolboxXML) return;
+      const cleaned = originalToolboxXML
+            .replace('<xml id="toolbox" style="display: none" >', "")
+            .replace("</xml>", "");
+
+      const filtered = filterToolboxWithFilters(
+            '<xml id="toolbox" style="display: none">' +
+            cleaned + addons_toolbox + "</xml>",
+            userSettings?.filters || {}
+      );
+      Blockly.getMainWorkspace().updateToolbox(filtered);
+      document.getElementById("toolbox").innerHTML =
+            filtered.replace('<xml id="toolbox" style="display: none">',"")
+                    .replace("</xml>","");
+    }
+
+    function applyExtensionSelection(){
+      // složení zdrojů jen z povolených doplňků
+      let agg_js="", agg_xml="";
+      Object.values(extensions).forEach(ext=>{
+        if(ext.enabled){ agg_js  += ext.js;  agg_xml += ext.xml; }
+      });
+      // ulož do storage
+      localStorage.setItem("extensions", JSON.stringify(extensions));
+      localStorage.setItem("new_blocks_js",  agg_js);
+      localStorage.setItem("new_blocks_xml", agg_xml);
+      integrateExtensions(agg_js, agg_xml);
+      closeExtensionsDialog();
+    }
+
+    
+
+    function integrateExtensions(jsSrc = "", xmlSrc = "") {
+      /* 1)  JS část ------------------------------------------------ */
+      if (jsSrc.trim()) {
+        try {
+          eval(jsSrc);
+        } catch (e) {
+          console.error("Ext-JS runtime error:", e);
+          Swal.fire("Chyba v rozšíření", e.message, "error");
+          return;                               // skonči, ať se nerozbije toolbox
+        }
+      }
+
+      /* 2)  XML/toolbox část -------------------------------------- */
+      if (!originalToolboxXML) return;          // workspace ještě není
+
+      // odřízni obálku <xml>
+      let stripped = (xmlSrc || "")
+                     .replace(/^<xml[^>]*>/, "")
+                     .replace(/<\/xml>\s*$/, "");
+
+      addons_toolbox = stripped;                // držíme pro filtry
+
+      const combined =
+            originalToolboxXML.replace(/<\/xml>\s*$/, "") +
+            stripped +
+            "</xml>";
+
+      try {
+        Blockly.getMainWorkspace().updateToolbox(combined);
+      } catch (e) {
+        console.error("Ext-XML error:", e);
+        Swal.fire("Chybný toolbox v rozšíření", e.message, "error");
+        return;
+      }
+
+      /* 3)  re-apply user filter (je-li definován) ---------------- */
+      try {
+        if (typeof applyStoredFilter === "function") applyStoredFilter();
+      } catch (e) {
+        console.warn("applyStoredFilter selhal:", e);
+      }
+    }
+
+
+
+
+
+
+
+    // Vrátí název souboru toolboxu podle zvoleného procesoru
+    function getToolboxFilename(processor) {
+      return TOOLBOX_MAP[processor] || "toolbox_ESP32.xml";
+    }
+    
+
+    // Asynchroní načtení obsahu toolboxu
+    async function fetchToolboxFile(filename) {
+      try {
+        const response = await fetch(filename);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return await response.text();
+      } catch (error) {
+        console.error("Chyba při načítání souboru " + filename + ":", error);
+        throw error;
+      }
+    }
+
+    function filterToolboxWithFilters(xmlString, filters) {
+      try {
+        filters = filters || {}; 
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        var categories = xmlDoc.getElementsByTagName("category");
+        // Procházení kategorií vzadu, abychom bezpečně odstraňovali elementy.
+        for (var i = categories.length - 1; i >= 0; i--) {
+          var cat = categories[i];
+          var catName = cat.getAttribute("name");
+          if (filters[catName]) {
+            if (!filters[catName].enabled) {
+              cat.parentNode.removeChild(cat);
+              continue;
+            }
+            if (filters[catName].subcategories) {
+              var children = Array.from(cat.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
+              var labelIndex = 0;
+              for (var idx = 0; idx < children.length; idx++) {
+                var node = children[idx];
+                if (node.nodeName.toLowerCase() === "label") {
+                  var key = catName + "_" + labelIndex;
+                  if (!filters[catName].subcategories[key]) {
+                    var removalLabel = node;
+                    var sibling = removalLabel.nextSibling;
+                    removalLabel.parentNode.removeChild(removalLabel);
+                    while (sibling) {
+                      if (sibling.nodeType === Node.TEXT_NODE && sibling.textContent.trim() === "") {
+                        var temp = sibling;
+                        sibling = sibling.nextSibling;
+                        temp.parentNode.removeChild(temp);
+                        continue;
+                      }
+                      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName.toLowerCase() === "block") {
+                        var temp = sibling;
+                        sibling = sibling.nextSibling;
+                        temp.parentNode.removeChild(temp);
+                        continue;
+                      }
+                      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName.toLowerCase() === "label") {
+                        break;
+                      }
+                      break;
+                    }
+                  }
+                  labelIndex++;
+                }
+              }
+            }
+          }
+        }
+        // Odstraníme kategorie, které po filtrování nemají žádný obsah (žádné block nebo label elementy),
+        // pokud nemají atribut custom.
+        var updatedCategories = xmlDoc.getElementsByTagName("category");
+        for (var i = updatedCategories.length - 1; i >= 0; i--) {
+          var cat = updatedCategories[i];
+          // Pokud má kategorie atribut custom, přeskočíme ji
+          if (cat.hasAttribute("custom")) continue;
+          var content = Array.from(cat.childNodes).filter(node => {
+            return node.nodeType === Node.ELEMENT_NODE && 
+                   (node.nodeName.toLowerCase() === "block" || node.nodeName.toLowerCase() === "label");
+          });
+          if (content.length === 0) {
+            cat.parentNode.removeChild(cat);
+          }
+        }
+        var serializer = new XMLSerializer();
+        return serializer.serializeToString(xmlDoc);
+      } catch (e) {
+        console.error("Chyba při filtrování toolboxu:", e);
+        return xmlString;
+      }
+    }
+
+
+
+
+
+    async function showCategoryFilterDialog(toolboxXMLString) {
+      var parser = new DOMParser();
+      var xmlDoc = parser.parseFromString(toolboxXMLString, "text/xml");
+      var categoryNodes = xmlDoc.getElementsByTagName("category");
+      var formHtml = "";
+      for (var i = 0; i < categoryNodes.length; i++) {
+        var catName = categoryNodes[i].getAttribute("name");
+        // Získáme barvu kategorie (fallback, pokud není definována)
+        var catColor = categoryNodes[i].getAttribute("colour") || "#ffffff";
+        // Kontejner kategorie s danou barvou, menším fontem nadpisu a levým zarovnáním
+        formHtml += '<div style="background-color: ' + catColor + '; padding: 6px; margin-bottom: 5px; text-align: left; border-radius: 5px;">';
+        formHtml += '<h3 style="font-size: 19px; margin: 0px 0px 2px 6px; color: #ffffff; text-shadow: 0px 0px 3px #00000080;">' + catName + '</h3>';
+        var hasSubcats = false;
+        var childNodes = categoryNodes[i].childNodes;
+        var subcatIndex = 0;
+        // Procházíme podkategorie (elementy <label>) uvnitř kategorie
+        for (var j = 0; j < childNodes.length; j++) {
+          if (childNodes[j].nodeName.toLowerCase() === "label") {
+            hasSubcats = true;
+            var labelText = childNodes[j].getAttribute("text");
+            var checkboxName = catName + "_" + subcatIndex;
+            // Kontrola uloženého stavu – pokud daný záznam existuje, použije se, jinak true (checked)
+            var subcatChecked = true;
+            if (userSettings && userSettings.filters && userSettings.filters[catName] &&
+                userSettings.filters[catName].subcategories && 
+                userSettings.filters[catName].subcategories.hasOwnProperty(checkboxName)) {
+              subcatChecked = userSettings.filters[catName].subcategories[checkboxName];
+            }
+            formHtml += '<label style="display: inline-block; margin-right: 10px; vertical-align: middle; color: #ffffff; text-shadow: 1px 1px 3px #000000b0;">';
+            formHtml += '<input type="checkbox" name="' + checkboxName + '" ' + (subcatChecked ? 'checked' : '') + ' style="vertical-align: middle; margin-right: 5px; width: 24px;height: 18px; display: inline-block;">';
+            formHtml += labelText;
+            formHtml += '</label><br>';
+            subcatIndex++;
+          }
+        }
+        // Pokud kategorie nemá podkategorie, nabídneme možnost nastavení celé kategorie
+        if (!hasSubcats) {
+          var catChecked = true;
+          if (userSettings && userSettings.filters && userSettings.filters.hasOwnProperty(catName) && 
+              userSettings.filters[catName].hasOwnProperty("enabled")) {
+            catChecked = userSettings.filters[catName].enabled;
+          }
+          formHtml += '<label style="display: inline-block; margin-right: 10px; vertical-align: middle; color: #ffffff; text-shadow: 1px 1px 3px #000000b0;">';
+          formHtml += '<input type="checkbox" name="' + catName + '" ' + (catChecked ? 'checked' : '') + ' style="vertical-align: middle; margin-right: 5px; width: 24px;height: 18px; display: inline-block;">';
+          formHtml += 'Celá kategorie ' + catName;
+          formHtml += '</label><br>';
+        }
+        formHtml += '</div>';
+      }
+
+      return Swal.fire({
+        title: 'Nastavte zobrazení bloků',
+        html: formHtml,
+        focusConfirm: false,
+        showCancelButton: false,
+        preConfirm: () => {
+          var filters = {};
+          var inputs = Swal.getPopup().querySelectorAll('input[type=checkbox]');
+          inputs.forEach(function(chk) {
+            var name = chk.name;
+            var checked = chk.checked;
+            if (name.indexOf("_") !== -1) {
+              var parts = name.split("_");
+              var cat = parts[0];
+              if (!filters[cat]) {
+                filters[cat] = { enabled: true, subcategories: {} };
+              }
+              filters[cat].subcategories[name] = checked;
+            } else {
+              filters[name] = { enabled: checked };
+            }
+          });
+          return filters;
+        },
+        width: '550px',
+        footer: '<div style="padding-bottom: 4px;"></div>'
+      });
+    }
+
+
+    // Zobrazí počáteční dialog pro výběr procesoru; pokud jsou uložena nastavení v localStorage, předvyplní je.
+    async function showProcessorDialog() {
+      var defaultProcessor = "ESP32";
+      //if (userSettings && userSettings.processor) {
+      //  defaultProcessor = userSettings.processor;
+      //}
+      return Swal.fire({
+        title: 'Vyberte procesor',
+        html:
+          '<select id="swal-processor" class="swal2-input">' +
+            '<option value="ESP32">ESP32</option>' +
+            '<option value="ESP32C3">ESP32C3</option>' +
+            '<option value="ESP32S3">ESP32S3</option>' +
+            '<option value="RP2040">RP2040</option>' +
+          '</select>',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        preConfirm: () => {
+          return {
+            processor: document.getElementById('swal-processor').value
+          }
+        },
+        didOpen: () => {
+          document.getElementById('swal-processor').value = defaultProcessor;
+        }
+      });
+    }
+    
+    
+    
+    
+    async function updateProcessor(newProc) {
+      if (newProc === userSettings.processor) return;
+
+      userSettings.processor = newProc;
+      localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+      try {
+        toolboxFilename      = getToolboxFilename(newProc);
+        const baseXML        = await fetchToolboxFile(toolboxFilename);
+        originalToolboxXML   = baseXML;
+
+        const completeXML =
+          baseXML.replace(/<\/xml>\s*$/, '') + addons_toolbox + '</xml>';
+
+        const filtered =
+          filterToolboxWithFilters(completeXML, userSettings.filters || {});
+
+        // Překreslení toolboxu
+        const ws  = Blockly.getMainWorkspace();
+        const el  = document.getElementById('toolbox');
+        el.innerHTML = filtered
+                        .replace('<xml id="toolbox" style="display: none">','')
+                        .replace('</xml>','');
+        ws.updateToolbox(filtered);
+
+        console.log('Procesor přepnut na', newProc);
+      } catch (e) {
+        console.error('Chyba při přepínání procesoru:', e);
+        Swal.fire('Chyba',
+                  'Nepodařilo se přepnout procesor: ' + e.message,
+                  'error');
+      }
+    }
+
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+
+    
+    
+    /* *****************************************************
+     * Třída MicroPythonSerial – nová webserial komunikace *
+     ******************************************************* */
+    class MicroPythonSerial {
+      constructor(terminal) {
+        this.terminal = terminal; // instance xterm.js
+        this.port = null;
+        this.reader = null;
+        this.writer = null;
+        this.keepReading = false;
+        this.inRawMode = false;       // Příznak raw REPL režimu
+        this.rawResponseBuffer = "";  // Buffer pro odpovědi v raw režimu
+        this.mute_terminal = false;
+      }
+
+
+
+      async connect() {
+        try {
+          // Vyžádej si od uživatele výběr zařízení
+          this.port = await navigator.serial.requestPort();
+          
+          // Ověření, zda byl vybrán port         
+          await this.port.open({ baudRate: 115200 });
+          
+          // Získáme reader a writer přímo z portu – bez pipeTo
+          this.reader = this.port.readable.getReader();
+          this.writer = this.port.writable.getWriter();
+          
+          this.keepReading = true;
+          this.readLoop();
+
+          this.terminal.write('\x1b[32mVítejte v ESP IDE!\x1b[m');
+          //await mpSerial.sendData('\r\n');
+          //await this.sendData("\x03"); // Ctrl-C
+          //await delay(50);
+          await this.sendData("\x02"); // Ctrl-B
+          await delay(50);
+          
+        } catch (error) {
+          console.error("Chyba při připojování:", error);
+          this.terminal.writeln(`**Chyba při připojování: ${error.message}**`);
+
+          this.reader = null;
+          this.writer = null;
+          this.disconnect();
+          this.port = null; // zabrání znovupoužití starého objektu
+    
+        }
+      }
+
+      async disconnect() {
+        try {
+          this.keepReading = false;
+          if (this.reader) {
+            try {
+              await this.reader.cancel();
+            } catch (e) {
+              console.warn("Chyba při cancel reader:", e);
+            }
+            try {
+              this.reader.releaseLock();
+            } catch (e) {
+              console.warn("Chyba při releaseLock reader:", e);
+            }
+            this.reader = null;
+          }
+          if (this.writer) {
+            try {
+              await this.writer.close();
+            } catch (e) {
+              console.warn("Chyba při close writer:", e);
+            }
+            try {
+              this.writer.releaseLock();
+            } catch (e) {
+              console.warn("Chyba při releaseLock writer:", e);
+            }
+            this.writer = null;
+          }
+          if (this.port) {
+            try {
+              await this.port.close();
+            } catch (e) {
+              console.warn("Chyba při close port:", e);
+            }
+            this.port = null;
+          }
+          this.terminal.writeln("**Zařízení odpojeno.**");
+        } catch (error) {
+          console.error("Chyba při odpojování:", error);
+          this.terminal.writeln(`**Chyba při odpojování: ${error.message}**`);
+        }
+      }
+
+      async readLoop() {
+          const decoder = new TextDecoder();
+          while (this.keepReading) {
+            try {
+              const { value, done } = await this.reader.read();
+              if (done) break;
+              if (value) {
+                const decoded = decoder.decode(value);
+                if (this.inRawMode) {
+                  this.rawResponseBuffer += decoded;
+                }
+                
+                if (this.mute_terminal == false) {
+                   this.terminal.write(decoded);
+                }
+                
+              }
+            } catch (error) {
+              console.error("Chyba v readLoop:", error);
+              break;
+            }
+          }
+        }
+
+      // Odeslání příkazu – přidá nový řádek, pokud není
+      async sendCommand(command) {
+        try {
+          if (!this.writer) throw new Error("Nejsi připojen k zařízení.");
+          if (!command.endsWith("\n")) command += "\r\n";
+          const encoder = new TextEncoder();
+          await this.writer.write(encoder.encode(command));
+        } catch (error) {
+          console.error("Chyba při odesílání příkazu:", error);
+          this.terminal.writeln(`**Chyba při odesílání příkazu: ${error.message}**`);
+        }
+      }
+
+      // Umožní psaní dat přímo z terminálu
+      async sendData(data) {
+        try {
+          if (!this.writer) throw new Error("Nejsi připojen k zařízení.");
+          const encoder = new TextEncoder();
+          await this.writer.write(encoder.encode(data));
+        } catch (error) {
+          console.error("Chyba při odesílání dat:", error);
+          this.terminal.writeln(`**Chyba při odesílání dat: ${error.message}**`);
+        }
+      }
+
+      async enterRawREPL() {
+        try {
+          await this.sendData("\x03"); // Ctrl-C
+          await new Promise(resolve => setTimeout(resolve, 100));
+          this.inRawMode = true;
+          await this.sendData("\x01"); // Ctrl-A
+          let startTime = Date.now();
+          while (Date.now() - startTime < 2000) {
+            if (this.rawResponseBuffer.includes("raw REPL")) break;
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          if (!this.rawResponseBuffer.includes("raw REPL")) {
+            throw new Error("Nepodařilo se vstoupit do raw REPL režimu.");
+          }
+          //this.terminal.writeln("**Vstoupeno do raw REPL režimu.**");
+        } catch (error) {
+          console.error("Chyba při vstupu do raw REPL:", error);
+          this.terminal.writeln(`**Chyba při vstupu do raw REPL: ${error.message}**`);
+        }
+      }
+
+      async exitRawREPL() {
+        try {
+          await this.sendData("\x02"); // Ctrl-B
+          this.inRawMode = false;
+          //this.terminal.writeln("**Opustil raw REPL režim.**");
+        } catch (error) {
+          console.error("Chyba při opouštění raw REPL:", error);
+          this.terminal.writeln(`**Chyba při opouštění raw REPL: ${error.message}**`);
+        }
+      }
+
+      async execRawCommand(command) {
+          this.rawResponseBuffer = "";
+
+          await this.sendCommand(command + "\r");
+          await this.sendData("\x04"); // Signalizace konce příkazu
+
+          let response = await new Promise((resolve, reject) => {
+            const startTime = Date.now();
+
+            const checkResponse = () => {
+              // Čekáme na konec odpovědi indikovaný znakem EOT (\x04)
+              //console.log("Prikaz: " + command);
+              //console.log(this.rawResponseBuffer.split ('').map (function (c) { return c.charCodeAt (0); }));
+              //console.log(this.rawResponseBuffer);
+              if (this.rawResponseBuffer.includes("OK\x04")) {
+                const result = this.rawResponseBuffer;
+                this.rawResponseBuffer = "";
+                resolve(result);
+              } else if (Date.now() - startTime > 2000) {
+                reject(new Error("Timeout při čekání na OK\\x04: " + this.rawResponseBuffer));
+              } else {
+                setTimeout(checkResponse, 10); // kontroluj každých 10 ms
+              }
+            };
+
+            checkResponse();
+          });
+
+          return response;
+        }
+
+
+      splitIntoChunks(content, chunkSize) {
+        let chunks = [];
+        for (let i = 0; i < content.length; i += chunkSize) {
+          chunks.push(content.substring(i, i + chunkSize));
+        }
+        return chunks;
+      }
+
+    async sendFile(filename, content, init = false) {
+      try {
+        // Aktivuj progress bar
+        const bar = document.getElementById("myProgress");
+        bar.style.transition = "none";
+        bar.style.opacity = 1;
+        bar.style.width = "0%";
+        
+        
+        // Vstup do raw REPL režimu
+        await this.enterRawREPL();
+        
+        await this.execRawCommand(`\r\n`);
+        
+        
+        await this.sendData("import os\r");
+        await this.sendData("from ubinascii import a2b_base64\r\n");
+        
+        // Pokud cesta obsahuje adresář, zkontroluj a případně vytvoř adresář
+        if (filename.includes("/")) {
+            let folder = filename.substring(0, filename.lastIndexOf("/"));
+            // Příkaz, který ověří existenci adresáře a pokud neexistuje, vytvoří ho
+            await this.sendData(`try:\r`);
+            await this.sendData(` os.stat("${folder}")\r`);
+            await this.sendData(`except OSError:\r`);
+            await this.execRawCommand(` os.mkdir("${folder}")\r`);
+        }
+
+        
+        if (init == true)
+        {
+            await this.sendData("import gc\r");
+            await this.sendData("import utime\r");
+            
+            await this.sendData("def run_code():\r");
+            await this.sendData(" try:\r");
+            await this.sendData("  gc.collect()\r");
+            await this.sendData("  exec(open(\"idecode\").read())\r");
+            await this.sendData(" except KeyboardInterrupt:\r");
+            await this.sendData("  print('Zastaveni programu')\r");
+            await this.sendData("  gc.collect()\r");
+            await this.sendData("  stop_code()\r");
+            
+            await this.sendData("def stop_code():\r");
+            await this.sendData(" try:\r");
+            await this.sendData("  on_exit()\r");
+            await this.sendData(" except:\r");
+            await this.execRawCommand("  utime.sleep_ms(0)\r");
+            await delay(50);
+        }
+        
+        
+        
+        // Otevření souboru v binárním režimu ("wb")
+        //await this.execRawCommand(`from ubinascii import a2b_base64`);
+        await this.execRawCommand(`f = open("${filename}", "wb")`);
+        await delay(50);
+        
+        // Převod textu do UTF-8 bajtů
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(content);
+        const chunkSize = 64;
+        
+        // Pomocná funkce pro Base64 kódování Uint8Array chunku
+        function base64EncodeUint8Array(uint8array) {
+          let binary = "";
+          for (let i = 0; i < uint8array.length; i++) {
+            binary += String.fromCharCode(uint8array[i]);
+          }
+          return btoa(binary);
+        }
+        
+        const totalChunks = Math.ceil(bytes.length / chunkSize);
+        // Odeslání dat po chunkách
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.slice(i, i + chunkSize);
+          const base64Chunk = base64EncodeUint8Array(chunk);
+          // Vytvoření příkazu pro zápis Base64 dat na zařízení
+          await this.execRawCommand(`f.write(a2b_base64("${base64Chunk}"))`);
+          //console.log(`f.write(a2b_base64("${base64Chunk}"))`);
+          
+          // Výpočet průběhu v %
+          const percent = Math.min(Math.floor(((i + chunkSize) / bytes.length) * 100),100);
+          this.terminal.write(`\rOdesílání: ${percent}%   `); // \r = návrat na začátek řádku
+          
+          // aktualizace progress baru
+          bar.style.transition = "width 0.1s ease";
+          bar.style.width = percent + "%";
+        }
+        
+        // Uzavření souboru
+        await this.execRawCommand("f.close()");
+        await this.exitRawREPL();
+        //this.terminal.writeln(`**Soubor ${filename} odeslán úspěšně.**`);
+        
+        // Skrytí progress baru po odeslání
+        setTimeout(() => {
+          bar.style.opacity = 0;
+          bar.style.width = "0%";
+        }, 500);
+        
+        this.terminal.writeln("");
+      } catch (error) {
+        console.error("Chyba při odesílání souboru:", error);
+        this.terminal.writeln(`**Chyba při odesílání souboru: ${error.message}**`);
+      }
+    }
+    
+    
+}
+
+
+
+
+
+
+    /* ***********************************************
+       * Konec implementace nové webserial komunikace
+       *********************************************** */
+    
+    
+    // Graficke tlacitko pripojeni
+      const STATE = {
+        DISCONNECTED: 0,
+        DISCONNECTED_HOVER: 1,
+        CONNECTED: 2,
+        CONNECTED_HOVER: 3,
+        ERROR: 4,
+        ERROR_HOVER: 5
+      };
+
+      let currentState = STATE.DISCONNECTED;
+
+      const images = [
+        "img0.gif", // odpojeno
+        "img1.png", // odpojeno hover
+        "img2.png", // připojeno
+        "img3.png", // připojeno hover
+        "img4.png", // chyba
+        "img5.png"  // chyba hover
+      ];
+    
+    
+    
+    
+    
+    var editor;
+    var term;
+    var blocklyArea;
+    var blocklyDiv;
+    var demoWorkspace;
+    var code_window_open = false;
+    var vibro_time = 100;
+    let connectButton;
+    var toolboxFilename;
+    
+    var run_uploaded_code = false;
+    
+    
+    // Detekce jestli už došlo k nějakému uploadu kódu do zařízení
+    var first_upload = true;
+    
+    
+    // Globální instance komunikace
+    let mpSerial;  // instance třídy MicroPythonSerial
+    
+    // Pomocná prodleva
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Přidána funkce onresize podle původní implementace
+    function onresize(e) {
+      var element = blocklyArea;
+      var x = 0;
+      var y = 0;
+      do {
+        x += element.offsetLeft;
+        y += element.offsetTop;
+        element = element.offsetParent;
+      } while (element);
+      blocklyDiv.style.left = x + 'px';
+      blocklyDiv.style.top = (y + 44) + 'px';
+      blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
+      blocklyDiv.style.height = (blocklyArea.offsetHeight - 44) + 'px';
+      Blockly.svgResize(demoWorkspace);
+    }
+    
+    
+    function show_modal_message(in_txt,text_detail) {
+        Swal.fire({
+          title: in_txt,
+          text: text_detail,
+          icon: "warning",
+          showConfirmButton: true,
+          onBeforeOpen () {
+            Swal.showLoading ()
+          },
+          onAfterClose () {
+            Swal.hideLoading()
+          },
+          backdrop: false,
+          allowOutsideClick: true,
+          allowEscapeKey: true,
+          allowEnterKey: true
+        })
+    }
+    
+
+  
+  
+  
+  
+    async function sendFileToDevice(fileUrl, targetFolder) {
+      // Kontrola připojení zařízení
+      if (!(mpSerial && mpSerial.port && (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER))) {
+        //alert("Zařízení není připojeno!");
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        return;
+      }
+
+      // Vrať Promise získaný z fetch
+      return fetch(fileUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Chyba při načítání souboru. HTTP status: " + response.status);
+          }
+          return response.text();
+        })
+        .then(async content => {
+          let fileName = fileUrl.split("/").pop();
+          if (targetFolder) {
+            if (!targetFolder.endsWith("/")) {
+              targetFolder += "/";
+            }
+            fileName = targetFolder + fileName;
+          }
+
+          mpSerial.mute_terminal = true;
+          
+          term.writeln("Nahrávám soubor: " + fileName);
+          
+          await delay(50);
+
+          // Odeslání souboru do zařízení
+          await mpSerial.sendFile(fileName, content, false);
+
+          await delay(300);
+          
+          await mpSerial.sendData('\r\n');
+          
+          await delay(400);
+          
+          mpSerial.mute_terminal = false;
+        })
+        .catch(error => {
+          console.error("Chyba při načítání souboru:", error);
+          //alert("Chyba při načítání souboru: " + error.message);
+          show_modal_message('Chyba při načítání souboru.', error.message);
+        });
+    }
+    
+    
+    
+    async function libs_download_to_mcu() {
+      
+      if (!(mpSerial && mpSerial.port && (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER))) {
+        //alert("Zařízení není připojeno!");
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        return;
+      }
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/boot.py", "/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/servo.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/dcmotorlib.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/minifont.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/oled.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/st7567.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/BlynkLib.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/joy_lib.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/mpu6050.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/pcf8574.py", "/lib/");
+          
+      await sendFileToDevice("lib_" + userSettings.processor + "/tcs34725.py", "/lib/");
+      
+      await sendFileToDevice("lib_" + userSettings.processor + "/vl53l0x.py", "/lib/");
+      
+      await mpSerial.sendData('\r\n');
+    }
+
+    
+    
+    
+    
+
+    
+    
+    
+    // Funkce pro spuštění kódu – využívá novou komunikaci
+    async function runCode() {
+        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        {
+          mpSerial.mute_terminal = true;
+          
+          await mpSerial.sendData('\x03');
+          await delay(150);
+          await mpSerial.sendData('\x03');
+          await delay(100);
+          Blockly.Python.INFINITE_LOOP_TRAP = null;
+          var save_code = editor.getValue().replace(/\r\n|\r|\n/g, "\r");
+          save_code = delete_non_ascii(save_code);
+          if (document.getElementById("autostart").checked) {
+            save_code = "#autostart*\r" + save_code;
+          }
+          
+          term.scrollToBottom();
+          
+          await mpSerial.sendFile("idecode", save_code, true);
+          await delay(250);
+          mpSerial.mute_terminal = false;
+          await mpSerial.sendCommand('run_code()');
+          await delay(20);
+          
+        }
+        else
+        {
+            show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        }
+    }
+    
+    // Funkce pro zastavení kódu
+    async function stopCode() {
+        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        {
+          await mpSerial.sendData('\x03');
+          await delay(150);
+          await mpSerial.sendData('\x03');
+          await delay(100);
+          await mpSerial.sendCommand('stop_code()');
+          await delay(50);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        }
+    }
+    
+    
+    // Funkce pro restart procesoru
+    async function ResetCPU() {
+        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        {
+          await mpSerial.sendData('\x03');
+          await delay(50);
+          await mpSerial.sendData('\x03');
+          await delay(20);
+          await mpSerial.sendData('\x04');
+          await delay(10);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        }
+    }
+    
+    
+    
+    // Funkce pro zastavení kódu
+    async function get_Info() {
+        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        {
+          await mpSerial.sendData('\x03');
+          await delay(150);
+          await mpSerial.sendData('\x03');
+          await delay(100);
+          await mpSerial.sendCommand('info()');
+          await delay(50);
+          term.scrollToBottom();
+        }
+        else
+        {
+          show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        }
+    }
+    
+    
+    
+    
+    
+    
+    // Funkce pro vibraci
+    function phone_vibrate() {
+      try {
+        navigator.vibrate(vibro_time);
+      } catch {
+        console.log("Cannot vibrate");
+      }
+    }
+    
+    // Funkce pro odstranění diakritiky
+    function delete_non_ascii(in_string) {
+      let sdiak = "ÁÂÄĄáâäąČčĆćÇçĈĉĎĐďđÉÉĚËĒĖĘéěëēėęĜĝĞğĠġĢģĤĥĦħÍÎíîĨĩĪīĬĭĮįİıĴĵĶķĸĹĺĻļĿŀŁłĹĽĺľŇŃŅŊŋņňńŉÓÖÔŐØŌōóöőôøŘřŔŕŖŗŠšŚśŜŝŞşŢţŤťŦŧŨũŪūŬŭŮůŰűÚÜúüűŲųŴŵÝYŶŷýyŽžŹźŻżß;@*%!+-$&?~";
+      let bdiak = "AAAAaaaaCcCcCcCcDDddEEEEEEEeeeeeeGgGgGgGgHhHhIIiiIiIiIiIiIiJjKkkLlLlLlLlLLllNNNNnnnnnOOOOOOooooooRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUUuuuUuWwYYYyyyZzZzZzs;@*%!+-$&?~";
+      let tx = "";
+      for (let p = 0; p < in_string.length; p++) {
+        if (sdiak.indexOf(in_string.charAt(p)) !== -1) {
+          tx += bdiak.charAt(sdiak.indexOf(in_string.charAt(p)));
+        } else {
+          tx += in_string.charAt(p);
+        }
+      }
+      return tx;
+    }
+    
+    // Funkce pro získání parametru z URL
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(window.location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Funkce pro načtení toolboxu
+    function loadToolbox(url) {
+      var workspace = Blockly.getMainWorkspace();
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, false);
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+          var data = xhr.responseText;
+          var xmlElement = document.getElementById('toolbox');
+          xmlElement.innerHTML = data.replace('<xml id="toolbox" style="display: none" >',"").replace("</xml>","");
+          workspace.updateToolbox(data);
+          console.log("Toolbox loading succesfull.");
+        }
+      }
+      xhr.send();
+    }
+    
+    
+
+    
+    
+    
+    async function custom_blocks_select() {
+      try {
+        // 1) načti uložené nastavení
+        const saved = localStorage.getItem("userSettings");
+        userSettings = saved ? JSON.parse(saved) : {};
+
+        // 2) základní toolbox
+        const baseXML = await fetchToolboxFile(toolboxFilename);
+        originalToolboxXML = baseXML;
+
+        /* 3) SLUČ ho s rozšířeními */
+        const fullXML = baseXML.replace(/<\/xml>\s*$/, "") +
+                        addons_toolbox +
+                        "</xml>";
+
+        // 4) zobraz dialog s plným obsahem
+        const filterRes = await showCategoryFilterDialog(fullXML);
+
+        /* ignoruj dismiss ---------------------------- */
+        if (!filterRes || filterRes.isDismissed || !filterRes.isConfirmed) {
+          console.log("Okno zavřeno - ponechávám původní toolbox.");
+          return; // zachovej stávající toolbox
+        }
+
+        userSettings.filters = filterRes.value || {};
+
+        localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+        // 5) aplikuj filtr
+        const filtered = filterToolboxWithFilters(fullXML, userSettings.filters);
+
+        const ws  = Blockly.getMainWorkspace();
+        const el  = document.getElementById('toolbox');
+        el.innerHTML = filtered
+              .replace('<xml id="toolbox" style="display: none">',"")
+              .replace("</xml>","");
+        ws.updateToolbox(filtered);
+
+        console.log("Toolbox loading succesfull.");
+      } catch (e) {
+        console.error("Chyba při custom_blocks_select:", e);
+        Swal.fire("Chyba", "Nastala chyba při nastavení zobrazení bloků.", "error");
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // --- Chybejici ALERT v Electronu řešíme zde ---
+    window.alert = (msg) => Swal.fire({icon:'info', title: msg});
+    
+    
+    
+    
+    // --- Inicializace aplikace ---
+    (function() {
+      window.onload = async function() {
+        
+        ace.config.set('basePath', '');
+        ace.config.set('modePath', '');
+        ace.config.set('themePath', '');
+    
+        editor = ace.edit("editor");
+        ace.require("ace/ext/language_tools");
+        editor.setTheme("ace/theme/chrome");
+        editor.session.setMode("ace/mode/python");
+        editor.setOptions({
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: false,
+          showInvisibles: true,
+          fixedWidthGutter: true,
+          showPrintMargin: false
+        });
+    
+        Split(['#editor_div', '#terminal_div'], {
+          direction: 'vertical',
+          sizes: [85, 15],
+          gutterSize: 6,
+          cursor: 'row-resize',
+          onDragEnd: function(sizes) {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+            editor.resize();
+            onresize();
+          },
+          onDrag: function(sizes) {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+            editor.resize();
+            onresize();
+          }
+        });
+    
+        var size = calculate_size(self);
+        term = new Terminal({
+          cols: size[0],
+          rows: size[1],
+          useStyle: true,
+          screenKeys: true,
+          cursorBlink: false
+        });
+        term.open(document.getElementById("term"), false);  // Vypne auto-focus
+    
+        // Vytvoření instance nové komunikace
+        mpSerial = new MicroPythonSerial(term);
+    
+        
+        
+        
+        
+        
+        // Obsluha tlačítka pro připojení/odpojení
+        connectButton = document.getElementById('SerialConnectButton');
+
+
+          function updateButton(state) {
+            currentState = state;
+            connectButton.style.backgroundImage = `url('${images[state]}')`;
+          }
+
+          connectButton.addEventListener("mouseenter", () => {
+            switch (currentState) {
+              case STATE.DISCONNECTED: updateButton(STATE.DISCONNECTED_HOVER); break;
+              case STATE.CONNECTED: updateButton(STATE.CONNECTED_HOVER); break;
+              case STATE.ERROR: updateButton(STATE.ERROR_HOVER); break;
+            }
+          });
+
+          connectButton.addEventListener("mouseleave", () => {
+            switch (currentState) {
+              case STATE.DISCONNECTED_HOVER: updateButton(STATE.DISCONNECTED); break;
+              case STATE.CONNECTED_HOVER: updateButton(STATE.CONNECTED); break;
+              case STATE.ERROR_HOVER: updateButton(STATE.ERROR); break;
+            }
+          });
+
+
+
+
+
+
+
+        
+        
+    
+        // Přidána interaktivní obsluha terminálu – psaní příkazů
+        term.on('data', function(data) {
+            if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+            {
+              mpSerial.sendData(data);
+            }
+        });
+    
+        Blockly.HSV_SATURATION = 0.70;
+        Blockly.HSV_VALUE = 0.80;
+    
+        blocklyArea = document.getElementById('editor_div');
+        blocklyDiv = document.getElementById('blocklyDiv');
+        demoWorkspace = Blockly.inject('blocklyDiv', {
+          toolbox: document.getElementById('toolbox'),
+          zoom: {
+            controls: true,
+            wheel: true,
+            startScale: 1.0,
+            maxScale: 3,
+            minScale: 0.3,
+            scaleSpeed: 1.2,
+            pinch: true
+          },
+          trashcan: true,
+          media: './'
+        });
+        window.addEventListener('resize', onresize, false);
+        onresize();
+        Blockly.svgResize(demoWorkspace);
+    
+        function block_changed(event) {
+          Blockly.Python.INFINITE_LOOP_TRAP = null;
+          var str_code = Blockly.Python.workspaceToCode(demoWorkspace);
+          editor.setValue(str_code, 1);
+        }
+        demoWorkspace.addChangeListener(block_changed);
+    
+        demoWorkspace.registerButtonCallback('open_image_editor', function(button) {
+          window.open('img_editor.html','Editor obrázků','left=300,top=140,width=260,height=340,popup');
+        });
+        
+        
+        
+        
+        try {
+            // Načtení parametrů z URL pro návody
+            const params = new URL(window.location.href).searchParams;  // :contentReference[oaicite:1]{index=1}
+            const toolboxParam = params.get('toolbox');
+            const programParam = params.get('program');
+            
+            
+            // Načtení uložených nastavení z localStorage
+            var saved = localStorage.getItem("userSettings");
+            if (saved) {
+              userSettings = JSON.parse(saved);
+              console.log("Načteno uživatelské nastavení :" + saved);
+            } else {
+              userSettings = {};
+              console.log("Uživatelské nastavení nenalezeno. Použito výchozí nastavení");
+            }
+            
+            // Inicializace dropdownu
+            const procSelect = document.getElementById('processorDropdown');
+            procSelect.addEventListener('change', e => updateProcessor(e.target.value));
+            
+            // Nastav počáteční hodnotu podle localStorage (nebo výchozí ESP32)
+            procSelect.value = (userSettings && userSettings.processor) || 'ESP32';
+            
+            
+            
+            
+            // 2) Pokud je toolboxParam, použij ho místo dialogu
+            if (toolboxParam) {
+              toolboxFilename = toolboxParam;  // externí override
+            } else if (userSettings.processor && TOOLBOX_MAP[userSettings.processor]) {
+              toolboxFilename = TOOLBOX_MAP[userSettings.processor];
+            } else {
+              // Uživateli ještě procesor nenastavujeme – klasický dialog
+              const procResult = await showProcessorDialog();
+              userSettings.processor = procResult.value.processor;
+              document.getElementById('processorDropdown').value = userSettings.processor;
+              //userSettings.processor = "ESPBIT";
+              toolboxFilename = getToolboxFilename(userSettings.processor);
+            }
+            
+            
+            
+            var toolboxXML = await fetchToolboxFile(toolboxFilename);
+            originalToolboxXML = toolboxXML; // uložení původního obsahu
+
+            // Pokud v uložených nastaveních chybí filtrovací konfigurace, zobrazíme dialog s nastavením kategorií/podkategorií
+            if (!userSettings.filters) {
+              //const filterResult = await showCategoryFilterDialog(originalToolboxXML);
+              //userSettings.filters = filterResult.value;
+              userSettings.filters = {};
+            }
+
+            // Uložíme nastavení do localStorage
+            localStorage.setItem("userSettings", JSON.stringify(userSettings));
+
+
+            safeLoadExtensionsOnStartup();    // Načte nové bloky z rozšíření
+
+
+            /* spoj základ + rozšíření */
+            var fullToolboxXML = originalToolboxXML.replace(/<\/xml>\s*$/, "")
+                                   + addons_toolbox
+                                   + "</xml>";
+
+            // Aplikujeme filtr na SPOJENÝ toolbox
+            var filteredXML = filterToolboxWithFilters(fullToolboxXML, userSettings.filters || {});
+
+            var workspace = Blockly.getMainWorkspace();
+            var xmlElement = document.getElementById('toolbox');
+            xmlElement.innerHTML = filteredXML
+                    .replace('<xml id="toolbox" style="display: none" >',"")
+                    .replace("</xml>","");
+            workspace.updateToolbox(filteredXML);
+            console.log("Toolbox loading succesfull (start).");
+            
+            
+            // 4) Pokud je programParam, načti XML programu
+            if (programParam) {
+                try {
+                  const resp = await fetch(programParam);
+                  const xmlText = await resp.text();
+                  const xmlDom = Blockly.Xml.textToDom(xmlText);
+                  Blockly.Xml.domToWorkspace(xmlDom, demoWorkspace);
+                  // Aktualizuj kód v editoru ACE podle načteného Blockly
+                  editor.setValue(Blockly.Python.workspaceToCode(demoWorkspace), 1);
+                } catch (e) {
+                  console.error('Chyba při načítání programu:', e);
+                }
+            }
+            
+            
+
+        } catch (e) {
+            console.error("Chyba při inicializaci:", e);
+            Swal.fire("Chyba", "Nastala chyba při inicializaci aplikace.", "error");
+        }
+        
+        
+        
+        
+        
+        if ("serial" in navigator) {
+              
+              connectButton.addEventListener("click", async () => {
+                if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                  try {
+                    await mpSerial.connect();
+                    
+                    // Ověření, zda byl vybrán port
+                    if (!mpSerial.port) {
+                      term.writeln("**Nebyl vybrán žádný port.**");
+                      updateButton(STATE.ERROR);
+                      return;
+                    }
+                    else
+                    {
+                        updateButton(STATE.CONNECTED);
+                    }
+                  } catch (e) {
+                    console.error("Chyba při připojení:", e);
+                    updateButton(STATE.ERROR);
+                  }
+                } else if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER) {
+                  try {
+                    await mpSerial.disconnect();
+                    updateButton(STATE.DISCONNECTED);
+                  } catch (e) {
+                    console.error("Chyba při odpojení:", e);
+                    updateButton(STATE.ERROR);
+                  }
+                }
+              });
+              
+              navigator.serial.addEventListener("disconnect", (event) => {
+               // Zkontroluj, zda jde o právě otevřený port
+               if (mpSerial.port && event.target === mpSerial.port) {
+                    console.warn("Tvé zařízení bylo odpojeno.");
+                    updateButton(STATE.ERROR);
+                    mpSerial.reader = null;
+                    mpSerial.writer = null;
+                    mpSerial.disconnect();
+                    mpSerial.port = null; // zabrání znovupoužití starého objektu
+               }
+              });
+          
+              navigator.serial.addEventListener("connect", (event) => {
+                console.log("Nové zařízení připojeno");
+                if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                    Swal.fire({
+                      title: "Zařízení připojeno!",
+                      text: "Chcete se k němu připojit?",
+                      showCancelButton: true,
+                      confirmButtonText: "Ano",
+                      cancelButtonText: "Ne"
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        connectButton.click();  // Simuluj kliknutí na připojovací tlačítko
+                      }
+                    });
+                  }
+               });
+               
+               
+            updateButton(STATE.DISCONNECTED);
+          }
+          else
+          {
+            updateButton(STATE.ERROR);
+            show_modal_message('Nepodporovaný prohlížeč.', 'Váš prohlížeč nepodporuje WebSerial API. Pro správný chod ESP IDE popužijte aktuální verzi prohlížeče Chrome, Edge, nebo Opera.');
+        
+            
+          }
+        
+        
+        
+        
+        
+    
+        //loadToolbox("toolbox.xml");
+    
+        // Zachování funkcí pro drag & drop, nahrávání a ukládání souborů (původní kód)
+        function showDropZone() {
+        // zobraz globální zónu jen pokud není otevřen správce rozšíření
+          if (document.getElementById('extensions_dialog')?.style.display !== 'block') {
+            document.getElementById('drop_zone').style.display = 'block';
+          }
+        }
+        
+        function hideDropZone() {
+          document.getElementById('drop_zone').style.display = 'none';
+        }
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          document.addEventListener(eventName, preventDefaults, false);
+        });
+        document.addEventListener('dragenter', function(e) { showDropZone(); });
+        document.addEventListener('dragleave', function(e) {
+          if (e.clientX === 0 && e.clientY === 0) { hideDropZone(); }
+        });
+        document.addEventListener('drop', function(e) {
+          hideDropZone();
+          var files = e.dataTransfer.files;
+          if (files.length > 0) {
+            var file = files[0];
+            document.getElementById("save_filename").value = file.name.replace(".xml", "");
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var contents = e.target.result;
+              try {
+                var xml = Blockly.Xml.textToDom(contents);
+                demoWorkspace.clear();
+                Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+              } catch (err) {
+                //alert('Chyba při načítání souboru: ' + err.message);
+                show_modal_message('Chyba při načítání souboru.', err.message);
+              }
+            };
+            reader.readAsText(file);
+          }
+        });
+        document.addEventListener('dragover', function(e) {
+          e.dataTransfer.dropEffect = 'copy';
+        });
+        
+        
+        
+        // --- drag&drop do zóny --------------------------------
+        const dropZone = document.getElementById("ext_drop");
+        ["dragenter","dragover"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();dropZone.style.background="#e8eaf6";}
+        ));
+        ["dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();dropZone.style.background="";}));
+        dropZone.addEventListener("drop", e=>{
+          [...e.dataTransfer.files].forEach(f=>{
+            if(!f.name.endsWith(".newblk")) return;
+            const reader = new FileReader();
+            reader.onload = ev=>{
+              const raw = ev.target.result;
+              if (!raw.includes("<!toolbox!>")) {
+                 Swal.fire("Neplatné rozšíření",
+                           "Soubor musí obsahovat značku <!toolbox!>",
+                           "warning");
+                 return;
+              }
+              const [codeJS, toolboxXML=""] = raw.split("<!toolbox!>");
+              const baseName = f.name.replace(/\.newblk$/i,"");
+              extensions[baseName] = { js: codeJS, xml: toolboxXML, enabled:true };
+              refreshExtList();
+            };
+            reader.readAsText(f,"utf-8");
+          });
+        });
+        
+        
+        
+        // Preload obrázků pro připojovací tlačítko
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+        
+        
+        window.addEventListener('resize', function() {
+            var size = calculate_size(self);
+            term.resize(size[0], size[1]);
+        });
+        
+        
+        
+        
+        
+        
+      };
+    
+      
+    }).call(this);
+    
+    function calculate_size(win) {
+      var cols = (getWidth() / 6.2) | 0;
+      var rows = (document.getElementById("terminal_div").offsetHeight / 13.5) | 0;
+      return [cols, rows];
+    }
+    
+    function getWidth() {
+      return Math.max(
+        document.body.scrollWidth,
+        document.documentElement.scrollWidth,
+        document.body.offsetWidth,
+        document.documentElement.offsetWidth,
+        document.documentElement.clientWidth
+      );
+    }
+    
+    function getHeight() {
+      return Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.documentElement.clientHeight
+      );
+    }
+    
+    function close_code() {
+      document.getElementById("code_dialog").style.display = "none";
+      code_window_open = false;
+    }
+    
+    function showCode() {
+      if (!code_window_open) {
+        Blockly.Python.INFINITE_LOOP_TRAP = null;
+        var str_code = Blockly.Python.workspaceToCode(demoWorkspace);
+        editor.setValue(str_code, 1);
+        document.getElementById("code_dialog").style.display = "block";
+        code_window_open = true;
+      } else {
+        close_code();
+        code_window_open = false;
+      }
+    }
+    
+    function close_save() {
+      document.getElementById("save_dialog").style.display = "none";
+    }
+    
+    function save_file_dialog() {
+      document.getElementById("save_dialog_btn").disabled = false;
+      document.getElementById("save_dialog_btn").value = "Uložit";
+      document.getElementById("save_dialog").style.display = "block";
+    }
+    
+    function file_download(filename, text) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:application/xml;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+    
+    function code_download_pc() {
+      var xml = Blockly.Xml.workspaceToDom(demoWorkspace);
+      var xml_text = Blockly.Xml.domToText(xml);
+      let project_name = document.getElementById("save_filename").value;
+      if (!project_name) {
+        alert("Musíte zadat platné jméno projektu!");
+      } else {
+        if (project_name.endsWith('.xml')) {
+          file_download(project_name, xml_text);
+        } else {
+          file_download(project_name + ".xml", xml_text);
+        }
+      }
+      close_save();
+    }
+    
+    
+    function code_upload_pc() {
+      document.getElementById('upload_file_input').addEventListener('change', readSingleFile, false);
+      document.getElementById('upload_file_input').click();
+    }
+    
+    function readSingleFile(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      document.getElementById("save_filename").value = file.name.replace(".xml", "");
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var contents = e.target.result;
+        try {
+          var xml = Blockly.Xml.textToDom(contents);
+          demoWorkspace.clear();
+          Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+          this.value = "";
+        } catch (e) {
+          alert(e);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function showDropdown() {
+      var x = document.getElementById("more_menu");
+      if (x.style.display === "none" || x.style.display === "") {
+        x.style.display = "block";
+      } else {
+        x.style.display = "none";
+      }
+    }
+  </script>  
+  <title>ESP IDE</title>
+  <style type="text/css" media="screen">
+    html, body { height: 100%; }
+    body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0px;
+      background-color: #F6F6F6;
+      box-sizing: border-box;
+    }
+    .ace_editor {
+      margin: 0;
+      position: relative;
+      top: 0; bottom: 0; left: 0; right: 0;
+      height: 100%;
+      width: 100%;
+    }
+    #term {
+      margin: 0;
+      position: relative;
+      top: 0; bottom: 0; left: 0; right: 0;
+      background: #000;
+      height: 100%;
+      width: 100%;
+    }
+    .terminal { border: #000 solid 2px; background: #000; }
+    .x, .x_code, #save_dialog_btn, #load_dialog_btn { cursor: pointer; }
+    .split {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .content { border: 0px solid #C0C0C0; }
+    
+    .gutter { background-color: #808080; }
+    .gutter.gutter-vertical { cursor: row-resize; }
+    #editor_div { padding-top: 44px; }
+    
+    #terminal_div { 
+      position: absolute;
+      width: 100%;
+    }
+    
+    #more_button  {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      height: 42px;
+      width: 40px;
+      background: #f6f6f6;
+      display: block;
+      text-align: center;
+      cursor: pointer;
+      font-size: 30px;
+      caret-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    #more_menu  {
+      position: absolute;
+      top: 48px;
+      right: 32px;
+      height: 347px;
+      width: 200px;
+      background: #f6f6f6;
+      cursor: pointer;
+      text-align: left;
+      font-size: 15px;
+      font-family: Geneva, sans-serif;
+      border: 1px solid #a8a8a8;
+      display: none;
+      border-radius: 4px;
+      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    }
+    #code_dialog  {
+      position: absolute;
+      top: 48px;
+      right: 20px;
+      height: 65%;
+      left: 50px;
+      background: #e6e6e6;
+      border-radius: 2px;
+      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+      display: none;
+    }
+    #save_dialog  {
+      position: absolute;
+      top: 70px;
+      left: 210px;
+      height: 140px;
+      width: 250px;
+      background: #e6e6e6;
+      border-radius: 6px;
+      border: 1px solid #BBBBBB;
+      display: none;
+      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    }
+    input, select {
+      display: block;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      border-radius: 5px;
+      font-size: 16px;
+      background: #fAfAfA;
+      width: 90%; 
+      padding: 10px;
+      margin: 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+    .x {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 32px;
+      height: 24px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .x_code {
+      display: block;
+      position: absolute;
+      right: 14px;
+      top: 0;
+      width: 28px;
+      height: 24px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      z-index: 3;
+      font-size: x-large;
+    }
+    #blocklyDiv { height: 100%; width: 100%; }
+    .blocklyToolboxContents { padding: .1em; }
+    .blocklyTreeRow { padding: 10px; margin-bottom: .2em; border-radius: 5px; }
+    .blocklyFlyoutBackground { fill: #f6f6f6; }
+    .blocklyToolboxDiv { background-color: #f6f6f6; }
+    .blocklyTreeIcon { width: 1px; }
+    #myProgress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 4px;
+      background-color: #29d;
+      z-index: 9999;
+      transition: width 0.25s ease, opacity 0.2s ease;
+    }
+    
+  </style>
+  
+  
+  <style>
+    #extensions_dialog {
+      position: absolute;
+      z-index: 10001;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 340px;
+      height: 458px
+      background:#ffffff; 
+      border: 2px solid #666;
+      border-radius: 6px;
+      display: none;
+    }
+    #ext_header {
+      padding: 6px 10px;
+      font-size: 18px;
+      background: #666;
+      color: #fff;
+    }
+    #ext_list {
+      height: 250px;
+      overflow: auto;
+      padding: 8px;
+    }
+    #ext_drop {
+      height: 90px;
+      margin: 8px;
+      border: 2px dashed #3f51b580;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3f51b5;
+      font-size: 20px;
+    }
+    #extensions_dialog .ext_row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .ext_btn {
+      margin-left: 6px;
+      background: #ff5252;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      height: 22px;
+    }
+    #extensions_dialog .ext_row label {
+      flex: 1;
+      margin-left: 6px;
+      color: #000;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    #extensions_dialog input[type="checkbox"]{
+      width:20px;          /* ↑ šířka 24 px */
+      height:20px;         /* ↑ výška 24 px – ať je čtverec */
+      cursor:pointer;
+      /* volitelné – barva fajfky v moderních prohlížečích */
+      accent-color:#3f51b5;
+    }
+  </style>
+  
+  
+  
+  
+</head>
+<body>
+  <div id="myProgress"></div>
+  <div id="drop_zone" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: none; background-color: rgba(0, 0, 0, 0.5); text-align: center; color: white; padding-top: 20%; font-size: 25px;">
+    Puštěním, se zahájí načítání XML souboru.
+  </div>
+  
+  <img src="topbar_blk.png" width="520" height="42" usemap="#icon_map" style="position: absolute; user-drag: none; user-select: none; top: 2px; left: 0px">
+  <map name="icon_map">
+    <area alt="Spustit kód" title="Spustit kód" shape="rect" coords="8,1,85,41" onclick="phone_vibrate();runCode();" style="cursor: pointer;">
+    <area alt="Zastavit program" title="Zastavit program" shape="rect" coords="94,1,136,41" onclick="phone_vibrate();stopCode();" style="cursor: pointer;">
+    <area alt="Otevřít soubor z ESP" title="Otevřít soubor z vnitřní paměti" shape="rect" coords="145,1,188,41" onclick="phone_vibrate();code_upload_pc();" style="cursor: pointer;">
+    <area alt="Uložit soubor do ESP" title="Uložit soubor do vnitřní paměti" shape="rect" coords="192,1,234,41" onclick="phone_vibrate();save_file_dialog();" style="cursor: pointer;">
+    <area alt="Zpět" title="Zpět" shape="rect" coords="240,1,282,41" onclick="phone_vibrate();Blockly.mainWorkspace.undo(false);" style="cursor: pointer;">
+    <area alt="Znovu" title="Znovu" shape="rect" coords="288,1,330,41" onclick="phone_vibrate();Blockly.mainWorkspace.undo(true);" style="cursor: pointer;">
+    <area alt="Zobrazit kód" title="Zobrazit kód" shape="rect" coords="336,1,376,41" onclick="phone_vibrate();showCode();" style="cursor: pointer;">
+    <area alt="Informace o zařízení" title="Informace o zařízení" shape="rect" coords="378,1,423,41" onclick="phone_vibrate();get_Info();" style="cursor: pointer;">
+    <area alt="Restart zařízení" title="Restart zařízení" shape="rect" coords="433,1,472,41" onclick="phone_vibrate();ResetCPU();" style="cursor: pointer;">
+  </map>
+  
+  <button id="SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení" style="position: absolute; border: none; top: 2px; left: 550px; height: 42px; width: 103px; z-index: 999; cursor: pointer; background-color: #f6f6f6;">
+  </button>
+  
+  <!-- Výběr procesoru v horní liště -->
+  <select id="processorDropdown" title="Aktuální procesor" style="position:absolute; top:4px; left:700px; width:120px; height:36px; margin: 0px; padding: 5px; z-index:999; font-size:16px;">
+      <option value="ESP32">ESP32</option>
+      <option value="ESP32C3">ESP32-C3</option>
+      <option value="ESP32S3">ESP32-S3</option>
+      <option value="RP2040">RP2040</option>
+  </select>
+  
+  
+  <div id="editor_div" class="split content"><div id="blocklyDiv"></div></div>
+  <div id="terminal_div" class="split content"><div id="term"></div></div>
+  
+  <div id="code_dialog" style="z-index: 150;">
+    <div class="x_code" onclick="close_code();">x</div>
+    <pre id="editor"></pre>
+  </div>
+  
+  <input id="upload_file_input" type="file" accept=".xml, .blk" style="position: absolute; top: 99%; left: 99%; width: 0px; height: 0px; padding: 0px" />
+  
+  <div id="save_dialog" style="z-index: 200;">
+    <div class="x" onclick="close_save();">x</div>
+    <form class="form_style" action="">
+      <p align="center" style="margin: 10px;">Uložit soubor do PC</p>
+      <input type="text" id="save_filename" name="save_filename" value="nazev_projektu" placeholder="nazev_projektu">
+      <input type="submit" id="save_dialog_btn" value="Uložit" onclick="code_download_pc(); return false;">
+    </form> 
+  </div>
+  
+  
+  
+  
+    <div id="extensions_dialog" style="background:#ffffff;">
+        <div id="ext_header">Správce doplňků
+        <span class="x" style="float:right;cursor:pointer;background-color: #f85858;margin-right: 2px;margin-top: 4px;border-radius: 4px;" onclick="closeExtensionsDialog()">×</span>
+        </div>
+
+        <div id="ext_list"></div>
+
+        <div id="ext_drop">Sem přetáhni *.newblk soubory</div>
+
+        <input type="button" value="Uložit změny" style="width:94%;margin:8px 3%;height:38px" onclick="applyExtensionSelection()">
+    </div>
+  
+  
+  
+      
+  <div id="more_button" onclick="showDropdown();">&#x2630;</div>
+  <div id="more_menu">
+    <div>
+      <input title="Po zapnutí procesoru se soubor automaticky spustí" type="checkbox" id="autostart" name="autostart" onclick="setTimeout(function(){showDropdown()}, 150);" style="margin-right: 5px; width: 28px; height: 28px; vertical-align: -8px; display: inline;">
+      <label title="Po zapnutí procesoru se soubor automaticky spustí" for="autostart">Automaticky spustit</label>
+    </div>
+    <hr>
+    <button type="button" title="Soubor z PC načíst do editoru" onclick="code_upload_pc();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Otevřít projekt z PC</button>
+    <button type="button" title="Stáhnout právě otevřený soubor do PC" onclick="code_download_pc();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Uložit projekt do PC</button>
+    
+    <hr>
+    <button type="button" title="Nahrát knihovny do zařízení" onclick="libs_download_to_mcu();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Nahrát knihovny do zařízení</button>
+    
+    <hr>
+    <button type="button" title="Nastavit zobrazení bloků" onclick="custom_blocks_select();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Nastavit zobrazení bloků</button>
+  
+    <hr>
+    <button type="button" title="Správce doplňků" onclick="openExtensionsDialog();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Správce doplňků</button>
+  
+  
+  </div>
+  
+  <xml id="toolbox" style="display: none">
+    <category name="Načítání..." colour="#f6f6f6"></category>
+  </xml>
+  
+  <script>
+    // Script pro progressbar
+    !function(){
+      var t = document.getElementById("myProgress"), e = 25;
+      var n = setInterval(function(){
+        if(e < 90){
+          e += Math.random()*(250/e);
+          if(e > 90) e = 90;
+          t.style.width = e + "%";
+        }
+      }, 20);
+      window.addEventListener("load", function(){
+        clearInterval(n);
+        t.style.width = "100%";
+        setTimeout(function(){ t.style.opacity = 0; }, 500);
+      });
+    }();
+  </script>
+  
+
+</body>
+</html>

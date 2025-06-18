@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css" media="screen">
+        *{
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        html, body{
+            height: 100%;
+        }
+
+        body{
+            background-color: rgb(255, 255, 255);
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .navbar{
+            top: 0px;
+            padding: 4px;
+            margin-bottom: 1em;
+            align-items: center;
+            background-color: rgb(246, 246, 246);
+            border-radius: 3px;}
+        }
+
+        .btn, input{
+            padding: 0 1em;
+        }
+
+        input.sizeh {
+            width: 102px;
+            margin: 1px;
+        }
+
+        input.sizew {
+            width: 74px;
+            margin: 2px;
+        }
+
+        .container{
+            --sizeh: 4;
+            --sizew: 4;
+            width: auto;
+            display: grid;
+            grid-template-columns: repeat(var(--sizeh), 1fr);
+            grid-template-rows: repeat(var(--sizew), 1fr);
+            gap: 2px;
+            padding: 2px;
+            background-color: rgb(50, 50, 50);
+            border-radius: 3px;
+        }
+
+        .pixel{
+            background-color: rgb(0, 0, 0);
+            border-radius: 1px;
+            height: 12px;
+            width: 12px;
+            user-drag: none;
+            user-select: none;
+        }
+    </style>
+    <title>Editor obrázků</title>
+</head>
+<body>
+    <div class="navbar">
+        <label for="sizeh">šířka:</label>
+        <input type="number" name="sizeh" value="8" class="sizeh" maxlength="3" size="3">
+        <br>
+        <label for="sizeh">výška 8*:</label>
+        <input type="number" name="sizew" value="1" class="sizew" maxlength="3" size="3">
+        
+        <br>
+        <button class="btn" style="width: 65px; margin:4px;">Reset</button>
+        <input type="button" value="Export" style="width: 65px; margin:4px;" onclick="export_img();">
+        <br>
+        <input type="button" value="Bílá" style="width: 65px;height:40px; margin:4px; background-color: #FFFFFF; color: black;" onclick="color = '#FFFFFF';">
+        <input type="button" value="Černá" style="width: 65px;height:40px; margin:4px; background-color: #000000; color: white;" onclick="color = '#000000';">
+        <br>
+        <input type="button" value="Načíst obrázek z PC" onclick="code_upload_pc();" style="width: 142px; margin:4px;">
+    </div>
+    
+    <div class="container">
+    </div>
+    <br>
+    <input type="button" value="Kopírovat data do schránky" onclick="export_img();">
+    <p id="demo"></p>
+    
+    <canvas id="canv" width="1024" height="1024" style="border:1px solid black;display: none;"></canvas>
+    <input id="upload_file_input" type="file" style="position: absolute; top: 99%; left: 99%; width: 0px; height: 0px; padding: 0px"/>
+    <img id="outputpng" class="" src="" style="display: none"/>
+    <script>
+        const container = document.querySelector('.container')
+        const sizeElh = document.querySelector('.sizeh')
+        let sizeh = sizeElh.value
+        const sizeElw = document.querySelector('.sizew')
+        let sizew = sizeElw.value*8
+        var color = '#FFFFFF'
+        const resetBtn = document.querySelector('.btn')
+
+        let draw = false
+
+        
+        // return a promise
+        function copyToClipboard(textToCopy) {
+            // navigator clipboard api needs a secure context (https)
+            if (navigator.clipboard && window.isSecureContext) {
+                // navigator clipboard api method'
+                return navigator.clipboard.writeText(textToCopy);
+            } else {
+                // text area method
+                let textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                // make the textarea out of viewport
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                return new Promise((res, rej) => {
+                    // here the magic happens
+                    document.execCommand('copy') ? res() : rej();
+                    textArea.remove();
+                });
+            }
+        }
+        
+        
+        
+        function populate(sizeh,sizew) {
+          container.style.setProperty('--sizeh', sizeh)
+          container.style.setProperty('--sizew', sizew)
+          for (let i = 0; i < sizew; i++) {
+              for (let ii = 0; ii < sizeh; ii++) {
+                const div = document.createElement('div')
+                div.setAttribute("id", "x" + ii + "y" + i);
+                div.classList.add('pixel')
+
+                div.addEventListener('mouseover', function(){
+                    if(!draw) return
+                    div.style.backgroundColor = color
+                })
+                div.addEventListener('touchmove', function(event){
+                    var touch = event.touches[0];
+                    var elm = document.elementFromPoint(touch.clientX, touch.clientY);
+                    
+                    if (elm.className == "pixel")
+                    {
+                        elm.style.backgroundColor = color
+                    }
+                })
+                div.addEventListener('mousedown', function(){
+                    div.style.backgroundColor = color
+                })
+                container.appendChild(div)
+              }
+          }
+        }
+
+        function export_img()
+        {
+            var out_byte = 0;
+            var out_data = [];
+            var count = 0;
+            var str_out = "bytearray(b'";
+            for (let y = 0; y < sizew/8; y++) {
+              for (let x = 0; x < sizeh; x++) {
+                out_byte = 0;
+                
+                for (let i = 0; i < 8; i++) {
+                    if (document.getElementById("x"+x+"y"+(y*8+i)).style.backgroundColor == 'rgb(255, 255, 255)')
+                    {
+                        out_byte = out_byte + Math.pow(2, i);
+                    }
+                    //console.log(document.getElementById("x"+x+"y"+(y*8+i)).style.backgroundColor);
+                }
+                
+                if (out_byte < 16)
+                {
+                    str_out = str_out + String.fromCharCode(92, 120, 48) + out_byte.toString(16);
+                }
+                else
+                {
+                    str_out = str_out + String.fromCharCode(92, 120) + out_byte.toString(16);
+                }
+                
+                //out_data[count] = out_byte;
+                out_data[count] = String.fromCharCode(92, 120) + out_byte.toString(16);
+                //console.log(out_data[count]);
+                count++;
+              }
+            }
+            
+            //document.getElementById("demo").innerHTML = str_out + "'), " + sizeh + ", " + sizew;
+            //navigator.clipboard.writeText(str_out + "'), " + sizeh + ", " + sizew);
+            
+            copyToClipboard(str_out + "'), " + sizeh + ", " + sizew)
+            document.getElementById("demo").innerHTML = "Data uložena do schránky";
+        }
+        
+        
+        function import_img()
+        {
+            code_upload_pc();
+            
+            var canvas = document.getElementById('canv');
+            
+            // Create an image object
+            var image = document.getElementById('outputpng');
+           
+            // When the image has finished loading, draw it to the canvas
+            image.onload = function() {
+                canvas.getContext('2d').drawImage(image, 0, 0);
+                console.log(image.naturalHeight);
+                console.log(image.naturalWidth);
+                
+                sizew = image.naturalHeight;
+                sizeh = Math.ceil(image.naturalWidth/8)*8;
+                
+                sizeElh.value = image.naturalWidth;
+                sizeElw.value = Math.ceil(image.naturalHeight/8);
+
+                reset()
+                
+                
+                for (let x = 0; x < image.naturalWidth; x++) {
+                    for (let y = 0; y < image.naturalHeight; y++) {
+                        var imageData = canvas.getContext('2d').getImageData(x, y, 1, 1);
+
+                        // Get the red, green, blue, and alpha values of the pixel
+                        var r = imageData.data[0];
+                        var g = imageData.data[1];
+                        var b = imageData.data[2];
+                        var a = imageData.data[3];
+                        var brightness = r+g+b / 3;
+                        
+                        // Print the pixel color
+                        //console.log('Pixel color: (' + r + ', ' + g + ', ' + b + ', ' + a + ')');
+                        
+                        if (brightness < 128)
+                        {
+                            document.getElementById("x"+x+"y"+y).style.backgroundColor = 'rgb(255,255,255)';
+                        }
+
+                        
+                    }
+                }
+                
+            }
+ 
+        }
+        
+
+
+
+        window.addEventListener("mousedown", function(){
+            draw = true
+        })
+        window.addEventListener("mouseup", function(){
+            draw = false
+        })
+
+        window.addEventListener('touchstart', function(){
+            draw = true
+        })
+
+        window.addEventListener('touchend', function(){
+            draw = true
+        })
+
+        function reset(){
+            container.innerHTML = '';
+            document.getElementById("demo").innerHTML = '';
+            populate(sizeh,sizew)
+        }
+
+        resetBtn.addEventListener('click', reset)
+
+        sizeElh.addEventListener('keyup', function(){
+            sizeh = sizeElh.value
+            sizew = sizeElw.value*8
+            reset()
+        })
+
+        sizeElw.addEventListener('keyup', function(){
+            sizeh = sizeElh.value
+            sizew = sizeElw.value*8
+            reset()
+        })
+
+        sizeElh.addEventListener('change', function(){
+            sizeh = sizeElh.value
+            sizew = sizeElw.value*8
+            reset()
+        })
+
+        sizeElw.addEventListener('change', function(){
+            sizeh = sizeElh.value
+            sizew = sizeElw.value*8
+            reset()
+        })
+        
+        
+        function code_upload_pc() {
+        document.getElementById('upload_file_input').addEventListener('change', readSingleFile, false);
+        document.getElementById('upload_file_input').click();
+        }
+    
+    
+        function readSingleFile(e) {
+          var file = e.target.files[0];
+          if (!file) {
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var contents = e.target.result;
+            try {
+                console.log(contents);
+                var output = document.getElementById('outputpng');
+                output.src = contents;
+                import_img();
+              } catch (e) {
+                alert(e);
+              } 
+          };
+          reader.readAsDataURL(file);
+        }
+        
+        
+        
+        
+        populate(sizeh,sizew)
+    </script>
+</body>
+</html>

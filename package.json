@@ -1,0 +1,43 @@
+{
+  "name": "esp_ide",
+  "productName": "ESP IDE",
+  "version": "1.12.1",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win --x64",
+    "dist:linux": "electron-builder --linux appimage",
+    "dist:mac":   "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "eu.espide.desktop",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "**/*",
+      "!node_modules/*.md",
+      "!**/tests/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "ESP IDE"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

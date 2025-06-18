@@ -1,0 +1,24 @@
+<!-- splash.html -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <style>
+    /* 100 % plátno s průhledným pozadím */
+    html,body{
+      margin:0;height:100%;
+      background:transparent;      /* ↔ klíčové */
+      display:flex;justify-content:center;align-items:center;
+    }
+    /* pulsování loga */
+    .logo{width:260px;animation:pulse 0.8s ;}
+    @keyframes pulse{0%{opacity:.1}100%{opacity:1}}
+  </style>
+</head>
+<body>
+  <img src="icon.png" class="logo" alt="Logo">
+  <div style="position: absolute; left: 276px; top: 210px; color: white;">
+    v1.12
+  </div>
+</body>
+</html>
