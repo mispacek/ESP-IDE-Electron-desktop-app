@@ -61,4 +61,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./artifacts/**/* 
+          files: |
+            ./artifacts/**/*Setup*.exe
+            ./artifacts/**/*.dmg
+            ./artifacts/**/*.AppImage
+            ./artifacts/**/*-mac.zip
