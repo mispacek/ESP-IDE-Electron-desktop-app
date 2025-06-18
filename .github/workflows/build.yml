@@ -3,7 +3,7 @@ name: Build and Release ESP IDE
 on:
   push:
     tags:
-      - 'v*.*.*'  # spustí se pouze pokud vytvoříš tag v1.12.1 apod.
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    
+
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
