@@ -6,9 +6,9 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-    "dist:win": "electron-builder --win --x64",
+    "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux appimage",
-    "dist:mac":   "electron-builder --mac"
+    "dist:mac": "electron-builder --mac --universal"
   },
   "devDependencies": {
     "electron": "^30.5.1",
@@ -26,7 +26,20 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "arch": [
+        "x64",
+        "ia32"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "arch": [
+        "universal"
+      ]
     },
     "nsis": {
       "oneClick": false,
