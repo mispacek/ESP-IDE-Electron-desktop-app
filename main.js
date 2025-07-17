@@ -8,6 +8,17 @@ let splash;    // splash screen
 const SPLASH_MIN = 1250;          // ms – změň podle potřeby
 let splashStart;                  // čas, kdy jsme splash otevřeli
 
+
+if (process.platform === 'linux') {
+  // vypne Chromium sandbox globálně
+  app.commandLine.appendSwitch('no-sandbox') // --no-sandbox
+  // zruší blok-list, aby WebSerial viděl všechna zařízení
+  app.commandLine.appendSwitch('disable-serial-blocklist')
+  // pojistka: totéž přes proměnnou prostředí
+  process.env.ELECTRON_DISABLE_SANDBOX = 'true'
+}
+
+
 function createWindow () {
 
   // splash window (pouze pro splash můžeme povolit nodeIntegration)
@@ -19,6 +30,7 @@ function createWindow () {
       resizable: false,
       skipTaskbar: true,
       webPreferences: {
+        sandbox: false,         // renderer bez sandboxu
         nodeIntegration: true,  // dovolí require('electron') v splash.html
         contextIsolation: false
       }
@@ -33,6 +45,7 @@ function createWindow () {
     show: false,                    // *** důležité ***
     webPreferences: {
       preload: path.join(__dirname,'preload.js'),
+      sandbox: false,
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -80,6 +93,7 @@ function createWindow () {
         show: false,              // zobraz až bude připraveno
         webPreferences: {
           preload: path.join(__dirname, 'pickerPreload.js'),
+          sandbox: false,
           contextIsolation: true,
           nodeIntegration: false
         }
@@ -99,13 +113,7 @@ function createWindow () {
       });
     });
   
-  
-  
-  
-  
-  
-  
-  
+ 
 
   // načti UI
   mainWin.loadFile(path.join(__dirname, 'index.html'));
