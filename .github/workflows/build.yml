@@ -24,13 +24,25 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm install
+      #––– Linux-only závislosti pro .deb / AppImage ––––––––––––––––––––––––––
+      - name: Install build deps (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y fakeroot dpkg rpm  # .deb vyžaduje fakeroot+dpkg :contentReference[oaicite:0]{index=0}
+
+      #––– Zapnutí globálního no-sandbox pro buildované binárky –––––––––––––––
+      - name: Set no-sandbox env (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: echo "ELECTRON_DISABLE_SANDBOX=1" >> $GITHUB_ENV   # stejné jako --no-sandbox :contentReference[oaicite:1]{index=1}
+
+      - name: Install JS dependencies
+        run: npm ci
 
       - name: Build app
         run: |
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run dist:linux
+            npm run dist:linux          # generuje AppImage + .deb (viz build.linux v package.json) :contentReference[oaicite:2]{index=2}
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             npm run dist:win
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
@@ -65,4 +77,5 @@ jobs:
             ./artifacts/**/*Setup*.exe
             ./artifacts/**/*.dmg
             ./artifacts/**/*.AppImage
+            ./artifacts/**/*.deb        # ← nově přidáno
             ./artifacts/**/*-mac.zip
