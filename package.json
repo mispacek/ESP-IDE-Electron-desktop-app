@@ -49,6 +49,9 @@
          { "target": "AppImage", "arch": ["x64"] },
          { "target": "deb",      "arch": ["x64"] }
        ],
+       "deb": {
+        "afterInstall": "postinstall.sh"
+       },
        "executableArgs": ["--no-sandbox", "--disable-serial-blocklist"],
        "desktop": {
         "Categories": "Development;Electronics;"

@@ -19,16 +19,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Nastav spustitelnost postinstall skriptu
+        if: matrix.os == 'ubuntu-latest'
+        run: chmod +x postinstall.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-
-      - name: Find exec1
-        run: grep -R --line-number --exclude-dir=node_modules '"Exec"' .
-
-      - name: Find exec2
-        run: grep -R --line-number 'Exec:' .
 
       #––– Linux-only závislosti pro .deb / AppImage ––––––––––––––––––––––––––
       - name: Install build deps (Linux only)
@@ -83,5 +81,5 @@ jobs:
             ./artifacts/**/*Setup*.exe
             ./artifacts/**/*.dmg
             ./artifacts/**/*.AppImage
-            ./artifacts/**/*.deb        # ← nově přidáno
+            ./artifacts/**/*.deb
             ./artifacts/**/*-mac.zip
