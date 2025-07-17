@@ -50,7 +50,7 @@
        ],
        "executableArgs": ["--no-sandbox", "--disable-serial-blocklist"],
        "desktop": {
-        "Categories": "Development;Electronics;"  // další položky jsou OK
+        "Categories": "Development;Electronics;"
        }
      }
   },
