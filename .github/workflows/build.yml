@@ -24,6 +24,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Find exec1
+        run: grep -R --line-number --exclude-dir=node_modules '"Exec"' .
+
+      - name: Find exec2
+        run: grep -R --line-number 'Exec:' .
+
       #––– Linux-only závislosti pro .deb / AppImage ––––––––––––––––––––––––––
       - name: Install build deps (Linux only)
         if: matrix.os == 'ubuntu-latest'
