@@ -44,6 +44,7 @@
     "linux": {
        "executableName": "esp-ide",
        "category": "Development",
+       "maintainer": "Milan Špaček <[espide@email.cz]>",
        "target": [
          { "target": "AppImage", "arch": ["x64"] },
          { "target": "deb",      "arch": ["x64"] }
@@ -55,7 +56,7 @@
      }
   },
   "keywords": [],
-  "author": "",
+  "author": "Milan Špaček <[espide@email.cz]>",
   "license": "ISC",
   "description": "Vývojové prostředí ESP IDE pro Windows, Linux a macOS"
 }
