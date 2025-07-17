@@ -40,7 +40,19 @@
       "allowElevation": true,
       "createDesktopShortcut": true,
       "shortcutName": "ESP IDE"
+    },
+    "linux": {
+    "target": [
+      { "target": "AppImage", "arch": ["x64"] },
+      { "target": "deb",      "arch": ["x64"] }
+    ],    
+    "executableArgs": ["--no-sandbox", "--disable-serial-blocklist"],
+    "desktop": {
+      "Exec": "esp-ide --no-sandbox %U",
+      "Categories": "Development;Electronics;"
     }
+   }
+   
   },
   "keywords": [],
   "author": "",
