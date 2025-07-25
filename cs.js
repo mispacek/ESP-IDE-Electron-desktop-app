@@ -3,7 +3,7 @@
 'use strict';
 
 Blockly.Msg["ADD_COMMENT"] = "Přidat komentář";
-Blockly.Msg["CANNOT_DELETE_VARIABLE_PROCEDURE"] = "Nemohu smazat proměnou '%1' protože je součástí deklarace funkce '%2'";
+Blockly.Msg["CANNOT_DELETE_VARIABLE_PROCEDURE"] = "Nemohu smazat proměnnou '%1' protože je součástí deklarace funkce '%2'";
 Blockly.Msg["CHANGE_VALUE_TITLE"] = "Změnit hodnotu:";
 Blockly.Msg["CLEAN_UP"] = "Uspořádat bloky";
 Blockly.Msg["COLLAPSED_WARNINGS_WARNING"] = "Sbalený blok obsahuje varování";
@@ -60,7 +60,7 @@ Blockly.Msg["CONTROLS_WHILEUNTIL_TOOLTIP_UNTIL"] = "Dokud je hodnota nepravdivá
 Blockly.Msg["CONTROLS_WHILEUNTIL_TOOLTIP_WHILE"] = "Dokud je hodnota pravdivá, prováděj určité příkazy.";
 Blockly.Msg["DELETE_ALL_BLOCKS"] = "Smazat všech %1 bloků?";
 Blockly.Msg["DELETE_BLOCK"] = "Smazat blok";
-Blockly.Msg["DELETE_VARIABLE"] = 'Smazat proměnou "%1"';
+Blockly.Msg["DELETE_VARIABLE"] = 'Smazat proměnnou "%1"';
 Blockly.Msg["DELETE_VARIABLE_CONFIRMATION"] = "Smazat %1 použití proměnné '%2' ?";
 Blockly.Msg["DELETE_X_BLOCKS"] = "Smazat %1 bloků";
 Blockly.Msg["DISABLE_BLOCK"] = "Deaktivovat blok";
