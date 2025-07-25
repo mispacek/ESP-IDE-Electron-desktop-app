@@ -48,7 +48,15 @@
 
 <script>
   // formátovací pomocník: dec ➜ 0xABCD
-  const hex = n => n ? '0x' + n.toString(16).toUpperCase().padStart(4,'0') : '-';
+  const hex = n => {
+    if (n === undefined || n === null) return '-';
+    // accept numbers or strings like "2341" or "0x2341"
+    const num = typeof n === 'string'
+                ? parseInt(n.replace(/^0x/i, ''), 16)
+                : n;
+    if (Number.isNaN(num)) return '-';
+    return '0x' + num.toString(16).toUpperCase().padStart(4, '0');
+  };
 
   window.picker.onPorts(ports => {
     const list = document.getElementById('portList');
