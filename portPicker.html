@@ -50,12 +50,19 @@
   // formátovací pomocník: dec ➜ 0xABCD
   const hex = n => {
     if (n === undefined || n === null) return '-';
-    // accept numbers or strings like "2341" or "0x2341"
-    const num = typeof n === 'string'
-                ? parseInt(n.replace(/^0x/i, ''), 16)
-                : n;
-    if (Number.isNaN(num)) return '-';
-    return '0x' + num.toString(16).toUpperCase().padStart(4, '0');
+
+    let num = n;
+    if (typeof n === 'string') {
+      const trimmed = n.trim();
+      if (/^0x/i.test(trimmed) || /[a-f]/i.test(trimmed)) {
+        num = parseInt(trimmed.replace(/^0x/i, ''), 16);
+      } else {
+        num = parseInt(trimmed, 10);
+      }
+    }
+
+    if (typeof num !== 'number' || Number.isNaN(num)) return '-';
+    return '0x' + Math.trunc(num).toString(16).toUpperCase().padStart(4, '0');
   };
 
   window.picker.onPorts(ports => {
