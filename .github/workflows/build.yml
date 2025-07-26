@@ -78,8 +78,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/**/*Setup*.exe
+            ./artifacts/**/*.exe
             ./artifacts/**/*.dmg
             ./artifacts/**/*.AppImage
             ./artifacts/**/*.deb
-            ./artifacts/**/*-mac.zip
+            ./artifacts/**/*.zip

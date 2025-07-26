@@ -24,6 +24,7 @@
       "!node_modules/*.md",
       "!**/tests/**"
     ],
+    "artifactName": "ESP_IDE_${version}_${os}_${arch}.${ext}",
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico"
