@@ -1,14 +1,62 @@
-# CH340
+# --------------------------------------------------------
+# 99-espide-serial.rules
+# Pravidla pro povolení přístupu k USB-Serial převodníkům
+# a nativním USB zařízení pro MicroPython, CircuitPython a Arduino
+# --------------------------------------------------------
+
+# ----------------------
+# WCH CH340/CH341
+# Běžné u klonů Arduino, ESP32 a levných desek
+# ----------------------
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", GROUP="dialout"
 
-# CP2102
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0660", GROUP="dialout"
+# Novější WCH CH9102
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE="0660", GROUP="dialout"
 
-# FTDI FT232RL
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0660", GROUP="dialout"
+# ----------------------
+# Silicon Labs CP210x (CP2102, CP2104, CP2105, CP2108)
+# Používáno na originálních ESP32 modulech a některých Arduinech
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", MODE="0660", GROUP="dialout"
 
-# PL2303
+# ----------------------
+# FTDI FT232/FT2232/FT4232
+# Populární na starších Arduino deskách, profesionálních modulech
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", MODE="0660", GROUP="dialout"
+
+# ----------------------
+# Prolific PL2303
+# Běžné u levných USB-Serial kabelů
+# ----------------------
 SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", MODE="0660", GROUP="dialout"
 
-# Nativní USB CDC ESP32-C3/S3 (MicroPython)
+# ----------------------
+# Microchip MCP2221
+# Univerzální USB-Serial převodník
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="00dd", MODE="0660", GROUP="dialout"
+
+# ----------------------
+# ESP32-C3/S3 Native USB (CDC ACM)
+# MicroPython s nativním USB rozhraním
+# ----------------------
 SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", MODE="0660", GROUP="dialout"
+
+# ----------------------
+# RP2040 (Raspberry Pi Pico, Pico W)
+# Native USB – MicroPython, CircuitPython, UF2 Bootloader
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", MODE="0660", GROUP="dialout"
+
+# ----------------------
+# Atmega32U4 (Arduino Leonardo, Micro)
+# Native USB CDC
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", MODE="0660", GROUP="dialout"
+
+# ----------------------
+# STM32 (BlackPill, Nucleo, BluePill s CDC)
+# Native USB CDC ACM
+# ----------------------
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE="0660", GROUP="dialout"
