@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Tento skript vyžaduje práva roota, zkontrolujme je hned na začátku
+if [ "$EUID" -ne 0 ]; then
+  echo "[ESP-IDE] Tento skript musí být spuštěn jako root." >&2
+  exit 1
+fi
+
+# Urči uživatele, který provádí instalaci
+TARGET_USER=${SUDO_USER:-$USER}
+
 echo "[ESP-IDE] Instalace pravidel pro USB zařízení..."
 RULES_FILE="/etc/udev/rules.d/99-espide-serial.rules"
 
@@ -7,9 +16,9 @@ RULES_FILE="/etc/udev/rules.d/99-espide-serial.rules"
 install -m 644 ./99-espide-serial.rules "$RULES_FILE"
 
 # Přidej uživatele do dialout, pokud ještě není
-if ! groups "$USER" | grep -q dialout; then
-  echo "[ESP-IDE] Přidávám uživatele '$USER' do skupiny 'dialout'"
-  usermod -aG dialout "$USER"
+if ! groups "$TARGET_USER" | grep -q dialout; then
+  echo "[ESP-IDE] Přidávám uživatele '$TARGET_USER' do skupiny 'dialout'"
+  usermod -aG dialout "$TARGET_USER"
   echo "[ESP-IDE] Projeví se po odhlášení/přihlášení."
 fi
 
