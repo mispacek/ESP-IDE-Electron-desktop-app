@@ -16,3 +16,39 @@ sudo udevadm trigger
 
 These steps are executed automatically by `postinstall.sh` when installing the
 `.deb` package.
+
+## Installation
+
+Download the installer for your platform from the release page.  File names have
+the following format:
+
+```
+ESP_IDE_<version>_<platform>.<extension>
+```
+
+Use the file that matches your operating system:
+
+### Windows
+
+Run the installer `ESP_IDE_<version>_win_<arch>.exe` and follow the prompts.
+Select the `x64` file for 64‑bit systems or `ia32` for 32‑bit.
+
+### Linux
+
+On Debian‑based systems install the `.deb` package:
+
+```bash
+sudo dpkg -i ESP_IDE_<version>_amd64.deb
+```
+
+For other distributions use the AppImage. Make it executable and run it:
+
+```bash
+chmod +x ESP_IDE_<version>_linux_x64.AppImage
+./ESP_IDE_<version>_linux_x64.AppImage
+```
+
+### macOS
+
+Mount `ESP_IDE_<version>_mac_universal.dmg` and drag the application to the
+Applications folder. Alternatively unpack the zip archive with the same prefix.
