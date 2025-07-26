@@ -78,8 +78,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/**/*.exe
-            ./artifacts/**/*.dmg
-            ./artifacts/**/*.AppImage
-            ./artifacts/**/*.deb
-            ./artifacts/**/*.zip
+            ./artifacts/**/ESP_IDE_*.exe
+            ./artifacts/**/ESP_IDE_*.dmg
+            ./artifacts/**/ESP_IDE_*.AppImage
+            ./artifacts/**/ESP_IDE_*.deb
+            ./artifacts/**/ESP_IDE_*.zip
