@@ -62,8 +62,112 @@ function createWindow () {
   ses.setPermissionCheckHandler((_wc, permission) => permission === 'serial');
   ses.setDevicePermissionHandler(() => true);
 
+ 
+
+ 
+    // ---- BLE picker window ----
+    let bleCb = null;
+    let blePickerWin = null;
+    const bleDevices = new Map();
+
+    // nahraď svou openBlePicker():
+    function openBlePicker() {
+      if (blePickerWin && !blePickerWin.isDestroyed()) return;
+
+      const { BrowserWindow } = require('electron');
+      const parent = mainWin; // stejný rodič jako portPicker
+      const { x: baseX, y: baseY } = parent.getBounds(); // pozicionování jako u portPickeru
+
+      blePickerWin = new BrowserWindow({
+        parent,
+        modal: false,
+        width: 420,
+        height: 400,
+        x: baseX + 350,
+        y: baseY + 120,
+        resizable: false,
+        frame: false,             // bez rámečku
+        show: false,              // zobraz až po načtení
+        skipTaskbar: true,
+        backgroundColor: '#ffffff',
+        webPreferences: {
+          contextIsolation: true,
+          sandbox: false,
+          nodeIntegration: false,
+          preload: require('path').join(__dirname, 'btPickerPreload.js')
+        }
+      });
+
+      blePickerWin.loadFile('btPicker.html');
+      blePickerWin.once('ready-to-show', () => blePickerWin.show());
+
+      blePickerWin.on('closed', () => {
+        if (bleCb) { bleCb(''); bleCb = null; }  // zruš výběr, pokud nic nevybral
+        blePickerWin = null;
+        bleDevices.clear();
+      });
+
+      // po načtení pošli aktuální seznam
+      blePickerWin.webContents.once('did-finish-load', () => emitBleDevicesToPicker());
+    }
+
+
+    function emitBleDevicesToPicker() {
+      if (blePickerWin && !blePickerWin.isDestroyed()) {
+        const list = Array.from(bleDevices.values());
+        blePickerWin.webContents.send('ble-devices', list);
+      }
+    }
+
+    // Chromium BLE chooser → přesměruj do našeho okna
+    mainWin.webContents.on('select-bluetooth-device', (event, devices, callback) => {
+      event.preventDefault();
+      bleCb = callback;
+      openBlePicker();
+
+      // inicializuj seznam
+      bleDevices.clear();
+      for (const d of devices) {
+        bleDevices.set(d.deviceId, {
+          id: d.deviceId,
+          name: d.deviceName || '(nepojmenované)',
+          rssi: typeof d.rssi === 'number' ? d.rssi : null
+        });
+      }
+      emitBleDevicesToPicker();
+    });
+
+    // doplňování během skenu
+    mainWin.webContents.on('bluetooth-device-added', (_e, d) => {
+      bleDevices.set(d.deviceId, {
+        id: d.deviceId,
+        name: d.deviceName || '(nepojmenované)',
+        rssi: typeof d.rssi === 'number' ? d.rssi : null
+      });
+      emitBleDevicesToPicker();
+    });
+
+    mainWin.webContents.on('bluetooth-device-changed', (_e, details) => {
+      // některé platformy sem hlásí zrušení systémového chooseru; náš picker řídíme sami
+    });
+
+    // volba z pickeru
+    const { ipcMain } = require('electron');
+    ipcMain.on('ble-picker-choose', (_e, deviceId) => {
+      if (bleCb) { bleCb(deviceId || ''); bleCb = null; }
+      if (blePickerWin && !blePickerWin.isDestroyed()) blePickerWin.close();
+    });
+    ipcMain.on('ble-picker-cancel', () => {
+      if (bleCb) { bleCb(''); bleCb = null; }
+      if (blePickerWin && !blePickerWin.isDestroyed()) blePickerWin.close();
+    });
   
-  
+  //*****************
+  //** F12 - Debug **
+  //*****************
+  //mainWin.webContents.on('before-input-event', (e, input) => {
+  //  if (input.type === 'keyDown' && input.key === 'F12') mainWin.webContents.toggleDevTools();
+  //});
   
   
   

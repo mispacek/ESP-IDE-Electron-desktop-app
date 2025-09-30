@@ -34,7 +34,6 @@ def printBar(num1,num2,col):
     print(" " * num2,end="") 
     print("]  ",end="")
 
-
 # Zobrazeni informaci o zarizeni v terminalu
 def info():
     gc.collect()    
@@ -90,9 +89,28 @@ def run_code():
         gc.collect()
         stop_code()
 
+
+# BLE autostart podle /cfg/ble_name
+try:
+    with open('/cfg/ble_name', 'rb') as f:
+        raw = f.read(24)
+    name = raw.decode('ascii', 'ignore').strip()
+    if (len(name) > 2):
+        try:
+            import ble_repl
+            ble_repl.start(ble_name=name)
+            print('Bluetooth nazev : ', name)
+        except Exception as e:
+            print('Chyba Bluetooth:', e)
+except Exception:
+    time.sleep_ms(0)
+
+
+
 # Autostart programu
 try:
-    start_data = open("idecode").read(16)
+    with open('idecode') as f:
+        start_data = f.read(16)
     if "#autostart*" in start_data:
         print("Autostart programu za 3s")
         time.sleep(3)

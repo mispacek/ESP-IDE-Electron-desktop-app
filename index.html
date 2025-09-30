@@ -7,25 +7,155 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-N9Q5VE157X"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-N9Q5VE157X');
+  </script>
+  
+  
+  
+  
   <!-- Ostatní zdroje načítáme s defer, aby neblokovaly rendering -->
-  <link rel="stylesheet" href="xterm.css?v=25_05_2025">
-  <script src="xterm.js?v=25_05_2025"></script>
-  <script src="split.min.js?v=25_05_2025"></script>
-  <script src="ace.js?v=25_05_2025" defer></script>
-  <script src="ext-language_tools.js?v=25_05_2025" defer></script>
-  <script src="blockly_compressed.js?v=25_05_2025" defer></script>
-  <script src="blocks_compressed.js?v=25_05_2025" defer></script>
-  <script src="python_compressed.js?v=25_05_2025" defer></script>
-  <script src="cs.js?v=25_05_2025" defer></script>
-  <script src="sweetalert2.all.min.js?v=25_05_2025"></script>
-  <link rel="stylesheet" href="sweetalert2.min.css?v=25_05_2025"> 
+  <link rel="stylesheet" href="css/xterm.css?v=14_09_2025">
+  <script src="js/xterm.js?v=14_09_2025"></script>
+  <script src="js/split.min.js?v=14_09_2025"></script>
+  <script src="js/ace.js?v=14_09_2025" defer></script>
+  <script src="js/ext-language_tools.js?v=14_09_2025" defer></script>
+  <script src="js/blockly_compressed.js?v=14_09_2025" defer></script>
+  <script src="js/blocks_compressed.js?v=14_09_2025" defer></script>
+  <script src="js/python_compressed.js?v=14_09_2025" defer></script>
+  <script src="js/cs.js?v=14_09_2025" defer></script>
+  <script src="js/sweetalert2.all.min.js?v=14_09_2025"></script>
+  <link rel="stylesheet" href="css/sweetalert2.min.css?v=14_09_2025"> 
+  
+  <!-- Komunikační drivery pro USB Serial a Bluetooth -->
+  <script src="js/repl_web_usb_serial.js?v=14_09_2025" defer></script>
+  <script src="js/repl_web_bluetooth_serial.js?v=14_09_2025" defer></script>
   
   <!-- Ošetření chybějících dialogů v electronu -->
-  <script src="custom-dialog.js"></script>
+  <script src="js/custom-dialog.js"></script>
 
 
   <!-- Funkce pro dynamickou úpravu toolboxu a ukládání nastavení -->
   <script>
+  
+    // ==== Verze & changelog ============================================
+    const ESPIDE_VERSION = "1.13.5";
+    const ESPIDE_CHANGELOG = `
+    
+[21.9.2025] 1.13.5
+- Optimalizace uživatelského rozhraní pro mobilní zařízení
+- Upscale grafiky pro lepší zobrazení displejích s vysokým PPI
+- Ošetření přepínání mezi USB a Bluetooth připojením
+- Doplnění textového režimu s panely
+- Ukládání obsahu textových editorů do localstorage
+
+
+[21.9.2025] 1.13.4
+- Přidána podpora pro Bluetooth low energy
+- Oprava některých dialogů na mobilních zařízeních
+
+
+[14.9.2025] 1.13.3
+- Do projektu se ukládají rozšíření jako komentář v xml
+- Načítání projektu ze souboru nastaví procesor a integruje doplňky
+- Načítání projektu z URL: nastaví procesor a integruje doplňky
+- Doplněn seznam změn a verzování editoru do rozbalovacího menu
+
+
+[12.8.2025]  1.13.2
+- Přidána podpora pro procesory ESP8266
+
+
+[16.6.2025]  1.13.1
+- Přidána funkce pro instalaci knihoven do procesoru pomocí USB
+
+
+[13.4.2025]  1.13.0
+- Přidána podpora pro procesory RP2040
+
+
+[2.3.2025]  1.12.0
+- Vydána USB - Serial verze ESP IDE V1.12
+- Přidána podpora pro ESP32S3
+- Přidány bloky pro souborový systém
+- Přidány bloky pro laserový dálkoměr VL53L0X
+- Přidány bloky pro expandér portů PCF8574
+- Přidány bloky pro UART komunikace
+- Úprava rozložení toolboxu.
+
+
+[22.2.2025]  1.11.0
+- Přepracovány funkce pro načítání toolboxu
+- Optimalizován webserver
+- Doplněn správce souborů
+- Komprimace uživatelských projektů pro úsporu FLASH paměti
+
+
+[19.5.2024]  1.10.0
+- Optimalizován kód webserveru
+- Přepracována inicializace I2C rozhraní.
+- Opraveny chyb
+
+
+[27.3.2024]  1.10.0
+- Nasazen nový kód pro webserver
+- Rozšířeny bloky pro ovládání DC motorů pomocí PWM
+- Přidány bloky pro 5x5 neopixel matici
+- Optimalizováno uživatelské rozhraní pro mobilní zařízení
+
+
+[12.2.2024]  1.08.0
+- Přidána podpora pro ESP32C3
+- Nové rozhraní pro správu uživatelských bloků
+- Implementován HTTP request blok
+- Try Catch a další funkce.
+
+
+[16.1.2024]  1.7.0
+- Virtuální joysticky pro snadné ovládání robotických vozítek
+
+
+[17.10.2023]  1.6.0
+- Implementována podpora ESP Now komunikace mezi procesory
+- Optimalizován webserver.
+
+
+[25.3.2023]  1.05.0
+- Přidán blok pro čtení ADC pinů pro joystick
+- Přidána podpora pro senzor TCS34725
+- Přidána podpora pro Rotační enkodéry
+- Přidána podpora pro gyroskop MPU6050
+- Přidána podpora pro ovládání modelářských servomotorů
+
+
+[9.5.2022]  1.03.0
+- Vytvoření editoru obrázků pro OLED Display
+- Experimentální podpora pro ESP8266.
+
+
+[22.4.2022]  1.02.0
+- Přidán vzdálený náhled na OLED Display.
+
+
+[15.1.2022]  1.01.0
+- Rozšířeny bloky pro ovládání robota
+- Optimalizován kód webserveru
+- Opraveny chyby.
+
+
+[2019] 1.0.0
+- Vydána první verze ESP IDE.
+
+`;
+
+
+
     // Globální proměnné
     var originalToolboxXML = "";   // obdrží čistý toolbox při startu
     var userSettings = null; // např. { processor: "ESP32", filters: { "Komunikace": {enabled: true, subcategories: {"Komunikace_0": true, "Komunikace_1": true} }, ... } }
@@ -37,9 +167,268 @@
       ESP32: "toolbox_ESP32.xml",
       ESP32C3: "toolbox_ESP32C3.xml",
       ESP32S3: "toolbox_ESP32S3.xml",
-      RP2040:  "toolbox_RP2040.xml"
+      ESP8266: "toolbox_ESP8266.xml",
+      RP2040:  "toolbox_RP2040.xml",
+      RP2040_Picoed: "toolbox_RP2040_picoed.xml"
       //ESPBIT:  "toolbox_ESPBIT.xml"
     };
+    
+    
+    const BOARD_CAPS = {
+      ESP32:         { ble: true },
+      ESP32C3:       { ble: true },
+      ESP32S3:       { ble: true },
+      ESP8266:       { ble: false },  // nemá BLE
+      RP2040:        { ble: false },
+      RP2040_Picoed: { ble: false }
+    };
+
+    function updateBleVisibility(proc) {
+      const btn = document.getElementById('BLE_SerialConnectButton');
+      if (!btn) return;
+      const supportsBle = !!(BOARD_CAPS[proc] && BOARD_CAPS[proc].ble);
+      btn.style.display = supportsBle ? "block" : "none";
+    }
+    
+    
+    
+    
+    (function () {
+      const origFire = Swal.fire.bind(Swal);
+
+      function normalizeArgs(a, b, c) {
+        // Podpora starého tvaru Swal.fire('Titulek', 'Text', 'error')
+        if (typeof a === 'object' && a !== null) return a;
+        const o = {};
+        if (typeof a === 'string') o.title = a;
+        if (typeof b === 'string') o.text  = b;
+        if (typeof c === 'string') o.icon  = c;
+        return o;
+      }
+
+      Swal.fire = function (a, b, c) {
+        const user = normalizeArgs(a, b, c);
+
+        // Bezpečné defaulty proti “rozbití” rozvržení:
+        const SAFE_DEFAULTS = {
+          target: '#swal-root',     // renderovat do našeho kořene
+          backdrop: false,          // žádné globální ztmavení (to nejvíc láme layout)
+          heightAuto: false,        // SweetAlert2 nebude šahat na výšku <body>
+          scrollbarPadding: false,  // žádná kompenzace scrollbaru -> žádné poskočení obsahu
+          allowOutsideClick: false, // ať se modal nezavírá klikem mimo (stabilnější UX)
+          returnFocus: false,       // žádný focus-jump po zavření
+          didOpen: () => {
+            // pro jistotu zhoď třídy, kdyby je něco přidalo
+            document.documentElement.classList.remove('swal2-shown');
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+          },
+          didClose: () => {
+            // po zavření jemně obnov UI (ACE/Blockly se někdy potřebují přemalovat)
+            requestAnimationFrame(() => {
+              try { if (window.aceText) aceText.resize(); } catch(_) {}
+              try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
+            });
+          }
+        };
+
+        // Sloučení tak, aby výše uvedené bezpečné volby měly přednost
+        const merged = Object.assign({}, SAFE_DEFAULTS, user);
+        return origFire(merged);
+      };
+    })();
+    
+    
+    
+    
+    
+    function askText(title, defValue = '') {
+      return new Promise((resolve) => {
+        // custom-dialog.js nastaví Blockly.prompt = Swal text input
+        if (window.Blockly && typeof Blockly.prompt === 'function') {
+          Blockly.prompt(title, defValue, (val) => resolve(val));
+        } else if (window.dlg && typeof window.dlg.message === 'function') {
+          // fallback – textové pole přes Swal
+          Swal.fire({
+            input: 'text',
+            inputValue: defValue || '',
+            title,
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Zrušit'
+          }).then(r => resolve(r.isConfirmed ? r.value : null));
+        } else {
+          // nouzový fallback (neměl by nastat, ale ať to nikdy nespadne)
+          const v = window.prompt(title, defValue);
+          resolve(v === null ? null : v);
+        }
+      });
+    }
+    
+    
+    function validateFileName(name, indexToIgnore = -1) {
+      const trimmed = (name || '').trim();
+      if (!trimmed) return 'Název nesmí být prázdný.';
+      if (/[\\/:*?"<>|]/.test(trimmed)) return 'Název obsahuje zakázané znaky \\ / : * ? " < > |';
+      // Volitelné: blokace teček/koncových mezer apod.
+      // if (/[. ]$/.test(trimmed)) return 'Název nesmí končit tečkou nebo mezerou.';
+
+      // kolize se stávajícími názvy (mimo aktuálně přejmenovávaný index)
+      const exists = (textProject.files || []).some((f, i) => i !== indexToIgnore && f && f.name === trimmed);
+      if (exists) return 'Soubor se stejným názvem už existuje.';
+
+      return null; // vše OK
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    // Malé HTML escape (pro bezpečné <pre>)
+    function _esc(s){return s.replace(/[&<>\"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));}
+
+    function showChangelog(){
+      const html = '<pre style="text-align:left;white-space:pre-wrap;margin:0;">' + _esc(ESPIDE_CHANGELOG) + '</pre>';
+      Swal.fire({
+        title: `ESP IDE ${ESPIDE_VERSION}`,
+        html,
+        width: 800,
+        confirmButtonText: "Zavřít"
+      });
+    }
+
+    // Dosadit verzi do obou míst po načtení DOM
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const t1 = document.getElementById('menuVersionText');
+      if (t1) t1.textContent = ESPIDE_VERSION;
+    });
+    
+    
+    
+    
+
+    // === ESPIDE EXTENSIONS: constants + helpers =========================
+    const EXT_BLOB_BEGIN = "<!--ESPIDE_EXTENSIONS_BEGIN-->";
+    const EXT_BLOB_END   = "<!--ESPIDE_EXTENSIONS_END-->";
+
+    function utf8_to_b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+    function b64_to_utf8(str){ return decodeURIComponent(escape(atob(str))); }
+
+
+
+    // Najde typy bloků v XML projektu
+    function collectBlockTypesFromXml(xmlText){
+      const set = new Set();
+      const re = /<block[^>]*\stype="([^"]+)"/g;
+      let m;
+      while ((m = re.exec(xmlText))){ set.add(m[1]); }
+      return set;
+    }
+
+    // Najde typy bloků definované v JS rozšíření
+    function collectDefinedTypesFromExtJs(js){
+      const set = new Set();
+      if (!js || typeof js !== "string") return set;
+
+      // 1) Klasické definice: Blockly.Blocks['typ']
+      const re1 = /Blockly\.Blocks\[['"]([^'"]+)['"]\]/gm;
+      let m;
+      while ((m = re1.exec(js))) { set.add(m[1]); }
+
+      // 2) Generátory: Blockly.Python['typ'] (i MicroPython/Micropython)
+      const re2 = /Blockly\.(?:Python|MicroPython|Micropython)\[['"]([^'"]+)['"]\]/gm;
+      while ((m = re2.exec(js))) { set.add(m[1]); }
+
+      // 3) JSON definice bloků (pro případy s JSON inicializací):  type: 'xxx'
+      //    Heuristika — může přidat pár false-positives, ale nevadí.
+      const re3 = /type\s*:\s*['"]([^'"]+)['"]/gm;
+      while ((m = re3.exec(js))) { set.add(m[1]); }
+
+      return set;
+    }
+
+
+    // Z balíku extensions vyber jen ta, která se v projektu opravdu používají
+    function pickUsedExtensions(xmlText){
+      const usedTypes = collectBlockTypesFromXml(xmlText);
+      const picked = [];
+      const src = (typeof extensions === "object" && extensions) ? extensions : {};
+
+      Object.keys(src).forEach(name=>{
+        const ext = src[name] || {};
+        if (!ext.js) return;
+        const types = collectDefinedTypesFromExtJs(ext.js);
+        for (const t of types){
+          if (usedTypes.has(t)){
+            picked.push({name, js: ext.js || "", xml: ext.xml || "", enabled: ext.enabled!==false});
+            return;
+          }
+        }
+      });
+
+      if (picked.length===0){
+        Object.keys(src).forEach(name=>{
+          const ext = src[name];
+          if (ext?.enabled) picked.push({name, js: ext.js||"", xml: ext.xml||"", enabled:true});
+        });
+      }
+      return picked;
+    }
+
+
+    // Vytáhne payload z komentáře a vrátí {payload,strippedText}    
+    function peelExtensionsComment(fullText){
+      const allBeg = [...fullText.matchAll(/<!--ESPIDE_EXTENSIONS_BEGIN-->/g)].map(m=>m.index);
+      const allEnd = [...fullText.matchAll(/<!--ESPIDE_EXTENSIONS_END-->/g)].map(m=>m.index);
+      if (!allBeg.length || !allEnd.length) return {payload:null, strippedText: fullText};
+
+      const i1 = allBeg[allBeg.length - 1];
+      const i2 = allEnd.find(i => i > i1);
+      if (i2 == null) return {payload:null, strippedText: fullText};
+
+      const before = fullText.slice(0, i1);
+      const inside = fullText.slice(i1 + "<!--ESPIDE_EXTENSIONS_BEGIN-->".length, i2).trim();
+      const after  = fullText.slice(i2 + "<!--ESPIDE_EXTENSIONS_END-->".length);
+      let payload = null;
+      try {
+        const json = b64_to_utf8(inside);
+        payload = JSON.parse(json);
+      } catch(e){
+        console.warn("Decode EXT payload fail:", e);
+      }
+      return {payload, strippedText: before + after};
+    }
+    
+
+    // Sloučí a integruje extensions → používá tvoji existující logiku
+    function mergeAndIntegrateExtensionsFromPayload(payload){
+      if (!payload || !Array.isArray(payload.extensions)) return;
+      payload.extensions.forEach(e=>{
+        if (!e || !e.name) return;
+        extensions[e.name] = { js: e.js||"", xml: e.xml||"", enabled: e.enabled!==false };
+      });
+      // Ulož + integruj přes tvoje existující funkcionality
+      applyExtensionSelection(); // ta sama uloží extensions + new_blocks_js/xml a zavolá integrateExtensions
+    }
+    // ===================================================================
+
+    // Vloží komentář s payloadem dovnitř <xml>…</xml> (před koncový tag)
+    function injectExtensionsIntoXml(xmlText, payloadB64){
+      const insert = `\n  ${EXT_BLOB_BEGIN}\n${payloadB64}\n${EXT_BLOB_END}\n`;
+      const idx = xmlText.lastIndexOf('</xml>');
+      if (idx !== -1) {
+        // standardní případ: máme kořen <xml>…</xml>
+        return xmlText.slice(0, idx) + insert + xmlText.slice(idx);
+      }
+      // Fallback: soubor nemá kořen <xml>…</xml> (nestává se, ale buďme robustní)
+      return '<xml>\n' + xmlText + '\n' + insert + '</xml>\n';
+    }
+    
+
+
+
 
     function safeLoadExtensionsOnStartup() {
       try {
@@ -367,7 +756,9 @@
             '<option value="ESP32">ESP32</option>' +
             '<option value="ESP32C3">ESP32C3</option>' +
             '<option value="ESP32S3">ESP32S3</option>' +
+            '<option value="ESP8266">ESP8266</option>' +
             '<option value="RP2040">RP2040</option>' +
+            '<option value="RP2040_Picoed">RP2040 Pico:ed</option>' +
           '</select>',
         focusConfirm: false,
         allowOutsideClick: false,
@@ -387,6 +778,8 @@
     
     
     async function updateProcessor(newProc) {
+      updateBleVisibility(newProc);
+      
       if (newProc === userSettings.processor) return;
 
       userSettings.processor = newProc;
@@ -421,358 +814,11 @@
     }
 
   </script>
-
-
-
-
-
-
-
-
-
-
-
-  <script>
-
     
     
-    /* *****************************************************
-     * Třída MicroPythonSerial – nová webserial komunikace *
-     ******************************************************* */
-    class MicroPythonSerial {
-      constructor(terminal) {
-        this.terminal = terminal; // instance xterm.js
-        this.port = null;
-        this.reader = null;
-        this.writer = null;
-        this.keepReading = false;
-        this.inRawMode = false;       // Příznak raw REPL režimu
-        this.rawResponseBuffer = "";  // Buffer pro odpovědi v raw režimu
-        this.mute_terminal = false;
-      }
-
-
-
-      async connect() {
-        try {
-          // Vyžádej si od uživatele výběr zařízení
-          this.port = await navigator.serial.requestPort();
-          
-          // Ověření, zda byl vybrán port         
-          await this.port.open({ baudRate: 115200 });
-          
-          // Získáme reader a writer přímo z portu – bez pipeTo
-          this.reader = this.port.readable.getReader();
-          this.writer = this.port.writable.getWriter();
-          
-          this.keepReading = true;
-          this.readLoop();
-
-          this.terminal.write('\x1b[32mVítejte v ESP IDE!\x1b[m');
-          //await mpSerial.sendData('\r\n');
-          //await this.sendData("\x03"); // Ctrl-C
-          //await delay(50);
-          await this.sendData("\x02"); // Ctrl-B
-          await delay(50);
-          
-        } catch (error) {
-          console.error("Chyba při připojování:", error);
-          this.terminal.writeln(`**Chyba při připojování: ${error.message}**`);
-
-          this.reader = null;
-          this.writer = null;
-          this.disconnect();
-          this.port = null; // zabrání znovupoužití starého objektu
-    
-        }
-      }
-
-      async disconnect() {
-        try {
-          this.keepReading = false;
-          if (this.reader) {
-            try {
-              await this.reader.cancel();
-            } catch (e) {
-              console.warn("Chyba při cancel reader:", e);
-            }
-            try {
-              this.reader.releaseLock();
-            } catch (e) {
-              console.warn("Chyba při releaseLock reader:", e);
-            }
-            this.reader = null;
-          }
-          if (this.writer) {
-            try {
-              await this.writer.close();
-            } catch (e) {
-              console.warn("Chyba při close writer:", e);
-            }
-            try {
-              this.writer.releaseLock();
-            } catch (e) {
-              console.warn("Chyba při releaseLock writer:", e);
-            }
-            this.writer = null;
-          }
-          if (this.port) {
-            try {
-              await this.port.close();
-            } catch (e) {
-              console.warn("Chyba při close port:", e);
-            }
-            this.port = null;
-          }
-          this.terminal.writeln("**Zařízení odpojeno.**");
-        } catch (error) {
-          console.error("Chyba při odpojování:", error);
-          this.terminal.writeln(`**Chyba při odpojování: ${error.message}**`);
-        }
-      }
-
-      async readLoop() {
-          const decoder = new TextDecoder();
-          while (this.keepReading) {
-            try {
-              const { value, done } = await this.reader.read();
-              if (done) break;
-              if (value) {
-                const decoded = decoder.decode(value);
-                if (this.inRawMode) {
-                  this.rawResponseBuffer += decoded;
-                }
-                
-                if (this.mute_terminal == false) {
-                   this.terminal.write(decoded);
-                }
-                
-              }
-            } catch (error) {
-              console.error("Chyba v readLoop:", error);
-              break;
-            }
-          }
-        }
-
-      // Odeslání příkazu – přidá nový řádek, pokud není
-      async sendCommand(command) {
-        try {
-          if (!this.writer) throw new Error("Nejsi připojen k zařízení.");
-          if (!command.endsWith("\n")) command += "\r\n";
-          const encoder = new TextEncoder();
-          await this.writer.write(encoder.encode(command));
-        } catch (error) {
-          console.error("Chyba při odesílání příkazu:", error);
-          this.terminal.writeln(`**Chyba při odesílání příkazu: ${error.message}**`);
-        }
-      }
-
-      // Umožní psaní dat přímo z terminálu
-      async sendData(data) {
-        try {
-          if (!this.writer) throw new Error("Nejsi připojen k zařízení.");
-          const encoder = new TextEncoder();
-          await this.writer.write(encoder.encode(data));
-        } catch (error) {
-          console.error("Chyba při odesílání dat:", error);
-          this.terminal.writeln(`**Chyba při odesílání dat: ${error.message}**`);
-        }
-      }
-
-      async enterRawREPL() {
-        try {
-          await this.sendData("\x03"); // Ctrl-C
-          await new Promise(resolve => setTimeout(resolve, 100));
-          this.inRawMode = true;
-          await this.sendData("\x01"); // Ctrl-A
-          let startTime = Date.now();
-          while (Date.now() - startTime < 2000) {
-            if (this.rawResponseBuffer.includes("raw REPL")) break;
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          if (!this.rawResponseBuffer.includes("raw REPL")) {
-            throw new Error("Nepodařilo se vstoupit do raw REPL režimu.");
-          }
-          //this.terminal.writeln("**Vstoupeno do raw REPL režimu.**");
-        } catch (error) {
-          console.error("Chyba při vstupu do raw REPL:", error);
-          this.terminal.writeln(`**Chyba při vstupu do raw REPL: ${error.message}**`);
-        }
-      }
-
-      async exitRawREPL() {
-        try {
-          await this.sendData("\x02"); // Ctrl-B
-          this.inRawMode = false;
-          //this.terminal.writeln("**Opustil raw REPL režim.**");
-        } catch (error) {
-          console.error("Chyba při opouštění raw REPL:", error);
-          this.terminal.writeln(`**Chyba při opouštění raw REPL: ${error.message}**`);
-        }
-      }
-
-      async execRawCommand(command) {
-          this.rawResponseBuffer = "";
-
-          await this.sendCommand(command + "\r");
-          await this.sendData("\x04"); // Signalizace konce příkazu
-
-          let response = await new Promise((resolve, reject) => {
-            const startTime = Date.now();
-
-            const checkResponse = () => {
-              // Čekáme na konec odpovědi indikovaný znakem EOT (\x04)
-              //console.log("Prikaz: " + command);
-              //console.log(this.rawResponseBuffer.split ('').map (function (c) { return c.charCodeAt (0); }));
-              //console.log(this.rawResponseBuffer);
-              if (this.rawResponseBuffer.includes("OK\x04")) {
-                const result = this.rawResponseBuffer;
-                this.rawResponseBuffer = "";
-                resolve(result);
-              } else if (Date.now() - startTime > 2000) {
-                reject(new Error("Timeout při čekání na OK\\x04: " + this.rawResponseBuffer));
-              } else {
-                setTimeout(checkResponse, 10); // kontroluj každých 10 ms
-              }
-            };
-
-            checkResponse();
-          });
-
-          return response;
-        }
-
-
-      splitIntoChunks(content, chunkSize) {
-        let chunks = [];
-        for (let i = 0; i < content.length; i += chunkSize) {
-          chunks.push(content.substring(i, i + chunkSize));
-        }
-        return chunks;
-      }
-
-    async sendFile(filename, content, init = false) {
-      try {
-        // Aktivuj progress bar
-        const bar = document.getElementById("myProgress");
-        bar.style.transition = "none";
-        bar.style.opacity = 1;
-        bar.style.width = "0%";
-        
-        
-        // Vstup do raw REPL režimu
-        await this.enterRawREPL();
-        
-        await this.execRawCommand(`\r\n`);
-        
-        
-        await this.sendData("import os\r");
-        await this.sendData("from ubinascii import a2b_base64\r\n");
-        
-        // Pokud cesta obsahuje adresář, zkontroluj a případně vytvoř adresář
-        if (filename.includes("/")) {
-            let folder = filename.substring(0, filename.lastIndexOf("/"));
-            // Příkaz, který ověří existenci adresáře a pokud neexistuje, vytvoří ho
-            await this.sendData(`try:\r`);
-            await this.sendData(` os.stat("${folder}")\r`);
-            await this.sendData(`except OSError:\r`);
-            await this.execRawCommand(` os.mkdir("${folder}")\r`);
-        }
-
-        
-        if (init == true)
-        {
-            await this.sendData("import gc\r");
-            await this.sendData("import utime\r");
-            
-            await this.sendData("def run_code():\r");
-            await this.sendData(" try:\r");
-            await this.sendData("  gc.collect()\r");
-            await this.sendData("  exec(open(\"idecode\").read())\r");
-            await this.sendData(" except KeyboardInterrupt:\r");
-            await this.sendData("  print('Zastaveni programu')\r");
-            await this.sendData("  gc.collect()\r");
-            await this.sendData("  stop_code()\r");
-            
-            await this.sendData("def stop_code():\r");
-            await this.sendData(" try:\r");
-            await this.sendData("  on_exit()\r");
-            await this.sendData(" except:\r");
-            await this.execRawCommand("  utime.sleep_ms(0)\r");
-            await delay(50);
-        }
-        
-        
-        
-        // Otevření souboru v binárním režimu ("wb")
-        //await this.execRawCommand(`from ubinascii import a2b_base64`);
-        await this.execRawCommand(`f = open("${filename}", "wb")`);
-        await delay(50);
-        
-        // Převod textu do UTF-8 bajtů
-        const encoder = new TextEncoder();
-        const bytes = encoder.encode(content);
-        const chunkSize = 64;
-        
-        // Pomocná funkce pro Base64 kódování Uint8Array chunku
-        function base64EncodeUint8Array(uint8array) {
-          let binary = "";
-          for (let i = 0; i < uint8array.length; i++) {
-            binary += String.fromCharCode(uint8array[i]);
-          }
-          return btoa(binary);
-        }
-        
-        const totalChunks = Math.ceil(bytes.length / chunkSize);
-        // Odeslání dat po chunkách
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-          const chunk = bytes.slice(i, i + chunkSize);
-          const base64Chunk = base64EncodeUint8Array(chunk);
-          // Vytvoření příkazu pro zápis Base64 dat na zařízení
-          await this.execRawCommand(`f.write(a2b_base64("${base64Chunk}"))`);
-          //console.log(`f.write(a2b_base64("${base64Chunk}"))`);
-          
-          // Výpočet průběhu v %
-          const percent = Math.min(Math.floor(((i + chunkSize) / bytes.length) * 100),100);
-          this.terminal.write(`\rOdesílání: ${percent}%   `); // \r = návrat na začátek řádku
-          
-          // aktualizace progress baru
-          bar.style.transition = "width 0.1s ease";
-          bar.style.width = percent + "%";
-        }
-        
-        // Uzavření souboru
-        await this.execRawCommand("f.close()");
-        await this.exitRawREPL();
-        //this.terminal.writeln(`**Soubor ${filename} odeslán úspěšně.**`);
-        
-        // Skrytí progress baru po odeslání
-        setTimeout(() => {
-          bar.style.opacity = 0;
-          bar.style.width = "0%";
-        }, 500);
-        
-        this.terminal.writeln("");
-      } catch (error) {
-        console.error("Chyba při odesílání souboru:", error);
-        this.terminal.writeln(`**Chyba při odesílání souboru: ${error.message}**`);
-      }
-    }
     
     
-}
-
-
-
-
-
-
-    /* ***********************************************
-       * Konec implementace nové webserial komunikace
-       *********************************************** */
-    
-    
+<script>    
     // Graficke tlacitko pripojeni
       const STATE = {
         DISCONNECTED: 0,
@@ -806,6 +852,7 @@
     var code_window_open = false;
     var vibro_time = 100;
     let connectButton;
+    let bleconnectButton;
     var toolboxFilename;
     
     var run_uploaded_code = false;
@@ -818,6 +865,118 @@
     // Globální instance komunikace
     let mpSerial;  // instance třídy MicroPythonSerial
     
+    
+    // --- Aktivní link & instance ---
+    let activeLink = 'usb';          // 'usb' | 'ble'
+    let mpBLE = null;
+    
+    // --- Jednotná logika připojení -----------------------------------
+    const CONNECTED_STATES = new Set([STATE.CONNECTED, STATE.CONNECTED_HOVER]);
+
+    function isUsbConnected() {
+      // opíráme se o skutečný port i o tvůj stav UI
+      const portOk = !!(mpSerial && mpSerial.port);
+      const uiOk   = CONNECTED_STATES.has(currentState);
+      // extra defenzivně zkusíme, pokud existuje readable/writable
+      const streamsOk = portOk && (
+        (mpSerial.port.readable || mpSerial.port.writable || typeof mpSerial.isOpen === "function")
+      );
+      return (portOk && uiOk) || streamsOk;
+    }
+
+    function isBleConnected() {
+      // BLE třída má .connected getter; zároveň bereme v potaz stav tlačítka
+      const bleOk = !!(mpBLE && mpBLE.connected);
+      const uiOk  = typeof bleState !== "undefined" ? CONNECTED_STATES.has(bleState) : true;
+      return bleOk && uiOk;
+    }
+
+    // Jednoduchý predikát pro celý editor:
+    function isEditorConnected() {
+      return isUsbConnected() || isBleConnected();
+    }
+
+    // Aktivní link (preferuje "activeLink", ale pokud by byl mimo realitu,
+    // sáhne po tom, co je reálně připojeno)
+    function getActiveLink() {
+      if (activeLink === 'ble' && isBleConnected()) return 'ble';
+      if (activeLink === 'usb' && isUsbConnected()) return 'usb';
+      // fallback: zkus odhadnout podle reality
+      if (isBleConnected()) return 'ble';
+      if (isUsbConnected()) return 'usb';
+      return 'none';
+    }
+
+    // Jednotný transport pro volání mp().*
+    function getActiveTransport() {
+      const link = getActiveLink();
+      if (link === 'ble') return mpBLE;
+      if (link === 'usb') return mpSerial;
+      return null;
+    }
+
+    // Alias – všude zamiň volání mpSerial.* → mp().*
+    const mp = () => getActiveTransport();
+    
+    
+    
+    
+    
+    
+    
+    
+    // --- Ikony s prefixy pro USB i BLE ---
+    const usbImages = images.map(n => "media/usb_" + n);  // např. usb_img0.gif
+    const bleImages = images.map(n => "media/ble_" + n);  // např. ble_img0.gif
+
+    // --- Stav BLE tlačítka (USB už má currentState/updateButton) ---
+    let bleState = STATE.DISCONNECTED;
+    
+    
+    function bleUpdateButton(state) {
+        bleState = state;
+        bleConnectButton.style.backgroundImage = `url('${bleImages[state]}')`;
+    }
+    
+    function updateButton(state) {
+        currentState = state;
+        connectButton.style.backgroundImage = `url('${usbImages[state]}')`;
+    }
+    
+    
+    let __connectLock = Promise.resolve();
+    
+    async function withConnectLock(fn){
+      const prev = __connectLock;
+      let release;
+      __connectLock = new Promise(r => release = r);
+      try { await prev; return await fn(); }
+      finally { release(); }
+    }
+
+    async function ensureExclusive(target){ // 'usb' | 'ble'
+      if (target === 'usb' && isBleConnected()){
+        try { await mpBLE.disconnect(); } catch(_) {}
+        bleUpdateButton(STATE.DISCONNECTED);
+        activeLink = 'none';
+        await delay(100);
+      }
+      if (target === 'ble' && isUsbConnected()){
+        try { await mpSerial.disconnect(); } catch(_) {}
+        updateButton(STATE.DISCONNECTED);
+        activeLink = 'none';
+        await delay(100);
+      }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Pomocná prodleva
     function delay(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
@@ -826,19 +985,322 @@
     // Přidána funkce onresize podle původní implementace
     function onresize(e) {
       var element = blocklyArea;
-      var x = 0;
-      var y = 0;
-      do {
-        x += element.offsetLeft;
-        y += element.offsetTop;
-        element = element.offsetParent;
-      } while (element);
-      blocklyDiv.style.left = x + 'px';
-      blocklyDiv.style.top = (y + 44) + 'px';
-      blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
-      blocklyDiv.style.height = (blocklyArea.offsetHeight - 44) + 'px';
-      Blockly.svgResize(demoWorkspace);
+      if(element)
+      {
+          var x = 0;
+          var y = 0;
+          do {
+            x += element.offsetLeft || 0;
+            y += element.offsetTop || 0;
+            element = element.offsetParent;
+          } while (element);
+          blocklyDiv.style.left = x + 'px';
+          blocklyDiv.style.top = (y + 44) + 'px';
+          blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
+          blocklyDiv.style.height = (blocklyArea.offsetHeight - 44) + 'px';
+          Blockly.svgResize(demoWorkspace);
+      }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    let AceEditSession = null;
+
+    let textProject = {
+      files: [],            // {name, session, dirty}
+      activeIndex: -1
+    };
+    
+    
+    // --- Režim projektu ---
+    let projectMode = "blocks"; // "blocks" | "text"
+
+    // --- Textový projekt & taby ---
+    let aceText = null;
+    
+
+
+    function switchUITo(mode){
+      const blocklyDiv = document.getElementById('blocklyDiv');
+      const textShell  = document.getElementById('textShell');
+
+      if (mode === "blocks"){
+        // bloky vidět, text pryč
+        blocklyDiv.style.visibility   = "visible";
+        blocklyDiv.style.pointerEvents = "auto";
+        textShell.style.display = "none";
+        
+        projectMode = "blocks";
+
+        requestAnimationFrame(() => {
+          void blocklyDiv.offsetHeight; // vynutí reflow
+          onresize();                   // přepočti metriky
+        });
+      } else {
+        // text vidět, bloky „neaktivní“, ale pořád v layoutu
+        blocklyDiv.style.visibility    = "hidden";
+        blocklyDiv.style.pointerEvents = "none";
+        textShell.style.display = "block";
+        blocklyDiv.style.height = "1px";
+        
+        projectMode = "text";
+        
+        requestAnimationFrame(() => { try { aceText && aceText.resize(); } catch(e){} });
+      }
+
+      localStorage.setItem("espide.projectMode", mode);
+    }
+
+      // Segment kliky
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        if (rbBlocks && rbText){
+          rbBlocks.addEventListener('change', ()=>rbBlocks.checked && switchUITo("blocks"));
+          rbText  .addEventListener('change', ()=>rbText.checked   && switchUITo("text"));
+
+          // obnov režim
+          const saved = localStorage.getItem("espide.projectMode");
+          if (saved === "text"){ rbText.checked = true; switchUITo("text"); }
+          else { rbBlocks.checked = true; switchUITo("blocks"); }
+        }
+      });
+
+      // --- Inicializace Ace pro textové taby po onloadu (naváže se tam, kde se inituje původní Ace/Terminal) ---
+      function initAceText(){
+        aceText = ace.edit("aceText");
+        ace.require("ace/ext/language_tools");
+        aceText.setTheme("ace/theme/chrome");
+        aceText.session.setMode("ace/mode/python");
+        aceText.setOptions({
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: false,
+          showInvisibles: true,
+          fixedWidthGutter: true,
+          showPrintMargin: false
+        });
+        aceText.on('change', ()=>{
+          const i = textProject.activeIndex;
+          if (i >= 0){
+            textProject.files[i].content = aceText.getValue();
+            textProject.files[i].dirty = true;
+            renderTabs();
+            // autosave do LS
+            saveTextProjectToLS();
+          }
+        });
+        // obnova z LS
+        restoreTextProjectFromLS();
+        // první tab, pokud chybí
+        if (textProject.files.length === 0) ensureOneDefaultTab();
+        renderTabs();
+      }
+
+      function ensureOneDefaultTab(){
+          addNewTab(uniqueFileName('novy_soubor', 'py', -1), '# sem piš svůj kód\n');
+      }
+
+      function addNewTab(name, content){
+          name = uniqueFileName(name.replace(/\.[^\.]+$/, ''), name.split('.').pop() || "py"); // jistota unikátnosti
+          const ses = new AceEditSession(content || "");
+          ses.setMode("ace/mode/python");
+          ses.on('change', ()=>{
+            const i = textProject.activeIndex;
+            if (i >= 0) {
+              textProject.files[i].dirty = true;
+              saveTextProjectToLS();
+              renderTabs();
+            }
+          });
+          textProject.files.push({name, session: ses, dirty:false});
+          textProject.activeIndex = textProject.files.length - 1;
+          if (aceText) aceText.setSession(ses);
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+      function activateTab(index){
+          if (index<0 || index>=textProject.files.length) return;
+          textProject.activeIndex = index;
+          aceText && aceText.setSession(textProject.files[index].session);
+          renderTabs();
+      }
+
+      function closeTab(index){
+          if (index<0 || index>=textProject.files.length) return;
+          const f = textProject.files[index];
+          if (f.dirty && !confirm("Zavřít '"+f.name+"' bez uložení do PC?")) return;
+
+          textProject.files.splice(index,1);
+
+          if (textProject.files.length === 0){
+            textProject.activeIndex = -1;
+            ensureOneDefaultTab();
+          } else {
+            textProject.activeIndex = Math.min(index, textProject.files.length-1);
+            aceText && aceText.setSession(textProject.files[textProject.activeIndex].session);
+          }
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+      async function renameTab(index) {
+          const cur = textProject.files[index];
+          if (!cur) return;
+
+          // 1) Zeptej se uživatele na nový název
+          let nn = await askText('Přejmenovat soubor na:', cur.name);
+          if (nn === null) return;              // uživatel zrušil
+          nn = nn.trim();
+
+          // 2) Sloužíš strukturu názvu (zachováš původní logiku rozdělení base/ext)
+          const p = splitNameExt(nn);
+          let candidate = uniqueFileName(p.base, p.ext, index);
+
+          // 3) Validace (volitelné: dovolit více pokusů, níže ukázka s 1 re-pokusem)
+          let err = validateFileName(candidate, index);
+          if (err) {
+            // Jednoduchý re-try: ukáže chybu a umožní jeden další pokus
+            await Swal.fire({ icon: 'error', title: 'Chybný název', text: err, confirmButtonText: 'Zkusit znovu' });
+            nn = await askText('Přejmenovat soubor na:', candidate);
+            if (nn === null) return;
+            const p2 = splitNameExt(nn.trim());
+            candidate = uniqueFileName(p2.base, p2.ext, index);
+            err = validateFileName(candidate, index);
+            if (err) {
+              await Swal.fire({ icon: 'error', title: 'Nelze přejmenovat', text: err });
+              return;
+            }
+          }
+
+          // 4) Ulož a překresli
+          cur.name = candidate;
+          renderTabs();
+          saveTextProjectToLS();
+      }
+
+
+        function renderTabs(){
+          const host = document.getElementById('tabs');
+          host.innerHTML = "";
+          textProject.files.forEach((f, i)=>{
+            const b = document.createElement('div');
+            b.style.cssText = "display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #a5a5a5;border-radius:8px;background:#fff;cursor:pointer;height:21px;margin:4px;";
+            if (i===textProject.activeIndex) b.style.outline = "3px solid #b9b9b9";
+            b.innerHTML = '<span style="font-family:monospace">' + f.name + (f.dirty ? '*' : '') + '</span>'
+              + '<span title="Přejmenovat" style="opacity:.7; margin-left:6px;">✎</span>'
+              + '<span title="Zavřít" style="opacity:.7;">×</span>';
+
+            b.addEventListener('click', (ev)=>{
+              if (ev.target.title==="Zavřít"){ closeTab(i); ev.stopPropagation(); return; }
+              if (ev.target.title==="Přejmenovat"){ renameTab(i); ev.stopPropagation(); return; }
+              activateTab(i);
+            });
+            host.appendChild(b);
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', ()=>{
+          const btn = document.getElementById('btnNewTab');
+          if (btn) btn.addEventListener('click', ()=> addNewTab(uniqueFileName("novy_soubor","py"), ""));
+        });
+
+        function saveTextProjectToLS(){
+          try {
+            const data = {
+              files: textProject.files.map(f=>({name:f.name, content:f.session.getValue()})),
+              activeIndex: textProject.activeIndex
+            };
+            localStorage.setItem("espide.textProject", JSON.stringify(data));
+          } catch(e){ console.warn(e); }
+        }
+        
+        function restoreTextProjectFromLS(){
+          try {
+            const raw = localStorage.getItem("espide.textProject");
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            textProject.files = (data.files||[]).map(x=>{
+              const ses = new AceEditSession(x.content || "");
+              ses.setMode("ace/mode/python");
+              ses.on('change', ()=>{
+                const i = textProject.activeIndex;
+                if (i >= 0) { textProject.files[i].dirty = true; saveTextProjectToLS(); renderTabs(); }
+              });
+              return {name:x.name, session:ses, dirty:false};
+            });
+            textProject.activeIndex = Math.min(Math.max(0, data.activeIndex||0), textProject.files.length-1);
+          } catch(e){ console.warn(e); }
+        }
+        
+        function uniqueFileName(base, ext, ignoreIndex = -1){
+          const taken = new Set(textProject.files
+            .map((f, idx)=> idx===ignoreIndex ? null : f.name)
+            .filter(Boolean));
+          let n = 1, name;
+          do {
+            name = base + n + '.' + ext;
+            n++;
+          } while (taken.has(name));
+          return name;
+        }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     function show_modal_message(in_txt,text_detail) {
@@ -867,7 +1329,7 @@
   
     async function sendFileToDevice(fileUrl, targetFolder) {
       // Kontrola připojení zařízení
-      if (!(mpSerial && mpSerial.port && (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER))) {
+      if (!isEditorConnected()) {
         //alert("Zařízení není připojeno!");
         show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
         return;
@@ -890,22 +1352,22 @@
             fileName = targetFolder + fileName;
           }
 
-          mpSerial.mute_terminal = true;
+          mp().mute_terminal = true;
           
           term.writeln("Nahrávám soubor: " + fileName);
           
           await delay(50);
 
           // Odeslání souboru do zařízení
-          await mpSerial.sendFile(fileName, content, false);
+          await mp().sendFile(fileName, content, false);
 
           await delay(300);
           
-          await mpSerial.sendData('\r\n');
+          await mp().sendData('\r\n');
           
           await delay(400);
           
-          mpSerial.mute_terminal = false;
+          mp().mute_terminal = false;
         })
         .catch(error => {
           console.error("Chyba při načítání souboru:", error);
@@ -918,38 +1380,37 @@
     
     async function libs_download_to_mcu() {
       
-      if (!(mpSerial && mpSerial.port && (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER))) {
-        //alert("Zařízení není připojeno!");
-        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+      if (!isEditorConnected()) {
+        show_modal_message("Zařízení nepřipojeno.","Připojte zařízení a vyberte správný sériový port.");
         return;
       }
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/boot.py", "/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/servo.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/dcmotorlib.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/minifont.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/oled.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/st7567.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/BlynkLib.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/joy_lib.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/mpu6050.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/pcf8574.py", "/lib/");
-          
-      await sendFileToDevice("lib_" + userSettings.processor + "/tcs34725.py", "/lib/");
-      
-      await sendFileToDevice("lib_" + userSettings.processor + "/vl53l0x.py", "/lib/");
-      
-      await mpSerial.sendData('\r\n');
+
+      const baseDir = "lib_" + userSettings.processor + "/"; // např. "lib_ESP32/"
+      const listURL = baseDir + "files.lst";
+
+      try {
+        // 2) stáhni přehled souborů
+        const cfgText = await (await fetch(listURL)).text();
+
+        // 3) projdi jednotlivé řádky
+        for (const raw of cfgText.split(/\r?\n/)) {
+          const line = raw.trim();
+          if (!line || line.startsWith("#")) continue;   // přeskoč komentáře / prázdné řádky
+
+          const [src, dest = "/"] = line.split(";").map(p => p.trim());
+          if (!src || !dest) continue;                  // ochrana proti špatnému řádku
+
+          // 4) nahraj soubor do zařízení
+          await sendFileToDevice(baseDir + src, dest);
+        }
+
+        await mp().sendData("\r\n");
+      } catch (e) {
+        console.error("Chyba při čtení files.lst:", e);
+        show_modal_message("Chyba", "Nepodařilo se načíst konfiguraci knihoven.");
+      }
     }
+
 
     
     
@@ -961,45 +1422,79 @@
     
     // Funkce pro spuštění kódu – využívá novou komunikaci
     async function runCode() {
-        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
-        {
-          mpSerial.mute_terminal = true;
-          
-          await mpSerial.sendData('\x03');
-          await delay(150);
-          await mpSerial.sendData('\x03');
-          await delay(100);
-          Blockly.Python.INFINITE_LOOP_TRAP = null;
-          var save_code = editor.getValue().replace(/\r\n|\r|\n/g, "\r");
-          save_code = delete_non_ascii(save_code);
-          if (document.getElementById("autostart").checked) {
-            save_code = "#autostart*\r" + save_code;
-          }
-          
-          term.scrollToBottom();
-          
-          await mpSerial.sendFile("idecode", save_code, true);
-          await delay(250);
-          mpSerial.mute_terminal = false;
-          await mpSerial.sendCommand('run_code()');
-          await delay(20);
-          
-        }
-        else
-        {
-            show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
-        }
+      if (!isEditorConnected()){
+        show_modal_message('Zařízení nepřipojeno.', 'Připojte zařízení do USB portu počítače a pomocí připojovací ikony v horní části vyberte správný sériový port.');
+        return;
+      }
+
+      mp().mute_terminal = true;
+
+      await mp().sendData('\x03');
+      await delay(150);
+      await mp().sendData('\x03');
+      await delay(100);
+
+      Blockly.Python.INFINITE_LOOP_TRAP = null;
+
+      let save_code = "";
+      if (projectMode === "blocks"){
+        // Vždy generuj čerstvý kód z workspace
+        save_code = Blockly.Python.workspaceToCode(demoWorkspace);
+      } else {
+        // Z aktivního tabu
+        var i = textProject.activeIndex;
+        if (i < 0){ show_modal_message('Textový režim', 'Není otevřen žádný tab.'); mp().mute_terminal=false; return; }
+        save_code = textProject.files[i].session ? textProject.files[i].session.getValue() : (textProject.files[i].content || '');
+      }
+
+      // CRLF + ascii filtrace jako máš dnes
+      save_code = save_code.replace(/\r\n|\r|\n/g, "\r");
+      save_code = delete_non_ascii(save_code);
+
+      if (document.getElementById("autostart").checked) {
+        save_code = "#autostart*\r" + save_code;
+      }
+
+      term.scrollToBottom();
+
+      // VŽDY nahráváme jen idecode (žádné jiné soubory do flash)
+      await mp().sendFile("idecode", save_code, true);
+      await delay(250);
+
+      mp().mute_terminal = false;
+      await mp().sendCommand('run_code()');
+      await delay(20);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     // Funkce pro zastavení kódu
     async function stopCode() {
-        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        if (isEditorConnected())
         {
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(150);
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(100);
-          await mpSerial.sendCommand('stop_code()');
+          await mp().sendCommand('stop_code()');
           await delay(50);
           term.scrollToBottom();
         }
@@ -1012,13 +1507,13 @@
     
     // Funkce pro restart procesoru
     async function ResetCPU() {
-        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        if (isEditorConnected())
         {
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(50);
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(20);
-          await mpSerial.sendData('\x04');
+          await mp().sendData('\x04');
           await delay(10);
           term.scrollToBottom();
         }
@@ -1032,13 +1527,13 @@
     
     // Funkce pro zastavení kódu
     async function get_Info() {
-        if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+        if (isEditorConnected())
         {
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(150);
-          await mpSerial.sendData('\x03');
+          await mp().sendData('\x03');
           await delay(100);
-          await mpSerial.sendCommand('info()');
+          await mp().sendCommand('info()');
           await delay(50);
           term.scrollToBottom();
         }
@@ -1154,7 +1649,59 @@
     
     
     
-    
+    // === ESPIDE: přepnutí procesoru a přestavba toolboxu =================
+    async function switchProcessorAndReloadToolbox(newProc) {
+      try {
+        if (!newProc) return;
+
+        // nic nedělej, pokud už je nastaven
+        if (userSettings && userSettings.processor === newProc) return;
+
+        // nastavit userSettings + UI
+        userSettings = userSettings || {};
+        userSettings.processor = newProc;
+        localStorage.setItem("userSettings", JSON.stringify(userSettings));
+        const procSelect = document.getElementById('processorDropdown');
+        if (procSelect) procSelect.value = newProc;
+
+        // vybrat soubor toolboxu
+        const filename = (typeof getToolboxFilename === "function")
+          ? getToolboxFilename(newProc)
+          : (TOOLBOX_MAP && TOOLBOX_MAP[newProc]) || null;
+
+        if (!filename) {
+          console.warn("switchProcessorAndReloadToolbox: neznámý processor nebo chybí mapování:", newProc);
+          return;
+        }
+
+        // stáhni toolbox a přestav "originalToolboxXML"
+        const toolboxXML = await fetchToolboxFile(filename);
+        originalToolboxXML = toolboxXML;
+
+        // spoj základ + stávající rozšíření
+        const fullToolboxXML = originalToolboxXML.replace(/<\/xml>\s*$/, "")
+                               + (addons_toolbox || "")
+                               + "</xml>";
+
+        // aplikuj filtry
+        const filteredXML = filterToolboxWithFilters(fullToolboxXML, (userSettings && userSettings.filters) || {});
+
+        // promítnout do DOM a workspace
+        const workspace = Blockly.getMainWorkspace();
+        const xmlElement = document.getElementById('toolbox');
+        xmlElement.innerHTML = filteredXML
+          .replace('<xml id="toolbox" style="display: none" >', "")
+          .replace("</xml>", "");
+        workspace.updateToolbox(filteredXML);
+
+        console.log("Processor switched to:", newProc);
+      } catch (e) {
+        console.error("switchProcessorAndReloadToolbox failed:", e);
+        Swal.fire("Chyba", "Nepodařilo se přepnout procesor: " + (e?.message || e), "error");
+      }
+    }
+    // =====================================================================
+
     
     
     
@@ -1172,9 +1719,9 @@
     (function() {
       window.onload = async function() {
         
-        ace.config.set('basePath', '');
-        ace.config.set('modePath', '');
-        ace.config.set('themePath', '');
+        ace.config.set('basePath', 'js');
+        ace.config.set('modePath', 'js');
+        ace.config.set('themePath', 'js');
     
         editor = ace.edit("editor");
         ace.require("ace/ext/language_tools");
@@ -1217,10 +1764,12 @@
           cursorBlink: false
         });
         term.open(document.getElementById("term"), false);  // Vypne auto-focus
-    
+        
+        
+        
+        
         // Vytvoření instance nové komunikace
         mpSerial = new MicroPythonSerial(term);
-    
         
         
         
@@ -1228,12 +1777,8 @@
         
         // Obsluha tlačítka pro připojení/odpojení
         connectButton = document.getElementById('SerialConnectButton');
+        bleConnectButton = document.getElementById('BLE_SerialConnectButton');
 
-
-          function updateButton(state) {
-            currentState = state;
-            connectButton.style.backgroundImage = `url('${images[state]}')`;
-          }
 
           connectButton.addEventListener("mouseenter", () => {
             switch (currentState) {
@@ -1257,14 +1802,63 @@
 
 
 
+
+          if (bleConnectButton) bleUpdateButton(("bluetooth" in navigator) ? STATE.DISCONNECTED : STATE.ERROR);
+
+
+
+            // Hover efekty pro BLE (stejné chování jako USB)
+            if (bleConnectButton) {
+              bleConnectButton.addEventListener("mouseenter", () => {
+                switch (bleState) {
+                  case STATE.DISCONNECTED: bleUpdateButton(STATE.DISCONNECTED_HOVER); break;
+                  case STATE.CONNECTED:    bleUpdateButton(STATE.CONNECTED_HOVER);    break;
+                  case STATE.ERROR:        bleUpdateButton(STATE.ERROR_HOVER);        break;
+                }
+              });
+              bleConnectButton.addEventListener("mouseleave", () => {
+                switch (bleState) {
+                  case STATE.DISCONNECTED_HOVER: bleUpdateButton(STATE.DISCONNECTED); break;
+                  case STATE.CONNECTED_HOVER:    bleUpdateButton(STATE.CONNECTED);    break;
+                  case STATE.ERROR_HOVER:        bleUpdateButton(STATE.ERROR);        break;
+                }
+              });
+            }
+            
+            
+        
+        // Inicializuj ikony okamžitě (nečekej na nic dalšího)
+        if (connectButton) {
+          if ("serial" in navigator) {
+            updateButton(STATE.DISCONNECTED);
+            connectButton.disabled = false;
+          } else {
+            updateButton(STATE.ERROR);
+            connectButton.disabled = true;
+          }
+        }
+
+        if (bleConnectButton) {
+          if ("bluetooth" in navigator) {
+            bleUpdateButton(STATE.DISCONNECTED);
+            bleConnectButton.disabled = false;
+          } else {
+            bleUpdateButton(STATE.ERROR);
+            bleConnectButton.disabled = true;
+          }
+        }
+            
+            
+            
+
         
         
     
         // Přidána interaktivní obsluha terminálu – psaní příkazů
         term.on('data', function(data) {
-            if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER)
+            if (isEditorConnected())
             {
-              mpSerial.sendData(data);
+              mp().sendData(data);
             }
         });
     
@@ -1285,7 +1879,7 @@
             pinch: true
           },
           trashcan: true,
-          media: './'
+          media: './media/'
         });
         window.addEventListener('resize', onresize, false);
         onresize();
@@ -1301,6 +1895,66 @@
         demoWorkspace.registerButtonCallback('open_image_editor', function(button) {
           window.open('img_editor.html','Editor obrázků','left=300,top=140,width=260,height=340,popup');
         });
+        
+        
+        
+        
+        
+        
+        
+        const rbBlocks = document.getElementById('modeBlocks');
+        const rbText   = document.getElementById('modeText');
+        rbBlocks.addEventListener('change', ()=> rbBlocks.checked && switchUITo("blocks"));
+        rbText  .addEventListener('change', ()=> rbText.checked   && switchUITo("text"));
+        
+        
+        
+
+        function initAceText(){
+          aceText = ace.edit("aceText");
+          ace.require("ace/ext/language_tools");
+          AceEditSession = ace.require("ace/edit_session").EditSession;
+
+          aceText.setTheme("ace/theme/chrome");
+          aceText.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: false,
+            showInvisibles: true,
+            fixedWidthGutter: true,
+            showPrintMargin: false
+          });
+
+          restoreTextProjectFromLS();
+          if (textProject.files.length === 0) ensureOneDefaultTab();
+          activateTab(Math.max(0, textProject.activeIndex));
+          renderTabs();
+        }
+        
+        // uvnitř window.onload (kde už inicializuješ `editor` a `term`) přidej:
+        initAceText();
+        
+        
+        
+        const savedMode = localStorage.getItem("espide.projectMode") || "blocks";
+        document.getElementById(savedMode==="text" ? "modeText" : "modeBlocks").checked = true;
+        switchUITo(savedMode);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
@@ -1326,9 +1980,12 @@
             const procSelect = document.getElementById('processorDropdown');
             procSelect.addEventListener('change', e => updateProcessor(e.target.value));
             
+            
             // Nastav počáteční hodnotu podle localStorage (nebo výchozí ESP32)
             procSelect.value = (userSettings && userSettings.processor) || 'ESP32';
             
+            // Podle nastaveneho procesoru zobraz nebo skryj bluetooth tlačítko
+            updateBleVisibility(procSelect.value);
             
             
             
@@ -1384,16 +2041,34 @@
             
             // 4) Pokud je programParam, načti XML programu
             if (programParam) {
-                try {
-                  const resp = await fetch(programParam);
-                  const xmlText = await resp.text();
-                  const xmlDom = Blockly.Xml.textToDom(xmlText);
-                  Blockly.Xml.domToWorkspace(xmlDom, demoWorkspace);
-                  // Aktualizuj kód v editoru ACE podle načteného Blockly
-                  editor.setValue(Blockly.Python.workspaceToCode(demoWorkspace), 1);
-                } catch (e) {
-                  console.error('Chyba při načítání programu:', e);
+              try {
+                const resp = await fetch(programParam);
+                let rawText = await resp.text();
+
+                // vyloupnout payload + čisté XML
+                const { payload, strippedText } = peelExtensionsComment(rawText);
+
+                // 4a) přepni processor dřív, než integruješ rozšíření
+                if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+                  await switchProcessorAndReloadToolbox(payload.processor);
                 }
+
+                // 4b) integruj rozšíření
+                if (payload?.extensions && Array.isArray(payload.extensions)) {
+                  mergeAndIntegrateExtensionsFromPayload(payload);
+                }
+
+                // 4c) teď teprve načti XML do workspace
+                const xmlDom = Blockly.Xml.textToDom(strippedText);
+                demoWorkspace.clear();
+                Blockly.Xml.domToWorkspace(xmlDom, demoWorkspace);
+
+                // sync textového editoru
+                editor.setValue(Blockly.Python.workspaceToCode(demoWorkspace), 1);
+              } catch (e) {
+                console.error('Chyba při načítání programu:', e);
+                Swal.fire("Chyba", "Program se nepodařilo načíst: " + (e?.message || e), "error");
+              }
             }
             
             
@@ -1409,47 +2084,45 @@
         
         if ("serial" in navigator) {
               
-              connectButton.addEventListener("click", async () => {
-                if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
-                  try {
-                    await mpSerial.connect();
-                    
-                    // Ověření, zda byl vybrán port
-                    if (!mpSerial.port) {
-                      term.writeln("**Nebyl vybrán žádný port.**");
-                      updateButton(STATE.ERROR);
-                      return;
-                    }
-                    else
-                    {
-                        updateButton(STATE.CONNECTED);
-                    }
-                  } catch (e) {
-                    console.error("Chyba při připojení:", e);
+            connectButton.addEventListener("click", () => withConnectLock(async () => {
+              if (currentState === STATE.DISCONNECTED || currentState === STATE.DISCONNECTED_HOVER || currentState === STATE.ERROR || currentState === STATE.ERROR_HOVER) {
+                try {
+                  await ensureExclusive('usb');
+                  await mpSerial.connect();
+
+                  if (!mpSerial.port) {
+                    term.writeln("**Nebyl vybrán žádný port.**");
                     updateButton(STATE.ERROR);
+                    return;
                   }
-                } else if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER) {
-                  try {
-                    await mpSerial.disconnect();
-                    updateButton(STATE.DISCONNECTED);
-                  } catch (e) {
-                    console.error("Chyba při odpojení:", e);
-                    updateButton(STATE.ERROR);
-                  }
+                  updateButton(STATE.CONNECTED);
+                  activeLink = 'usb';
+                } catch(e){
+                  console.error("Chyba při připojení:", e);
+                  updateButton(STATE.ERROR);
                 }
-              });
+              } else if (currentState === STATE.CONNECTED || currentState === STATE.CONNECTED_HOVER) {
+                try {
+                  await mpSerial.disconnect();
+                  updateButton(STATE.DISCONNECTED);
+                  activeLink = isBleConnected() ? 'ble' : 'none';
+                } catch(e){
+                  console.error("Chyba při odpojení:", e);
+                  updateButton(STATE.ERROR);
+                }
+              }
+            }));
               
-              navigator.serial.addEventListener("disconnect", (event) => {
-               // Zkontroluj, zda jde o právě otevřený port
-               if (mpSerial.port && event.target === mpSerial.port) {
-                    console.warn("Tvé zařízení bylo odpojeno.");
-                    updateButton(STATE.ERROR);
-                    mpSerial.reader = null;
-                    mpSerial.writer = null;
-                    mpSerial.disconnect();
-                    mpSerial.port = null; // zabrání znovupoužití starého objektu
-               }
-              });
+            navigator.serial.addEventListener("disconnect", (event) => {
+              if (mpSerial.port && event.target === mpSerial.port) {
+                console.warn("Tvé zařízení bylo odpojeno.");
+                updateButton(STATE.ERROR);
+                if (activeLink === 'usb') activeLink = isBleConnected() ? 'ble' : 'none';
+                mpSerial.reader = null; mpSerial.writer = null;
+                mpSerial.disconnect(); mpSerial.port = null;
+                openQuick(); // zobraz rychlý panel po náhlém odpojení
+              }
+            });
           
               navigator.serial.addEventListener("connect", (event) => {
                 console.log("Nové zařízení připojeno");
@@ -1459,7 +2132,15 @@
                       text: "Chcete se k němu připojit?",
                       showCancelButton: true,
                       confirmButtonText: "Ano",
-                      cancelButtonText: "Ne"
+                      cancelButtonText: "Ne",
+                      backdrop: false,       // ← přestane zakrývat celé UI
+                      heightAuto: false,     // ← SweetAlert2 už neupraví výšku <body>
+                      willClose: () => {     // ← rychlý refresh editorů po zavření
+                        requestAnimationFrame(() => {
+                          if (projectMode === "text") { try { aceText && aceText.resize(); } catch(_){} }
+                          else { try { onresize(); Blockly.svgResize(demoWorkspace); } catch(_){} }
+                        });
+                      }
                     }).then((result) => {
                       if (result.isConfirmed) {
                         connectButton.click();  // Simuluj kliknutí na připojovací tlačítko
@@ -1478,6 +2159,124 @@
         
             
           }
+          
+          
+          
+          
+          
+
+
+
+
+
+
+
+
+
+            // Přepínací logika a připojení BLE
+            if (bleConnectButton) {
+              // Inicializační stav dle podpory prohlížeče
+              if (!("bluetooth" in navigator)) {
+                bleConnectButton.disabled = true;
+                bleUpdateButton(STATE.ERROR);
+              } else {
+                bleUpdateButton(STATE.DISCONNECTED);
+              }
+
+                bleConnectButton.addEventListener("click", () => withConnectLock(async () => {
+                  try {
+                    if (bleState === STATE.DISCONNECTED || bleState === STATE.DISCONNECTED_HOVER
+                        || bleState === STATE.ERROR || bleState === STATE.ERROR_HOVER) {
+
+                      await ensureExclusive('ble');
+                      if (!mpBLE) mpBLE = new MicroPythonBLE(term, (s) => {
+                        bleUpdateButton(s);
+                        if (s === STATE.CONNECTED) activeLink = 'ble';
+                        if (s === STATE.DISCONNECTED || s === STATE.ERROR) {
+                            activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
+                            if (!bleUserDisconnecting) openQuick(); // auto-open jen při náhlém odpojení
+                        }
+                      });
+
+                      await mpBLE.connect();
+                      bleUpdateButton(STATE.CONNECTED);
+                      activeLink = 'ble';
+
+                    } else if (bleState === STATE.CONNECTED || bleState === STATE.CONNECTED_HOVER) {
+                      bleUserDisconnecting = true;
+                      try { if (mpBLE) await mpBLE.disconnect(); } finally { bleUserDisconnecting = false; }
+                      bleUpdateButton(STATE.DISCONNECTED);
+                      activeLink = 'usb';
+                    }
+                  } catch(e){
+                    console.error("BLE error:", e);
+                    if (e.includes("User cancelled the requestDevice"))
+                    {
+                        bleUpdateButton(STATE.DISCONNECTED);
+                    }
+                    else
+                    {
+                        show_modal_message('Chyba Bluetooth připojení.', e);
+                        bleUpdateButton(STATE.ERROR);
+                    }
+                  }
+                }));
+              
+              
+              
+              
+            }
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
         
         
         
@@ -1513,19 +2312,33 @@
           var files = e.dataTransfer.files;
           if (files.length > 0) {
             var file = files[0];
-            document.getElementById("save_filename").value = file.name.replace(".xml", "");
+            document.getElementById("save_filename").value = file.name.replace(".xml", "").replace(".blk", "");
             var reader = new FileReader();
-            reader.onload = function(e) {
-              var contents = e.target.result;
+            reader.onload = async function(e) {
               try {
-                var xml = Blockly.Xml.textToDom(contents);
+                var contents = e.target.result;
+
+                const { payload, strippedText } = peelExtensionsComment(contents);
+
+                // 4a) přepni processor před integrací rozšíření
+                if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+                  await switchProcessorAndReloadToolbox(payload.processor);
+                }
+
+                // 4b) integruj rozšíření
+                if (payload?.extensions && Array.isArray(payload.extensions)) {
+                  mergeAndIntegrateExtensionsFromPayload(payload);
+                }
+
+                // 4c) načti XML
+                var xml = Blockly.Xml.textToDom(strippedText);
                 demoWorkspace.clear();
                 Blockly.Xml.domToWorkspace(xml, demoWorkspace);
               } catch (err) {
-                //alert('Chyba při načítání souboru: ' + err.message);
                 show_modal_message('Chyba při načítání souboru.', err.message);
               }
             };
+
             reader.readAsText(file);
           }
         });
@@ -1564,7 +2377,13 @@
         
         
         // Preload obrázků pro připojovací tlačítko
-        images.forEach(src => {
+        usbImages.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+        
+        // Preload obrázků pro připojovací tlačítko
+        bleImages.forEach(src => {
             const img = new Image();
             img.src = src;
         });
@@ -1574,6 +2393,249 @@
             var size = calculate_size(self);
             term.resize(size[0], size[1]);
         });
+        
+        
+        
+        
+        
+        
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      const qpBtn   = document.getElementById('quick_panel_button');
+      const qp      = document.getElementById('quick_panel');
+      const qpInner = document.getElementById('quick_panel_inner') || document.getElementById('quick_panel_row');
+
+      const elSerial = document.getElementById('SerialConnectButton');
+      const elBle    = document.getElementById('BLE_SerialConnectButton');
+      const elProc   = document.getElementById('processorDropdown');
+      const elMode   = document.getElementById('modeSwitch');
+
+      let qpInitDone = false;        // auto-open jen jednou po loadu
+      let qpWantedOpen = null;       // poslední známý stav uživatele (true/false)
+      let bleUserDisconnecting = false; // rozeznání ručního odpojení BLE
+
+
+
+      // Pořadí v panelu (můžeš libovolně změnit)
+      const panelOrder = [elProc, elMode, elSerial, elBle];
+
+      // Tvoje pevné X pozice v panelu
+      const FIXED_X = {
+        processorDropdown:        400,
+        modeSwitch:               205,
+        SerialConnectButton:       20,
+        BLE_SerialConnectButton:  130
+      };
+
+      function key(el){
+        return el?.id || '';
+      }
+
+      // Placeholdery + uložení původních inline stylů (jen jednou)
+      const placeholders = new Map();
+      const origStyle = new Map(); // klíč = element, hodnota = původní inline style string
+
+      function ensurePlaceholders(){
+        for (const el of panelOrder){
+          if (!el) continue;
+          if (!placeholders.has(el)){
+            const ph = document.createElement('span');
+            el.after(ph);
+            placeholders.set(el, ph);
+          }
+          if (!origStyle.has(el)){
+            // uložit původní inline styly (ne computed!) – přesně se tak vrátí
+            const s = el.getAttribute('style');
+            origStyle.set(el, s == null ? null : s);
+          }
+        }
+      }
+
+      function setPanelHeight(){
+        // výšku panelu nech klidně konstantní, nebo ji dopočítej podle nejvyššího prvku
+        const h = 44;
+        document.documentElement.style.setProperty('--qp-h', h + 'px');
+      }
+
+
+        function renderUsbIcon(){
+          if (!window.SerialConnectButton) return; // nebo elSerial
+          const el = document.getElementById('SerialConnectButton');
+          if (!el) return;
+          // currentState a usbImages už máš definované (stav + prefixed názvy) – viz tvé "Graficke tlacitko pripojeni"
+          el.style.backgroundImage = 'url("' + (usbImages[currentState] || usbImages[0]) + '")';
+        }
+
+        function renderBleIcon(){
+          const el = document.getElementById('BLE_SerialConnectButton');
+          if (!el) return;
+          el.style.backgroundImage = 'url("' + (bleImages[typeof bleState==='number'?bleState:0] || bleImages[0]) + '")';
+        }
+
+        function renderConnectIcons(){
+          try { renderUsbIcon(); } catch(_){}
+          try { renderBleIcon(); } catch(_){}
+        }
+
+
+
+
+      function moveToPanel(){
+        ensurePlaceholders();
+        for (const el of panelOrder){
+          if (!el || el.parentNode === qpInner) continue;
+          el.classList.add('in-panel');
+          qpInner.appendChild(el);
+          // pozice v panelu: absolutní X z FIXED_X, Y řeší CSS (bottom:8px)
+          const k = key(el);
+          if (k in FIXED_X) el.style.left = FIXED_X[k] + 'px';
+          el.style.bottom = '8px';
+          el.style.position = 'absolute';
+        }
+        setPanelHeight();
+        renderConnectIcons();
+      }
+
+      function restoreFromPanel(){
+        for (const el of panelOrder){
+          if (!el) continue;
+          const ph = placeholders.get(el);
+          if (!ph || !ph.parentNode) continue;
+
+          // odstranit panelovou třídu
+          el.classList.remove('in-panel');
+
+          // VRÁTIT přesně původní inline styly
+          const saved = origStyle.get(el);
+          if (saved === null){
+            // původně žádný inline style nebyl
+            el.removeAttribute('style');
+          } else {
+            el.setAttribute('style', saved);
+          }
+
+          // vrátit na původní místo v DOM
+          ph.parentNode.insertBefore(el, ph.nextSibling);
+        }
+        document.documentElement.style.removeProperty('--qp-h');
+        renderConnectIcons();
+      }
+
+      function openQuick(){
+          qp.classList.add('open');
+          document.body.classList.add('quick-open');
+          qpWantedOpen = true;
+          if (qpBtn) qpBtn.textContent = '▴';
+      }
+      
+      function closeQuick(){
+          qp.classList.remove('open');
+          document.body.classList.remove('quick-open');
+          qpWantedOpen = false;
+          if (qpBtn) qpBtn.textContent = '▾';
+      }
+
+      function layoutResponsive(){
+          const narrow = window.innerWidth <= 1150;
+          if (narrow){
+            moveToPanel();
+            if (!qpInitDone) {
+              // první vykreslení: otevři panel
+              openQuick();
+              if (qpBtn) qpBtn.style.display = 'block';
+              qpInitDone = true;
+            } else {
+              // další resize: respektuj poslední volbu uživatele
+              if (qpWantedOpen) openQuick(); else closeQuick();
+              if (qpBtn) qpBtn.style.display = 'block';
+            }
+          } else {
+            restoreFromPanel();
+            closeQuick();
+            if (qpBtn) qpBtn.style.display = 'none';
+          }
+          setTimeout(()=>{
+            try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_){}
+            try { if (window.aceText) { aceText.resize(); } } catch(_){}
+          }, 80);
+      }
+
+      // Toggle (ponecháme)
+      if (qpBtn){
+        qpBtn.addEventListener('click', ()=>{
+          const isOpen = qp.classList.contains('open');
+          if (isOpen){ closeQuick(); }
+          else { moveToPanel(); openQuick(); }
+          setTimeout(()=>{
+            try { if (window.demoWorkspace) { onresize(); Blockly.svgResize(demoWorkspace); } } catch(_){}
+            try { if (window.aceText) { aceText.resize(); } } catch(_){}
+          }, 120);
+        });
+      }
+
+      // Auto-sbalení po připojení (ponecháme)
+      let autoClosed = false;
+      setInterval(()=>{
+        try{
+          if (!autoClosed && typeof isEditorConnected === 'function' && isEditorConnected()){
+            closeQuick(); autoClosed = true;
+          }
+        }catch(_){}
+      }, 400);
+
+      window.addEventListener('resize', layoutResponsive);
+      layoutResponsive();
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
@@ -1652,14 +2714,24 @@
     function code_download_pc() {
       var xml = Blockly.Xml.workspaceToDom(demoWorkspace);
       var xml_text = Blockly.Xml.domToText(xml);
+
+      // === ESPIDE EXTENSIONS: embed used extensions =====================
+      let used = [];
+      try { used = pickUsedExtensions(xml_text) || []; } catch(_) { used = []; }
+      const payload = { version:1, processor:(userSettings&&userSettings.processor)||null, extensions: used };
+      const blob = utf8_to_b64(JSON.stringify(payload));
+
+      // místo prostého připojení ZA </xml> teď vkládáme DOVNITŘ
+      const final_text = injectExtensionsIntoXml(xml_text, blob);
+
       let project_name = document.getElementById("save_filename").value;
       if (!project_name) {
         alert("Musíte zadat platné jméno projektu!");
       } else {
-        if (project_name.endsWith('.xml')) {
-          file_download(project_name, xml_text);
+        if (project_name.endsWith('.xml') || project_name.endsWith('.blk')) {
+          file_download(project_name, final_text);
         } else {
-          file_download(project_name + ".xml", xml_text);
+          file_download(project_name + ".blk", final_text);
         }
       }
       close_save();
@@ -1674,21 +2746,47 @@
     function readSingleFile(e) {
       var file = e.target.files[0];
       if (!file) return;
-      document.getElementById("save_filename").value = file.name.replace(".xml", "");
+      document.getElementById("save_filename").value = file.name.replace(/\.xml$|\.blk$/i, "");
       var reader = new FileReader();
-      reader.onload = function(e) {
-        var contents = e.target.result;
-        try {
-          var xml = Blockly.Xml.textToDom(contents);
-          demoWorkspace.clear();
-          Blockly.Xml.domToWorkspace(xml, demoWorkspace);
-          this.value = "";
-        } catch (e) {
-          alert(e);
-        }
-      };
+      reader.onload = async function(ev) {
+          try {
+            var contents = ev.target.result;
+
+            const { payload, strippedText } = peelExtensionsComment(contents);
+
+            // 3a) přepni processor před integrací rozšíření
+            if (payload?.processor && payload.processor !== (userSettings && userSettings.processor)) {
+              await switchProcessorAndReloadToolbox(payload.processor);
+            }
+
+            // 3b) integruj rozšíření
+            if (payload?.extensions && Array.isArray(payload.extensions)) {
+              mergeAndIntegrateExtensionsFromPayload(payload);
+            }
+
+            // 3c) teď čisté XML do workspace
+            var xml = Blockly.Xml.textToDom(strippedText);
+            demoWorkspace.clear();
+            Blockly.Xml.domToWorkspace(xml, demoWorkspace);
+            this.value = "";
+          } catch (err) {
+            alert(err);
+          }
+        };
       reader.readAsText(file);
     }
+    
+    
+    
+    // Prevence zavření stránky
+    const isElectron = (typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent)) || !!(globalThis.process?.versions?.electron);
+
+    if (!isElectron) {
+      window.onbeforeunload = (e) => { e.preventDefault(); e.returnValue = ''; };
+    }
+    
+
+
 
     function showDropdown() {
       var x = document.getElementById("more_menu");
@@ -1698,6 +2796,128 @@
         x.style.display = "none";
       }
     }
+    
+    
+    
+    
+    function saveActiveTabAsFile(){
+      if (!textProject || textProject.activeIndex < 0 || !textProject.files.length){
+        alert('Není otevřen žádný tab.');
+        return;
+      }
+      var f = textProject.files[textProject.activeIndex];
+      var name = f.name || 'soubor.py';
+      var content = f.session ? f.session.getValue() : (f.content || '');
+
+      var blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+      }, 0);
+
+      // po úspěšném stažení už nepovažujeme tab za „dirty“
+      if (f.dirty){ f.dirty = false; renderTabs(); }
+      saveTextProjectToLS();
+    }
+    
+    
+    function openFileIntoActiveTab(){
+      // Zajisti, že existuje aspoň jeden tab
+      if (!textProject || textProject.files.length === 0){
+        ensureOneDefaultTab();
+      }
+      var i = textProject.activeIndex;
+      if (i < 0) i = 0;
+
+      var inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.py,.txt';
+      inp.onchange = function(e){
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function(){
+          var txt = String(reader.result || '');
+          var parts = splitNameExt(file.name);
+          var newName = uniqueFileName(parts.base, parts.ext, i); // respektuj unikátnost mezi ostatními tably
+
+          var f = textProject.files[i];
+
+          // přejmenuj tab (unikátně) a vlož obsah
+          f.name = newName;
+
+          if (f.session){
+            f.session.setValue(txt);
+          } else {
+            // fallback, pokud bys ještě neměl sessions
+            f.content = txt;
+            if (aceText) aceText.setValue(txt, -1);
+          }
+
+          f.dirty = false;          // čerstvě načteno → není špinavé
+          activateTab(i);           // zobraz
+          renderTabs();
+          saveTextProjectToLS();
+        };
+        reader.readAsText(file, 'utf-8');
+      };
+      inp.click();
+    }
+
+    // Pomocníci pro práci se jménem
+    function splitNameExt(filename){
+      var m = /^(.+?)(?:\.([^.]+))?$/.exec(filename || '');
+      return {
+        base: (m && m[1]) ? m[1] : 'soubor',
+        ext:  (m && m[2]) ? m[2] : 'py'
+      };
+    }
+
+    // ignoreIndex = index tabu, který právě přejmenováváš (aby se nepočítal jako kolize sám se sebou)
+    function uniqueFileName(base, ext, ignoreIndex){
+      base = (base || 'soubor').replace(/[\/\\:*?"<>|]/g, '_');
+      ext  = (ext  || 'py').replace(/[\/\\:*?"<>|]/g, '');
+      var taken = {};
+      for (var idx=0; idx<textProject.files.length; idx++){
+        if (idx === ignoreIndex) continue;
+        taken[textProject.files[idx].name] = true;
+      }
+      var n = 1, name = base + '.' + ext;
+      while (taken[name]){
+        name = base + n + '.' + ext;
+        n++;
+      }
+      return name;
+    }
+    
+    
+    
+    function openCurrentProject(){
+      if (projectMode==="blocks") code_upload_pc();
+      else openFileIntoActiveTab();
+    }
+    
+    function saveCurrentProject(){
+      if (projectMode==="blocks") save_file_dialog(); // volá code_download_pc()
+      else saveActiveTabAsFile();
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   </script>  
   <title>ESP IDE</title>
   <style type="text/css" media="screen">
@@ -1767,7 +2987,7 @@
       position: absolute;
       top: 48px;
       right: 32px;
-      height: 347px;
+      height: 383px;
       width: 200px;
       background: #f6f6f6;
       cursor: pointer;
@@ -1777,17 +2997,18 @@
       border: 1px solid #a8a8a8;
       display: none;
       border-radius: 4px;
-      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
     }
     #code_dialog  {
       position: absolute;
-      top: 48px;
+      top: 56px;
       right: 20px;
-      height: 65%;
+      height: 70%;
       left: 50px;
       background: #e6e6e6;
       border-radius: 2px;
-      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
       display: none;
     }
     #save_dialog  {
@@ -1800,7 +3021,7 @@
       border-radius: 6px;
       border: 1px solid #BBBBBB;
       display: none;
-      box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 8px;
     }
     input, select {
       display: block;
@@ -1837,7 +3058,7 @@
       z-index: 3;
       font-size: x-large;
     }
-    #blocklyDiv { height: 100%; width: 100%; }
+    #blocklyDiv { height: 100%; width: 100%; position: absolute;}
     .blocklyToolboxContents { padding: .1em; }
     .blocklyTreeRow { padding: 10px; margin-bottom: .2em; border-radius: 5px; }
     .blocklyFlyoutBackground { fill: #f6f6f6; }
@@ -1851,8 +3072,17 @@
       height: 4px;
       background-color: #29d;
       z-index: 9999;
-      transition: width 0.25s ease, opacity 0.2s ease;
+      transition: width 0.5s ease, opacity 0.2s ease;
     }
+    
+    
+    /* Bezpečné chování SweetAlert2 v aplikaci s vlastním layoutem */
+    html.swal2-shown, body.swal2-shown { overflow: initial !important; }
+    body.swal2-height-auto { height: auto !important; }
+
+    /* Když rendrujeme do #swal-root, ať je to “nad vším”, ale bez globálního backdropu */
+    #swal-root { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; }
+    #swal-root .swal2-container { pointer-events: all; }
     
   </style>
   
@@ -1924,6 +3154,104 @@
       /* volitelné – barva fajfky v moderních prohlížečích */
       accent-color:#3f51b5;
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    .segmented {
+      display: inline-flex; gap:0; background:#e7e7e7; padding:2px; border-radius:6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.15) inset, 0 1px 2px rgba(0,0,0,.15);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    .segmented input { display:none; }
+    .segmented label {
+      padding:3px 4px; border-radius:5px; cursor:pointer; user-select:none;
+      border:1px solid transparent; font-size:14px; line-height:18px;
+    }
+    .segmented input:checked + label {
+      background:#fff; border-color:#d0d7de; box-shadow:0 1px 2px rgba(0,0,0,.15);
+    }
+    
+    #modeSwitch { height:31px; }
+    
+    
+    #textShell { position: relative; height:100%; width:100%; }
+    #textEditorHost { position:absolute; top:55px; left:0; right:0; bottom:0; }
+    #aceText { position:absolute; top:0px; left:0; right:0; bottom:0; }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    :root { --qp-h: 56px; }  /* výška panelu, dopočítá JS podle obsahu */
+
+    #quick_panel_button{
+      position:absolute; top:0; right:44px; width:40px; height:42px;
+      background:#f6f6f6; display:none;
+      text-align:center; line-height:42px; font-size:36px; cursor:pointer;
+      user-select:none; z-index:1000;
+    }
+
+    /* Panel vyjíždí plynule změnou height; obsah je přilepený dole. */
+    #quick_panel{
+      position:absolute; left:0; right:0; top:44px;
+      height:0; overflow:hidden; background:#f6f6f6; border-bottom:1px solid #e5e7eb;
+      transition: height .25s ease;
+      box-shadow:0 2px 4px rgba(0,0,0,.06);
+      z-index:999;
+    }
+    #quick_panel.open{ height: var(--qp-h); }
+
+    #quick_panel_inner{
+      position:relative; height:100%;
+    }
+
+    /* Prvky uvnitř panelu mají absolutní pozici; Y je přilepeno ke dnu. */
+    .in-panel{
+      position:absolute !important;
+      bottom:8px;  /* přilepení na spodní okraj panelu */
+    }
+
+    /* Breakpoint: úzké displeje – zobraz toggle, skryj topbarové instance (mimo panel) */
+    @media (max-width:1150px){
+      #quick_panel_button{ display:block; }
+      #SerialConnectButton:not(.in-panel),
+      #BLE_SerialConnectButton:not(.in-panel),
+      #processorDropdown:not(.in-panel),
+      #modeSwitch:not(.in-panel){ display:none !important; }
+    }
+
+    /* Široké displeje: panel neukazuj */
+    @media (min-width:1151px){
+      #quick_panel_button, #quick_panel{ display:none !important; }
+    }
+
+    /* Taby v textovém režimu: jeden řádek, vodorovný scroll, neoznačitelný text */
+    #tabbar{ white-space:nowrap; overflow:hidden; height 50px;}
+    #tabs{
+      display:flex; gap:6px;
+      flex-wrap:nowrap !important;
+      overflow-x:auto; overflow-y:hidden; scrollbar-width:thin;
+      height:54px;
+    }
+    #tabs, #tabs *{ user-select:none; -webkit-user-select:none; }
+    
+    
+    
+    
   </style>
   
   
@@ -1933,15 +3261,15 @@
 <body>
   <div id="myProgress"></div>
   <div id="drop_zone" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: none; background-color: rgba(0, 0, 0, 0.5); text-align: center; color: white; padding-top: 20%; font-size: 25px;">
-    Puštěním, se zahájí načítání XML souboru.
+    Puštěním, se zahájí načítání souboru.
   </div>
   
-  <img src="topbar_blk.png" width="520" height="42" usemap="#icon_map" style="position: absolute; user-drag: none; user-select: none; top: 2px; left: 0px">
+  <img src="media/topbar_blk.png" width="520" height="42" usemap="#icon_map" style="position: absolute; user-drag: none; user-select: none; top: 2px; left: 0px">
   <map name="icon_map">
     <area alt="Spustit kód" title="Spustit kód" shape="rect" coords="8,1,85,41" onclick="phone_vibrate();runCode();" style="cursor: pointer;">
     <area alt="Zastavit program" title="Zastavit program" shape="rect" coords="94,1,136,41" onclick="phone_vibrate();stopCode();" style="cursor: pointer;">
-    <area alt="Otevřít soubor z ESP" title="Otevřít soubor z vnitřní paměti" shape="rect" coords="145,1,188,41" onclick="phone_vibrate();code_upload_pc();" style="cursor: pointer;">
-    <area alt="Uložit soubor do ESP" title="Uložit soubor do vnitřní paměti" shape="rect" coords="192,1,234,41" onclick="phone_vibrate();save_file_dialog();" style="cursor: pointer;">
+    <area alt="Otevřít soubor z PC" title="Otevřít soubor z počítače" shape="rect" coords="145,1,188,41" onclick="phone_vibrate();openCurrentProject();" style="cursor: pointer;">
+    <area alt="Uložit soubor do PC" title="Uložit soubor do počítače" shape="rect" coords="192,1,234,41" onclick="phone_vibrate();saveCurrentProject();" style="cursor: pointer;">
     <area alt="Zpět" title="Zpět" shape="rect" coords="240,1,282,41" onclick="phone_vibrate();Blockly.mainWorkspace.undo(false);" style="cursor: pointer;">
     <area alt="Znovu" title="Znovu" shape="rect" coords="288,1,330,41" onclick="phone_vibrate();Blockly.mainWorkspace.undo(true);" style="cursor: pointer;">
     <area alt="Zobrazit kód" title="Zobrazit kód" shape="rect" coords="336,1,376,41" onclick="phone_vibrate();showCode();" style="cursor: pointer;">
@@ -1949,19 +3277,54 @@
     <area alt="Restart zařízení" title="Restart zařízení" shape="rect" coords="433,1,472,41" onclick="phone_vibrate();ResetCPU();" style="cursor: pointer;">
   </map>
   
-  <button id="SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení" style="position: absolute; border: none; top: 2px; left: 550px; height: 42px; width: 103px; z-index: 999; cursor: pointer; background-color: #f6f6f6;">
+  <button id="SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení pomocí USB" style="position: absolute; border: none; top: 2px; left: 530px; height: 42px; width: 103px; z-index: 999; cursor: pointer; background-color: #f6f6f6; background-repeat: no-repeat;  background-size: 103px 42px;">
   </button>
   
+  
+  <button id="BLE_SerialConnectButton" type="button" title="Připojit nebo odpojit zařízení pomocí Bluetooth" style="position: absolute; border: none; top: 2px; left: 640px; height: 42px; width: 50px; z-index: 999; cursor: pointer; background-color: #f6f6f6; background-repeat: no-repeat;  background-size: 50px 42px;">
+  </button>
+  
+  
   <!-- Výběr procesoru v horní liště -->
-  <select id="processorDropdown" title="Aktuální procesor" style="position:absolute; top:4px; left:700px; width:120px; height:36px; margin: 0px; padding: 5px; z-index:999; font-size:16px;">
+  <select id="processorDropdown" title="Aktuální procesor" style="position:absolute; top:4px; left:730px; width:160px; height:36px; margin: 0px; padding: 5px; z-index:999; font-size:16px;">
       <option value="ESP32">ESP32</option>
       <option value="ESP32C3">ESP32-C3</option>
       <option value="ESP32S3">ESP32-S3</option>
+      <option value="ESP8266">ESP8266</option>
       <option value="RP2040">RP2040</option>
+      <option value="RP2040_Picoed">RP2040 Pico:ed</option>
   </select>
   
   
-  <div id="editor_div" class="split content"><div id="blocklyDiv"></div></div>
+  <div id="modeSwitch" class="segmented" style="position:absolute; top:4px; left:930px; z-index:999;">
+      <input type="radio" name="mode" id="modeBlocks" checked>
+      <label for="modeBlocks" title="Programování v blocích"><img src="media/blockly_switch2.png" alt="Bloky" width="67" height="22"></label>
+      <input type="radio" name="mode" id="modeText">
+      <label for="modeText" title="Programování textem"><img src="media/code_switch2.png" alt="Bloky" width="67" height="22"></label>
+  </div>
+  
+  
+  
+  
+  
+  
+  
+  <div id="editor_div" class="split content">
+      <div id="blocklyDiv"></div>
+
+      <!-- Text editor area (hidden by default) -->
+      <div id="textShell" style="display:none; height:100%; width:100%; position:relative;">
+        <div id="tabbar" style="height:54px; display:flex; align-items:center; gap:6px; padding:2px 8px; background:#f6f6f6; border-bottom:1px solid #e5e7eb;">
+          <button id="btnNewTab" title="Nový soubor" style="height: 35px; border: 1px solid rgb(165, 165, 165); border-radius: 8px; background: rgb(255, 255, 255); cursor: pointer; padding-right: 15px;margin-bottom: 12px;">＋ Nový</button>
+          <div id="tabs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+        </div>
+        <div id="textEditorHost" style="position:absolute; top:58px; left:0; right:0; bottom:0;">
+          <div id="aceText" class="ace_editor"></div>
+        </div>
+      </div>
+  </div>
+    
+    
   <div id="terminal_div" class="split content"><div id="term"></div></div>
   
   <div id="code_dialog" style="z-index: 150;">
@@ -1985,15 +3348,20 @@
   
     <div id="extensions_dialog" style="background:#ffffff;">
         <div id="ext_header">Správce doplňků
-        <span class="x" style="float:right;cursor:pointer;background-color: #f85858;margin-right: 2px;margin-top: 4px;border-radius: 4px;" onclick="closeExtensionsDialog()">×</span>
+            <span class="x" style="float:right;cursor:pointer;background-color: #f85858;margin-right: 2px;margin-top: 4px;border-radius: 4px;" onclick="closeExtensionsDialog()">×</span>
         </div>
-
         <div id="ext_list"></div>
-
         <div id="ext_drop">Sem přetáhni *.newblk soubory</div>
-
         <input type="button" value="Uložit změny" style="width:94%;margin:8px 3%;height:38px" onclick="applyExtensionSelection()">
     </div>
+  
+  
+  
+    <div id="quick_panel_button" title="Rychlé připojení a výběr procesoru">▾</div>
+    <div id="quick_panel">
+      <div id="quick_panel_inner"></div>
+    </div>
+    
   
   
   
@@ -2017,7 +3385,10 @@
     <hr>
     <button type="button" title="Správce doplňků" onclick="openExtensionsDialog();showDropdown();" style="margin: 2px; width: 98%; height: 42px; vertical-align: middle; display: inline;">Správce doplňků</button>
   
-  
+    <hr>
+    <div style="margin: 2px; width: 98%; text-align: center; font-size: 12px; opacity: .8;">
+      Verze: <a href="javascript:void(0)" onclick="showChangelog()" id="menuVersionLink">v<span id="menuVersionText"></span></a>
+    </div>
   </div>
   
   <xml id="toolbox" style="display: none">
@@ -2030,11 +3401,11 @@
       var t = document.getElementById("myProgress"), e = 25;
       var n = setInterval(function(){
         if(e < 90){
-          e += Math.random()*(250/e);
+          e += Math.random()*(200/e);
           if(e > 90) e = 90;
           t.style.width = e + "%";
         }
-      }, 20);
+      }, 500);
       window.addEventListener("load", function(){
         clearInterval(n);
         t.style.width = "100%";
@@ -2043,6 +3414,6 @@
     }();
   </script>
   
-
+  <div id="swal-root"></div>
 </body>
 </html>

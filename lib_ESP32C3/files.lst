@@ -1,0 +1,19 @@
+# ── soubor;kam se uloží v MCU ──
+boot.py;/
+BlynkLib.py;/lib/
+dcmotorlib.py;/lib/
+joy_lib.py;/lib/
+max7219.py;/lib/
+minifont.py;/lib/
+mpu6050.py;/lib/
+oled.py;/lib/
+pcf8574.py;/lib/
+pcf8575.py;/lib/
+rtttl.py;/lib/
+servo.py;/lib/
+st7567.py;/lib/
+stats.py;/lib/
+tcs34725.py;/lib/
+vl53l0x.py;/lib/
+ble_repl.py;/lib/
+ble_nus.py;/lib/

@@ -30,6 +30,12 @@
       "icon": "build/icon.ico"
     },
     "mac": {
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "Aplikace potřebuje Bluetooth pro připojení k desce."
+      },
       "target": [
         "dmg",
         "zip"
