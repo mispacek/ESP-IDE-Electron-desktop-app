@@ -30,6 +30,7 @@ ESP IDE je desktopový editor a učební prostředí pro MicroPython na deskách
 - **Průvodci instalací:**  
   - flash firmware (ESP32/ESP8266) nebo zobrazení pokynů pro UF2 (RP2),  
   - následná instalace knihoven.
+  - instalátor firmware najdete zde : https://espide.eu/instalace_new/
 - **Rozšíření (Extensions):** přidání vlastních bloků a toolbox XML, uložení do `localStorage` a bezpečná integrace do UI.
 - **Changelog a verze v UI:** rychlý přehled novinek přímo v aplikaci.
 - **Vývojářské nástroje:** klávesa **F12** otevře/zavře DevTools.
