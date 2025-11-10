@@ -60,7 +60,7 @@
       btn.className = 'devBtn';
       btn.innerHTML =
         `<div class="dev-name">${esc(name)}</div>
-         <div class="dev-info">ID: <span class="mono">${esc(id)}</span></div>`;
+         <div class="dev-info">MAC: <span class="mono">${esc(id)}</span></div>`;
       btn.onclick = () => window.btPicker.choose(id);
       devListEl.appendChild(btn);
     }

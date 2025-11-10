@@ -165,9 +165,9 @@ function createWindow () {
   //*****************
   //** F12 - Debug **
   //*****************
-  //mainWin.webContents.on('before-input-event', (e, input) => {
-  //  if (input.type === 'keyDown' && input.key === 'F12') mainWin.webContents.toggleDevTools();
-  //});
+  mainWin.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.key === 'F12') mainWin.webContents.toggleDevTools();
+  });
   
   
   

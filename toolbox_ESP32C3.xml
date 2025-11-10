@@ -916,14 +916,14 @@
             </value>
           </block>
           
-          <block type="get_joy_axis">
-			<field name="joy_name">1</field>
-			<field name="axis">X</field>
+          <block type="get_joy_axis_ble">
+            <field name="joy_name">1</field>
+            <field name="axis">X</field>
           </block>
 
-          <block type="get_joy_state" disabled="false">
-			<field name="joy_name">1</field>
-		  </block>
+          <block type="get_joy_state_ble" disabled="false">
+            <field name="joy_name">1</field>
+          </block>
 
 
           

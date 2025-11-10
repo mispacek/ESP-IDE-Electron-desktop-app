@@ -2,6 +2,13 @@
  * Třída MicroPythonSerial – nová webserial komunikace *
  ******************************************************* */
 
+function asBytes(x){
+  if (x instanceof Uint8Array) return x;
+  if (x instanceof ArrayBuffer) return new Uint8Array(x);
+  return new TextEncoder().encode(String(x ?? ''));
+}
+
+
 class MicroPythonSerial {
   constructor(terminal) {
     this.terminal = terminal; // instance xterm.js
@@ -12,6 +19,10 @@ class MicroPythonSerial {
     this.inRawMode = false;       // Příznak raw REPL režimu
     this.rawResponseBuffer = "";  // Buffer pro odpovědi v raw režimu
     this.mute_terminal = false;
+    
+    this.fm_in_buffer  = "";
+    this.fm_buf_enabled = true;            // sbírej vždy
+    this.fm_buf_limit   = 262144;          // 256 KiB ochrana proti přetečení
   }
 
 
@@ -120,6 +131,13 @@ class MicroPythonSerial {
                this.terminal.write(decoded);
             }
             
+            if (this.fm_buf_enabled) {
+              this.fm_in_buffer += decoded;
+              if (this.fm_in_buffer.length > this.fm_buf_limit) {
+                this.fm_in_buffer = this.fm_in_buffer.slice(-this.fm_buf_limit);
+              }
+            }
+
           }
         } catch (error) {
           console.error("Chyba v readLoop:", error);
@@ -203,7 +221,7 @@ class MicroPythonSerial {
             const result = this.rawResponseBuffer;
             this.rawResponseBuffer = "";
             resolve(result);
-          } else if (Date.now() - startTime > 2000) {
+          } else if (Date.now() - startTime > 2500) {
             reject(new Error("Timeout při čekání na OK\\x04: " + this.rawResponseBuffer));
           } else {
             setTimeout(checkResponse, 10); // kontroluj každých 10 ms
@@ -252,7 +270,6 @@ async sendFile(filename, content, init = false) {
         await this.sendData(`except OSError:\r`);
         await this.execRawCommand(` os.mkdir("${folder}")\r`);
     }
-
     
     if (init == true)
     {
@@ -284,8 +301,7 @@ async sendFile(filename, content, init = false) {
     await delay(50);
     
     // Převod textu do UTF-8 bajtů
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(content);
+    const bytes = asBytes(content);
     const chunkSize = 64;
     
     // Pomocná funkce pro Base64 kódování Uint8Array chunku
@@ -332,6 +348,14 @@ async sendFile(filename, content, init = false) {
     this.terminal.writeln(`**Chyba při odesílání souboru: ${error.message}**`);
   }
 }
+
+
+  fmEnable(on){ this.fm_buf_enabled = !!on; }
+  fmClear(){ this.fm_in_buffer = ""; }
+  fmPeek(){ return this.fm_in_buffer; }
+  fmTakeAll(){ const s = this.fm_in_buffer; this.fm_in_buffer = ""; return s; }
+
+
 
 
 }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=0.80, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Souborový manažer</title>
+    <link rel="stylesheet" href="filemanager.css?v=04_11_2025">
+
+  <!-- SweetAlert2 -->
+  <script src="js/sweetalert2.all.min.js?v=04_11_2025"></script>
+  <link rel="stylesheet" href="css/sweetalert2.min.css?v=04_11_2025">
+
+  <style>
+    /* Bezpečné chování SweetAlert2 v aplikaci s vlastním layoutem */
+    html.swal2-shown, body.swal2-shown { overflow: initial !important; }
+    body.swal2-height-auto { height: auto !important; }
+    /* Když rendrujeme do #swal-root, ať je to nad vším, ale bez globálního backdropu */
+    #swal-root { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; }
+    #swal-root .swal2-container { pointer-events: all; }
+  </style>
+
+</head>
+<body>
+  <div id="swal-root"></div>
+
+    <div class="file-manager">
+        <div class="toolbar">
+            <input type="file" id="file-upload" style="display: none;" multiple>
+            <button id="upload"><img src="media/icons/upload.png" class="icon"> <span>Nahrát do ESP</span></button>
+            <button id="download"><img src="media/icons/download.png" class="icon"> <span>Stáhnout do PC</span></button>
+            <button id="move-to"><img src="media/icons/move.png" class="icon"> <span>Přesunout</span></button>
+            <button id="copy-to"><img src="media/icons/copy.png" class="icon"> <span>Kopírovat</span></button>
+            <button id="rename"><img src="media/icons/rename.png" class="icon"> <span>Přejmenovat</span></button>
+            <button id="new-folder"><img src="media/icons/new_folder.png" class="icon"> <span>Nová složka</span></button>
+            <button id="delete"><img src="media/icons/delete.png" class="icon"> <span>Smazat</span></button>
+            <button id="clear-selection"><img src="media/icons/clear.png" class="icon"> <span>Zrušit výběr</span></button>
+            <button id="close-fm"><img src="media/icons/exit.png" class="icon"> <span>Zavřít</span></button>
+        </div>
+        <div id="breadcrumb-container">
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div id="status-container">
+                <div id="progressbar-container">
+                    <div id="progressbar"></div>
+                </div>
+                <div id="memory-status"></div>
+            </div>
+        </div>
+        <div class="file-list" id="file-list" ondrop="handleDrop(event)" ondragover="allowDrop(event)">
+            <table id="file-table">
+                <thead>
+                    <tr>
+                        <th>Vybráno</th>
+                        <th>Název</th>
+                        <th>Velikost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic file listing -->
+                </tbody>
+            </table>
+        </div>
+        <div id="error-message" style="color: red;"></div>
+    </div>
+    <div id="popup-overlay" class="popup-overlay" style="display: none;">
+        <div id="popup-window" class="popup-window">
+            <div id="popup-content"></div>
+            <button id="popup-close" class="popup-button">Zavřít</button>
+        </div>
+    </div>
+    
+  <script>
+    (function(){
+      if (!window.Swal || !Swal.fire) return;
+      const origFire = Swal.fire;
+      const SAFE_DEFAULTS = {
+        backdrop: false,
+        heightAuto: false,
+        target: document.getElementById('swal-root') || 'body',
+        didOpen: () => {
+          requestAnimationFrame(()=>{
+            try { if (window.aceText && aceText.resize) aceText.resize(); } catch(_) {}
+            try { if (window.demoWorkspace) { if (window.onresize) onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
+          });
+        },
+        willClose: () => {
+          requestAnimationFrame(()=>{
+            try { if (window.aceText && aceText.resize) aceText.resize(); } catch(_) {}
+            try { if (window.demoWorkspace) { if (window.onresize) onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
+          });
+        }
+      };
+      Swal.fire = function(user){
+        const merged = Object.assign({}, SAFE_DEFAULTS, user);
+        return origFire(merged);
+      };
+    })();
+
+    // Jednoduché textové zadání, kompatibilní s index.html
+    function askText(title, defValue = '') {
+      return new Promise((resolve) => {
+        if (window.Blockly && typeof Blockly.prompt === 'function') {
+          Blockly.prompt(title, defValue, (val) => resolve(val));
+        } else if (window.dlg && typeof window.dlg.message === 'function') {
+          Swal.fire({
+            input: 'text',
+            inputValue: defValue || '',
+            title,
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Zrušit'
+          }).then(r => resolve(r.isConfirmed ? r.value : null));
+        } else {
+          const v = window.prompt(title, defValue);
+          resolve(v === null ? null : v);
+        }
+      });
+    }
+  </script>
+
+  <!-- Ošetření chybějících dialogů v Electronu -->
+  <script src="js/custom-dialog.js?v=04_11_2025"></script>
+
+    <script src="filemanager.js?v=04_11_2025"></script>
+</body>
+</html>
