@@ -103,8 +103,14 @@
   <script>
   
     // ==== Verze & changelog ============================================
-    const ESPIDE_VERSION = "2.0.0";
+    const ESPIDE_VERSION = "2.0.1";
     const ESPIDE_CHANGELOG = `
+    
+[14.11.2025] 2.0.1
+- Opraveny nefunkční dialogy po otevření správce souborů
+- Opraven nefunkční správce souborů po znovupřipojení zařízení
+- Odstraněny duplicitní importy javascriptu ve správci souborů
+- Při zavření správce souborů úklid a povolení REPLu
 
 [10.11.2025] 2.0.0
 - Opraveny dialogy ve správci souborů pro desktop verzi
@@ -4366,7 +4372,13 @@
           overlayEl.__suppressOutsideDnD = null;
       }
       window.__FM_ACTIVE = false;
+
+      // Tvrdý cleanup REPLu po Filemanageru
+      if (typeof window.fmForceCleanup === 'function') {
+        try { window.fmForceCleanup(); } catch(e) { console.warn(e); }
+      }
     }
+
   </script>
   
   

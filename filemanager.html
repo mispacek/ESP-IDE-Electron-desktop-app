@@ -24,8 +24,6 @@
 
 </head>
 <body>
-  <div id="swal-root"></div>
-
     <div class="file-manager">
         <div class="toolbar">
             <input type="file" id="file-upload" style="display: none;" multiple>
@@ -71,58 +69,5 @@
         </div>
     </div>
     
-  <script>
-    (function(){
-      if (!window.Swal || !Swal.fire) return;
-      const origFire = Swal.fire;
-      const SAFE_DEFAULTS = {
-        backdrop: false,
-        heightAuto: false,
-        target: document.getElementById('swal-root') || 'body',
-        didOpen: () => {
-          requestAnimationFrame(()=>{
-            try { if (window.aceText && aceText.resize) aceText.resize(); } catch(_) {}
-            try { if (window.demoWorkspace) { if (window.onresize) onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
-          });
-        },
-        willClose: () => {
-          requestAnimationFrame(()=>{
-            try { if (window.aceText && aceText.resize) aceText.resize(); } catch(_) {}
-            try { if (window.demoWorkspace) { if (window.onresize) onresize(); Blockly.svgResize(demoWorkspace); } } catch(_) {}
-          });
-        }
-      };
-      Swal.fire = function(user){
-        const merged = Object.assign({}, SAFE_DEFAULTS, user);
-        return origFire(merged);
-      };
-    })();
-
-    // Jednoduché textové zadání, kompatibilní s index.html
-    function askText(title, defValue = '') {
-      return new Promise((resolve) => {
-        if (window.Blockly && typeof Blockly.prompt === 'function') {
-          Blockly.prompt(title, defValue, (val) => resolve(val));
-        } else if (window.dlg && typeof window.dlg.message === 'function') {
-          Swal.fire({
-            input: 'text',
-            inputValue: defValue || '',
-            title,
-            showCancelButton: true,
-            confirmButtonText: 'OK',
-            cancelButtonText: 'Zrušit'
-          }).then(r => resolve(r.isConfirmed ? r.value : null));
-        } else {
-          const v = window.prompt(title, defValue);
-          resolve(v === null ? null : v);
-        }
-      });
-    }
-  </script>
-
-  <!-- Ošetření chybějících dialogů v Electronu -->
-  <script src="js/custom-dialog.js?v=04_11_2025"></script>
-
-    <script src="filemanager.js?v=04_11_2025"></script>
 </body>
 </html>

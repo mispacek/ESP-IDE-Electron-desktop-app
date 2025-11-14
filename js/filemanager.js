@@ -288,6 +288,8 @@ async function updateStatus(){
     const pctUsed = total ? (used / total * 100) : 0;
     updateMemoryBar(pctUsed);
     updateMemoryStatus(usedMB, totalMB, pctUsed);
+    }catch(e){
+      showError(String(e && e.message || e));
   } finally { statusRunning = false; }
 }
 function updateMemoryBar(pctUsed){
@@ -407,13 +409,21 @@ async function uploadBatch(list){
 
 // Pošli soubor přes dev.sendFile
 async function sendOneFile(file, dst){
-  const dev = active(); if (!dev) return showError('Zařízení není připojeno.');
-  dev.mute_terminal = true;
-  fm_delay(25);
-  const buf = await file.arrayBuffer();
-  await dev.sendFile(dst, new Uint8Array(buf), false);
-  fm_delay(300);
-  dev.mute_terminal = false;
+  const dev = active(); 
+  if (!dev) return showError('Zařízení není připojeno.');
+
+  const prevMute = !!dev.mute_terminal;
+  try {
+    dev.mute_terminal = true;
+    awaitfm_delay(25);
+
+    const buf = await file.arrayBuffer();
+    await dev.sendFile(dst, new Uint8Array(buf), false);
+
+    await fm_delay(150);
+  } finally {
+    dev.mute_terminal = prevMute;
+  }
 }
 
 // ====== DOWNLOAD přes fm_down (Base64 řádky) ======
@@ -674,6 +684,7 @@ async function fetchDirPaged(path){
 
   // hlavička: <<FM_LIST>><path>\r?\n
   function tryConsumeHeader(){
+    //console.log(__fmAcc);
     const TAG = '<<FM_LIST>>';
     const i = __fmAcc.indexOf(TAG);
     if (i < 0) return null;
@@ -718,7 +729,8 @@ async function fetchDirPaged(path){
       fmPull(dev);
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
-
+      acc();
+      __fmAcc = "";
       // spusť listing na ESP
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_list(${pyStr(path)}, ${pause})`);
@@ -1084,6 +1096,7 @@ async function mpEvalJson(expr){
     try{
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
+      await dev.sendCommand("import ujson as json");
       await dev.sendCommand("print('<<FM>>'+json.dumps(" + expr + ")+'<<END>>')");
       const t0 = Date.now(), limit = 25000; let pinged = false;
       while (Date.now() - t0 < limit){
@@ -1172,3 +1185,21 @@ async function open_text_editor(filename){
   switchUITo("text")
 }
 
+// Tvrdý cleanup REPL stavu při zavření Filemanageru
+function fmForceCleanup(){
+  try {
+    const dev = active();
+    if (dev) {
+      // vždy odmutuj terminál a zruš případný uložený stav capture
+      endCapture(dev);
+      dev.mute_terminal = false;
+      if (dev.__fm_save) dev.__fm_save = null;
+      
+    }
+  } catch(e) {
+    console.warn('fmForceCleanup mute reset failed', e);
+  }
+}
+
+// zpřístupni z index.html
+window.fmForceCleanup = fmForceCleanup;
