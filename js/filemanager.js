@@ -415,7 +415,7 @@ async function sendOneFile(file, dst){
   const prevMute = !!dev.mute_terminal;
   try {
     dev.mute_terminal = true;
-    awaitfm_delay(25);
+    await fm_delay(25);
 
     const buf = await file.arrayBuffer();
     await dev.sendFile(dst, new Uint8Array(buf), false);

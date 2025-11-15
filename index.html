@@ -74,24 +74,24 @@
   
   
   <!-- Ostatní zdroje načítáme s defer, aby neblokovaly rendering -->
-  <link rel="stylesheet" href="css/xterm.css?v=04_11_2025">
-  <script src="js/xterm.js?v=04_11_2025"></script>
-  <script src="js/split.min.js?v=04_11_2025"></script>
-  <script src="js/ace.js?v=04_11_2025" defer></script>
-  <script src="js/ext-language_tools.js?v=04_11_2025" defer></script>
-  <script src="js/blockly_compressed.js?v=04_11_2025" defer></script>
-  <script src="js/blocks_compressed.js?v=04_11_2025" defer></script>
-  <script src="js/python_compressed.js?v=04_11_2025" defer></script>
-  <script src="js/cs.js?v=04_11_2025" defer></script>
-  <script src="js/sweetalert2.all.min.js?v=04_11_2025"></script>
-  <link rel="stylesheet" href="css/sweetalert2.min.css?v=04_11_2025">
+  <link rel="stylesheet" href="css/xterm.css?v=15_11_2025">
+  <script src="js/xterm.js?v=15_11_2025"></script>
+  <script src="js/split.min.js?v=15_11_2025"></script>
+  <script src="js/ace.js?v=15_11_2025" defer></script>
+  <script src="js/ext-language_tools.js?v=15_11_2025" defer></script>
+  <script src="js/blockly_compressed.js?v=15_11_2025" defer></script>
+  <script src="js/blocks_compressed.js?v=15_11_2025" defer></script>
+  <script src="js/python_compressed.js?v=15_11_2025" defer></script>
+  <script src="js/cs.js?v=15_11_2025" defer></script>
+  <script src="js/sweetalert2.all.min.js?v=15_11_2025"></script>
+  <link rel="stylesheet" href="css/sweetalert2.min.css?v=15_11_2025">
  
   <!-- Komunikační drivery pro USB Serial a Bluetooth -->
-  <script src="js/repl_web_usb_serial.js?v=04_11_2025" defer></script>
-  <script src="js/repl_web_bluetooth_serial.js?v=04_11_2025" defer></script>
+  <script src="js/repl_web_usb_serial.js?v=15_11_2025" defer></script>
+  <script src="js/repl_web_bluetooth_serial.js?v=15_11_2025" defer></script>
   
   <!-- Ošetření chybějících dialogů v electronu -->
-  <script src="js/custom-dialog.js?v=04_11_2025"></script>
+  <script src="js/custom-dialog.js?v=15_11_2025"></script>
 
   <!-- Virtuální joystick -->
   <script>
@@ -4322,7 +4322,7 @@
         }
 
         // 3) loader: filemanager.js (REPL varianta uvnitř)
-        await loadScript('js/filemanager.js');
+        await loadScript('js/filemanager.js?v=15_11_2025');
 
         // 4) naslouchej zavírání
         document.addEventListener('click', (e)=>{
