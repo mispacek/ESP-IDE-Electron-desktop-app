@@ -1,4 +1,4 @@
-# ESP IDE LICENSE (CZ / EN) — V2
+# ESP IDE LICENSE (CZ / EN)
 **Based on GNU Affero General Public License v3.0 (AGPL-3.0)**  
 **Project:** ESP IDE  
 **Author:** Milan Špaček  
@@ -15,7 +15,7 @@
 
 ---
 
-# 🇨🇿 LICENCE
+# CZ LICENCE
 
 ESP IDE je open-source projekt licencovaný pod **GNU AGPL-3.0**.  
 Všechna vylepšení musí zůstat veřejná a otevřená.
@@ -38,7 +38,7 @@ Všechna vylepšení musí zůstat veřejná a otevřená.
 **ESP IDE se aktivně vyvíjí a roste společně s komunitou. Naším cílem je, aby bylo programování dostupné, pochopitelné a zábavné pro každého.**
 ---
 
-# 🇬🇧 LICENSE
+# EN LICENSE
 
 ESP IDE is licensed under **GNU AGPL-3.0**.  
 All improvements must remain public and open.
