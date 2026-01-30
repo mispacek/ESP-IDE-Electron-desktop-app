@@ -1,8 +1,38 @@
-// File Manager přes REPL s vlastním RX bufferem (fm_in_buffer) v transportechn.
-// Bez RAW REPL. Příkazy běží v klasickém REPL s umlčeným terminálem.
-// Funkce: streamovaný listing, multi-upload s dialogem, download přes fm_down,
-// průběh a stav paměti, zámky proti souběhu.
+// File Manager over REPL with a dedicated RX buffer (fm_in_buffer) in transports.
+// No RAW REPL. Commands run in standard REPL with the terminal muted.
+// Features: streamed listing, multi-upload with dialog, download via fm_down,
+// progress + memory status, and locks against concurrent operations.
 
+
+// === File Manager i18n helpers ===
+function fmT(key, vars){
+  try {
+    if (window.__espideI18n && typeof window.__espideI18n.t === 'function') {
+      return window.__espideI18n.t(key, vars);
+    }
+    if (typeof window.t === 'function') return window.t(key, vars);
+  } catch (_) {}
+  if (!vars) return key;
+  return key.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
+}
+
+function applyFmTranslations(){
+  const api = window.__espideI18n;
+  if (!api || typeof api.applyTranslations !== 'function') return;
+  api.applyTranslations(document);
+}
+
+function hookFmLanguageChanges(){
+  const api = window.__espideI18n;
+  if (!api || typeof api.setLanguage !== 'function' || api.__fmHooked) return;
+  const original = api.setLanguage.bind(api);
+  api.setLanguage = async (...args) => {
+    const res = await original(...args);
+    applyFmTranslations();
+    return res;
+  };
+  api.__fmHooked = true;
+}
 
 // === SweetAlert2 dialog helpers (aligned with index.html) ===
 async function dlgConfirm(message){
@@ -10,42 +40,43 @@ async function dlgConfirm(message){
     icon: 'question',
     title: message,
     showCancelButton: true,
-    confirmButtonText: 'Ano',
-    cancelButtonText: 'Ne'
+    confirmButtonText: fmT('actions.yes'),
+    cancelButtonText: fmT('actions.no')
   });
   return r.isConfirmed;
 }
 function info(message, text=''){
-  return Swal.fire({ icon:'info', title: message, text, confirmButtonText: 'OK' });
+  return Swal.fire({ icon:'info', title: message, text, confirmButtonText: fmT('actions.ok') });
 }
 function errorDlg(message, text=''){
-  return Swal.fire({ icon:'error', title: message, text, confirmButtonText: 'OK' });
+  return Swal.fire({ icon:'error', title: message, text, confirmButtonText: fmT('actions.ok') });
 }
-// ====== STAV A BOOT ======
+// ====== STATE AND BOOT ======
 let currentPath = '/';
 let selectedFiles = [];
 let popup_modal = false;
 let popupTimer = null;
-let __fmAcc = "";                 // akumulátor dat File Manageru
+let __fmAcc = "";                 // File Manager data accumulator
 let __fm_inited = false;
 let __statusTimer = null;
 let statusRunning = false;
-let uploadingBatch = false;       // blokuje status dotazy během uploadu/downloadu
-let listingActive = false;        // blokuje status během listingu
-let __importsReady = false;       // ujson/fm_rpc připraveny
-let __lock = Promise.resolve();   // REPL sériový zámek
+let uploadingBatch = false;       // blocks status queries during upload/download
+let listingActive = false;        // blocks status during listing
+let __importsReady = false;       // ujson/fm_rpc ready
+let __lock = Promise.resolve();   // REPL serial lock
 let replBusyCount = 0;
 let dirLoadLock = Promise.resolve();
 
-// Public API: otevři FM a načti adresář (volá index.html)
+// Public API: open FM and load a directory (called by index.html)
 window.fmOpen = async function(path = '/'){
   if (!__fm_inited) __init();
-  // FM aktivní → vypni globální DnD z index.html
+  // FM active -> disable global DnD from index.html
   try { window.__FM_ACTIVE = true; } catch(_){}
   if (!isConnected()){
-    showError('Zařízení není připojeno.');
+    showError(fmT('fileManager.errors.notConnected'));
     return;
   }
+  
   await loadDirectoryContents(path).catch(e=>showError(String(e&&e.message||e)));
   updateStatus().catch(()=>{});
   if (!__statusTimer) {
@@ -57,11 +88,13 @@ function __init(){
   if (__fm_inited) return;
   __fm_inited = true;
   __bindToolbar();
+  applyFmTranslations();
+  hookFmLanguageChanges();
 }
 
 if (!__fm_inited) __init();
 
-// ====== UI VAZBY ======
+// ====== UI HOOKS ======
 function __bindToolbar(){
   bindClick(['upload','btn-upload','upload-btn'], ()=> qs('file-upload')?.click());
   bindChange(['file-upload','input-upload'], handleFileInputChange);
@@ -85,11 +118,11 @@ function __bindToolbar(){
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closePopup(); });
 }
 
-// ====== POMOCNÉ ======
+// ====== HELPERS ======
 function qs(id){ return document.getElementById(id); }
 function bindClick(ids, fn){ ids.forEach(id=>{ const el=qs(id); if (el) el.addEventListener('click', fn); }); }
 function bindChange(ids, fn){ ids.forEach(id=>{ const el=qs(id); if (el) el.addEventListener('change', fn); }); }
-function joinPath(a,b){ return (a.endsWith('/')?a:a+'/') + b; }
+function joinPath(a,b){ return (a.endsWith('/') ? a : a + '/') + b; }
 function endsWithAny(str, arr){ return arr.some(s=>str && str.endsWith(s)); }
 function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function pyStr(s){ return '"' + String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '"'; }
@@ -100,10 +133,10 @@ function isConnected(){
 }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// kvůli ondragover="allowDrop(event)" ve filemanager.html
+// for ondragover="allowDrop(event)" in filemanager.html
 function allowDrop(e){ e.preventDefault(); }
 
-// zámek proti paralelním načítáním adresáře
+// lock against parallel directory loads
 function withDirLoadLock(fn){
   const prev = dirLoadLock; let release;
   dirLoadLock = new Promise(r=>release=r);
@@ -119,7 +152,7 @@ function withDirLoadLock(fn){
   })();
 }
 
-// ====== LINK PROFIL BLE/USB (ponecháno pro kompatibilitu jiných částí UI) ======
+// ====== LINK PROFILE BLE/USB (kept for compatibility with other UI parts) ======
 function linkProfile(){
   if (getActiveLink() == 'ble') return { items:10, bytes:512, pauseMs:200};
   return { items:25, bytes:1024, pauseMs:5};
@@ -131,18 +164,19 @@ let ICON_FOLDER = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAAD
 let ICON_FILE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAEQElEQVR42q2Wa2gcVRTH/3dmNpFo1LW1tQpVsPpBRYKCH3xBNVpFCD4o2BYrPip+KFWUSmuzSKXGVrRYFBGUNLVG66NBQY2SUgVtIKlpikhe3W7DZjfNJrvJZmdn532v585uYrYbog29szNzH7Pzu+f8zz13GOaUd9t+E4IzeD6HEAJgDArkje4MyJocKnVM2yYy2RxiSR2de19gWKCwcwFr77o1qIdCKgqGi5xVQN7yYNguJg0DU7oP03IQHTuLobMZ2CZbEFI2sOebo+LJe+uwclk4aAs6CgUHuuUjZ5rI6XmkDAcutftTaXSc6MOdN16PzqE4fn3rWXZeAN91YcIjgEozdmE5eVhkRYascjlHf2ISA/E41t99C9q6TuOveGpeSFlH06GjYsPqEsD3yQQOByosy4JpFKCbPrlLwPFdDCTS6IrGEFn/IHzHw57vOtE/Ml4BKWvsaj0inqq/rQRwIAVnigLLJ0tMFwXbg+OIwHm9sQR6h9N4e+N9SE7pGBweR3tvFD2x0TJIGeDNL46Ip++fAVjgXJWBBEGnSZFlkNie40MRPs6M5/Bjz+kAMJ3LI+8LxJNjaOuO4afjA+j7+GVWAYh83iGef+D2WQs4Lw7LEPVLECmwdJFBWnScHArGdV0gL5yg/uepUZxJjmPwk1cqAVubfxabH7ljVgNOYs48xEoQuUZytoDnOsVAsDhp5GIsa6CmRsOJ6Aj2/dCN4eatlYAtH34vXl17TwDwCOAQoKo0JkoPC9JkmqLJcVxwl7SREUagdNbCZZdWo+tUArsP/Y6Rz16rBGza2yoaNzxctADSFRzShhBdtDnPeb4Cm9swPBt2nsEVFgFMrLgijGODcfJEO0YPbqsErGtqEbufawgABs1OkAV0RTUljBD5yKc6p1RRJeseie6RBTb1ei4mcgWsWnEl/uiL45l9h5Fq3V4JaIh8Kj7Y/HgAyBgWVC6Cl2rkFpUpxXAinykqWUSC+HSa3IVHwk/oBm6+dhmO/T2Cx5oOYuLLHZWA1TuaRcuWRwPAZL4QOD6I+kBshhA5qppgjhQmBFwkgR4ja0mDnIkbrg7jZHQU9Y37kfmq8f8B5hbZVCmdqlIRjRXB9AsRdIIsXrnkYgrTBNY0HsDk14sBULuqSoNLM1YVjVyngVM6UVgxnSwJ16B7KIGHIgcwtRgAAgtUiiIC0BEiMaSXpAMdSidLay8A4N8cw0orEMGmZHIfV9VeguMEWHMhAHLWMoRZIL5MIz6uubx2YcBNL74v2ndunAWweQDyD5xE9SWCQlSlhaFpGkxKgsvDZEFJ5P8EpKZ1WqHFfuUciGlTIqTcxlSaP0WVRgtvqmCh7rrl6IkmUb99P7LfRioBS594Q/R89NLslrmYIveGuk3vIX14ZyWgtuF10d+ybdEvnymr1u2C9cs78wPk3RXSKeK8Xio/cxjlr5kyA/gHM7+cN0oReEMAAAAASUVORK5CYII=";
 
 
-// Pomocná prodleva
+// Helper delay
 function fm_delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
-// ====== POPUP / DIALOGY ======
+// ====== POPUP / DIALOGS ======
 function bindCloseButtons(){
   const btn = qs('popup-close'); if (btn) btn.onclick = closePopup;
   const btns = qs('popup-buttons');
   if (btns && !btns.querySelector('#popup-close')){
-    btns.innerHTML = '<button id="popup-close" type="button">Zavřít</button>';
+    const label = fmT('fileManager.popup.close');
+    btns.innerHTML = '<button id="popup-close" type="button" data-i18n="fileManager.popup.close">'+label+'</button>';
     btns.querySelector('#popup-close').onclick = closePopup;
   }
 }
@@ -158,7 +192,7 @@ function showLoading(msg){
   popup_modal = false;
   const b = qs('popup-close'); if (b) b.style.display='none';
   const btns = qs('popup-buttons'); if (btns) btns.style.display='none';
-  showPopup('<p>'+(msg||'Pracuji...')+'</p>');
+  showPopup('<p>'+(msg||fmT('fileManager.popup.working'))+'</p>');
 }
 function showNotification(msg){
   popup_modal = true;
@@ -179,7 +213,7 @@ function closePopup(){
 }
 function resetPopupTimer(){ clearTimeout(popupTimer); popupTimer = setTimeout(closePopup, 8000); }
 
-// ====== PROGRESS BAR #myProgress NAD OVERLAY + PROCENTA ======
+// ====== PROGRESS BAR #myProgress OVERLAY + PERCENT ======
 let progressWatcher = null;
 let myProgressSaved = null;
 
@@ -235,8 +269,10 @@ function showUploadDialog(name, idx, total){
   if (btn)  btn.style.display='none';
   if (btns) btns.style.display='none';
   if (cont && ov){
-    const head = (total>1) ? `Soubor ${idx}/${total}: ` : '';
-    cont.innerHTML = `<p>Nahrávám: ${head}<b>${escapeHtml(name||'soubor')}</b> — <span id="upload-pct">0%</span></p>`;
+    const prefix = (total > 1) ? fmT('fileManager.upload.batchPrefix', { index: idx, total }) : '';
+    const label = fmT('fileManager.upload.inProgress');
+    const fileLabel = escapeHtml(name || fmT('fileManager.common.file'));
+    cont.innerHTML = `<p>${label} ${prefix}<b>${fileLabel}</b> - <span id="upload-pct">0%</span></p>`;
     ov.style.display='flex';
   }
   setMyProgressVisible(true);
@@ -249,9 +285,13 @@ function finishBatchDialog(okList, failList){
   const okNames   = okList.map(x=>x.name);
   const failNames = failList.map(x=>`${x.name} (${x.err})`);
   if (failList.length){
-    showError(`Nahráno: ${okList.length} úspěšně, ${failList.length} chyb.<br><small>OK: ${escapeHtml(okNames.join(', '))}<br>Chyby: ${escapeHtml(failNames.join(', '))}</small>`);
+    const summary = fmT('fileManager.upload.summaryError', { ok: okList.length, fail: failList.length });
+    const okLabel = fmT('fileManager.upload.summaryOkLabel');
+    const errLabel = fmT('fileManager.upload.summaryErrorLabel');
+    showError(`${summary}<br><small>${okLabel}: ${escapeHtml(okNames.join(', '))}<br>${errLabel}: ${escapeHtml(failNames.join(', '))}</small>`);
   } else {
-    showNotification(`Nahráno: ${okList.length} souborů.<br><small>${escapeHtml(okNames.join(', '))}</small>`);
+    const summary = fmT('fileManager.upload.summarySuccess', { ok: okList.length });
+    showNotification(`${summary}<br><small>${escapeHtml(okNames.join(', '))}</small>`);
   }
 }
 function showDownloadDialog(name){
@@ -261,7 +301,9 @@ function showDownloadDialog(name){
   if (btn)  btn.style.display='none';
   if (btns) btns.style.display='none';
   if (cont && ov){
-    cont.innerHTML = `<p>Stahuji: <b>${escapeHtml(name||'soubor')}</b> — <span id="upload-pct">0%</span></p>`;
+    const label = fmT('fileManager.download.inProgress');
+    const fileLabel = escapeHtml(name || fmT('fileManager.common.file'));
+    cont.innerHTML = `<p>${label} <b>${fileLabel}</b> - <span id="upload-pct">0%</span></p>`;
     ov.style.display='flex';
   }
   setMyProgressVisible(true);
@@ -273,7 +315,7 @@ function finishDownloadDialog(){
   setMyProgressVisible(false);
 }
 
-// ====== STATUS PAMĚTI ======
+// ====== MEMORY STATUS ======
 async function updateStatus(){
   if (replBusyCount > 0 || statusRunning || uploadingBatch || listingActive) return;
   statusRunning = true;
@@ -296,19 +338,23 @@ function updateMemoryBar(pctUsed){
   const el = qs('progressbar'); if (!el) return;
   const p = Math.max(0, Math.min(100, pctUsed));
   el.style.width = p.toFixed(1) + '%';
-  const hue = 120 - p * 1.2; // 120..0 zelená→červená
+  const hue = 120 - p * 1.2; // 120..0 green->red
   el.style.backgroundColor = `hsl(${hue}, 75%, 62%)`;
-  el.title = `Využito: ${p.toFixed(1)}%`;
+  el.title = fmT('fileManager.status.usedTitle', { pct: p.toFixed(1) });
 }
 function updateMemoryStatus(usedMB, totalMB, pctUsed){
   const el = qs('memory-status'); if (!el) return;
-  el.textContent = `${usedMB.toFixed(3)}MB / ${totalMB.toFixed(3)}MB využito (${pctUsed.toFixed(1)}%)`;
+  el.textContent = fmT('fileManager.status.usedSummary', {
+    used: usedMB.toFixed(3),
+    total: totalMB.toFixed(3),
+    pct: pctUsed.toFixed(1)
+  });
 }
 
 // ====== DND / INPUT ======
 async function handleDrop(e){
   e.preventDefault();
-  // tvrdý zámek statusu stejně jako při uploadu tlačítkem
+  // hard status lock, same as upload via button
   if (uploadingBatch || statusRunning) return;
   uploadingBatch = true;
   statusRunning  = true;
@@ -323,7 +369,7 @@ async function handleDrop(e){
     const nested = await Promise.all(lists);
     const flat = nested.flat();
     if (!flat.length) return;
-    await uploadBatch(flat);              // stejná cesta jako u tlačítka
+    await uploadBatch(flat);              // same path as the button
     await loadDirectoryContents(currentPath);
   } finally {
     uploadingBatch = false;
@@ -351,7 +397,7 @@ function processFilesAndDirs(files, base){
   const list = buildUploadList(tree, base);
   if (!list.length) return;
   uploadBatch(list).then(()=> loadDirectoryContents(currentPath))
-                   .catch(err=> showError('Chyba uploadu: '+err));
+                   .catch(err=> showError(fmT('fileManager.errors.uploadFailed', { error: String(err) })));
 }
 function buildUploadList(struct, base, out=[]){
   for (const k in struct){
@@ -387,9 +433,9 @@ async function listAllEntries(entry, base){
   return [];
 }
 
-// ====== FS OPERACE (REPL) ======
+// ====== FS OPERATIONS (REPL) ======
 
-// DÁVKOVÝ UPLOAD
+// BATCH UPLOAD
 async function uploadBatch(list){
   uploadingBatch = true;
   const ok=[], fail=[];
@@ -407,10 +453,10 @@ async function uploadBatch(list){
   finishBatchDialog(ok, fail);
 }
 
-// Pošli soubor přes dev.sendFile
+// Send file via dev.sendFile
 async function sendOneFile(file, dst){
   const dev = active(); 
-  if (!dev) return showError('Zařízení není připojeno.');
+  if (!dev) return showError(fmT('fileManager.errors.notConnected'));
 
   const prevMute = !!dev.mute_terminal;
   try {
@@ -426,12 +472,12 @@ async function sendOneFile(file, dst){
   }
 }
 
-// ====== DOWNLOAD přes fm_down (Base64 řádky) ======
+// ====== DOWNLOAD via fm_down (Base64 rows) ======
 async function doDownload(path){
-  const dev = active(); if (!dev) return showError('Zařízení není připojeno.');
+  const dev = active(); if (!dev) return showError(fmT('fileManager.errors.notConnected'));
   uploadingBatch = true; statusRunning = true;
 
-  // dialog s průběhem
+  // dialog with progress
   const nameGuess = (path.split('/').pop() || 'download.bin');
   showDownloadDialog(nameGuess);
 
@@ -439,7 +485,7 @@ async function doDownload(path){
   const bar = qs('myProgress');
   const setProg = (pct)=>{ if (bar) bar.style.width = Math.max(0, Math.min(100, pct|0)) + '%'; };
 
-  // profil dle linku
+  // profile by link
   let chunk, pause;
   if (getActiveLink() === 'ble') { chunk = 120;  pause = 60; }
   else                           { chunk = 384; pause = 1;  }
@@ -451,24 +497,25 @@ async function doDownload(path){
   function acc(){ fmAccumulate(dev); }
   function b64toU8(s){ const bin=atob(s); const u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); return u8; }
 
-  // hlavička: <<FM_DOWN>>name;size
-  function tryConsumeHeader(){
-    const tag='<<FM_DOWN>>';
-    const i=__fmAcc.indexOf(tag); if (i<0) return null;
-    let j=__fmAcc.indexOf('\n',i); if (j<0) j=__fmAcc.indexOf('\r',i); if (j<0) return null;
-    const line=__fmAcc.slice(i+tag.length,j).trim();
-    __fmAcc=__fmAcc.slice(j+1);
-    const semi=line.indexOf(';'); if (semi<0) return {error:'Neplatná hlavička'};
-    const namePart=line.slice(0,semi); const sizeStr=line.slice(semi+1);
-    const size=parseInt(sizeStr,10)||0; if (!size && sizeStr!=='0') return {error:'Neplatná velikost'};
-    if (namePart.toUpperCase().includes('ERROR')) return {error:'Chyba na ESP: '+namePart};
-    return {name:namePart, size};
+  function parseHeader(payload){
+    const semi = payload.indexOf(';');
+    if (semi < 0) throw new Error(fmT('fileManager.errors.invalidHeader'));
+    const namePart = payload.slice(0, semi);
+    const sizeStr = payload.slice(semi + 1);
+    const size = parseInt(sizeStr, 10);
+    if (!Number.isFinite(size)) throw new Error(fmT('fileManager.errors.invalidSize'));
+    return { name: fmDecodePct(namePart), size };
+  }
+
+  function failFrame(frame){
+    if (frame.error === 'crc') throw new Error(fmT('fileManager.errors.frameCrc'));
+    throw new Error(fmT('fileManager.errors.frameLength'));
   }
 
   await withReplLock(async ()=>{
     beginCapture(dev);
     try{
-      // reset a start
+      // reset and start
       flushRx();
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
@@ -476,51 +523,51 @@ async function doDownload(path){
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_down(${pyStr(path)}, ${chunk}, ${pause})`);
 
-      // HLAVIČKA
+      // HEADER
       const t0=Date.now(), T_HDR=15000; let header=null;
       while ((Date.now()-t0)<T_HDR){
         acc();
-        if (__fmAcc.indexOf('Traceback')>=0 || __fmAcc.indexOf('NameError')>=0) throw new Error('Chyba v REPL: '+__fmAcc.slice(0,200));
-        header = tryConsumeHeader();
-        if (header){ if (header.error) throw new Error(header.error); break; }
+        if (__fmAcc.indexOf('Traceback')>=0 || __fmAcc.indexOf('NameError')>=0) throw new Error(fmT('fileManager.errors.replError', { error: __fmAcc.slice(0,200) }));
+        const frame = fmConsumeFrame();
+        if (frame){
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'DLR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'DLH'){ header = parseHeader(frame.payload); break; }
+        }
         await delay(30);
       }
-      if (!header) throw new Error('Timeout hlavičky');
+      if (!header) throw new Error(fmT('fileManager.errors.headerTimeout'));
 
       const expectSize = header.size;
       const baseName = (header.name || path).split('/').pop() || 'download.bin';
       setProg(0);
 
-      // DATA: řádky Base64 až do <<FM_D_COMPL>>
-      const END='<<FM_D_COMPL>>';
-      let carry=''; const linesEst=Math.max(1, Math.ceil(expectSize/Math.max(1,chunk)));
+      const linesEst=Math.max(1, Math.ceil(expectSize/Math.max(1,chunk)));
       const T_DATA=20000 + linesEst*(pause+80); const t1=Date.now();
       let lastTick=0, lastPct=-1;
 
       while (true){
         acc();
-        let endIdx = __fmAcc.indexOf(END);
-        const takeUpto = (endIdx>=0) ? endIdx : __fmAcc.length;
-
-        if (takeUpto>0){
-          const segment = carry + __fmAcc.slice(0, takeUpto);
-          __fmAcc = __fmAcc.slice(takeUpto);
-          const rows = segment.split(/\r?\n/); carry = rows.pop() || '';
-          for (const r of rows){
-            const s=r.trim(); if (!s) continue;
-            const u8=b64toU8(s); parts.push(u8); gotLen += u8.length;
-          }
-          if (expectSize>0){
-            const now=Date.now(); const pct=(gotLen*100)/expectSize;
-            if ((now-lastTick)>80 && ((pct|0)!==lastPct)){ setProg(pct); lastTick=now; lastPct=pct|0; }
+        const frame = fmConsumeFrame();
+        if (frame){
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'DLR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'DLC'){
+            const u8 = b64toU8(frame.payload);
+            parts.push(u8); gotLen += u8.length;
+            if (expectSize>0){
+              const now=Date.now(); const pct=(gotLen*100)/expectSize;
+              if ((now-lastTick)>80 && ((pct|0)!==lastPct)){ setProg(pct); lastTick=now; lastPct=pct|0; }
+            }
+          } else if (frame.type === 'DLD') {
+            break;
           }
         }
-        if (endIdx>=0){ __fmAcc = __fmAcc.slice(END.length); break; }
-        if ((Date.now()-t1)>T_DATA) throw new Error('Timeout přenosu dat');
+        if ((Date.now()-t1)>T_DATA) throw new Error(fmT('fileManager.errors.dataTimeout'));
         await delay(Math.max(10, Math.min(60, pause||10)));
       }
 
-      if (gotLen !== expectSize) throw new Error(`Velikost nesouhlasí: očekáváno ${expectSize} B, dorazilo ${gotLen} B`);
+      if (gotLen !== expectSize) throw new Error(fmT('fileManager.errors.sizeMismatch', { expected: expectSize, got: gotLen }));
 
       const blob = new Blob(parts, {type:'application/octet-stream'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = baseName;
@@ -529,7 +576,7 @@ async function doDownload(path){
 
       setProg(100);
       finishDownloadDialog();
-      showNotification(`Staženo: ${baseName} (${gotLen} B)`);
+      showNotification(fmT('fileManager.download.completed', { name: baseName, size: gotLen }));
     } finally {
       endCapture(dev);
     }
@@ -538,9 +585,9 @@ async function doDownload(path){
 }
 
 
-// GZIP dekomprese v prohlížeči
+// GZIP decompression in the browser
 async function gunzipBytes(u8){
-  if (!('DecompressionStream' in window)) throw new Error('GZIP není podporován tímto prohlížečem.');
+  if (!('DecompressionStream' in window)) throw new Error(fmT('fileManager.errors.gzipUnsupported'));
   const ds = new DecompressionStream('gzip');
   const ab = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
   const resp = new Response(new Blob([ab]).stream().pipeThrough(ds));
@@ -548,20 +595,20 @@ async function gunzipBytes(u8){
 }
 
 
-// ====== DOWNLOAD do paměti přes fm_down (Base64 řádky) ======
-// Shodná logika s doDownload(), ale MÍSTO stažení do PC vrací bajty a metadata.
-// Vrací: { name, size, bytes: Uint8Array }
+// ====== DOWNLOAD to memory via fm_down (Base64 rows) ======
+// Same logic as doDownload(), but returns bytes + metadata instead of saving to PC.
+// Returns: { name, size, bytes: Uint8Array }
 async function doDownloadToMemory(path){
-  const dev = active(); if (!dev) throw new Error('Zařízení není připojeno.');
+  const dev = active(); if (!dev) throw new Error(fmT('fileManager.errors.notConnected'));
   uploadingBatch = true; statusRunning = true;
 
-  // Progress bar znovupoužijeme jen vizuálně
+  // Progress bar reused for visuals only
   const nameGuess = (path.split('/').pop() || 'download.bin');
-  showDownloadDialog(nameGuess);                 // stejné UI jako doDownload()
+  showDownloadDialog(nameGuess);                 // same UI as doDownload()
   const bar = qs('myProgress');
   const setProg = (pct)=>{ if (bar) bar.style.width = Math.max(0, Math.min(100, pct|0)) + '%'; };
 
-  // Profil dle linku — identicky jako v doDownload()
+  // Profile by link - identical to doDownload()
   let chunk, pause;
   if (getActiveLink() === 'ble') { chunk = 120;  pause = 60; }
   else                           { chunk = 384;  pause = 1;   }
@@ -573,24 +620,25 @@ async function doDownloadToMemory(path){
   function acc(){ fmAccumulate(dev); }
   function b64toU8(s){ const bin=atob(s); const u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); return u8; }
 
-  // hlavička: <<FM_DOWN>>name;size  — stejný parser jako v doDownload()
-  function tryConsumeHeader(){
-    const tag='<<FM_DOWN>>';
-    const i=__fmAcc.indexOf(tag); if (i<0) return null;
-    let j=__fmAcc.indexOf('\n',i); if (j<0) j=__fmAcc.indexOf('\r',i); if (j<0) return null;
-    const line=__fmAcc.slice(i+tag.length,j).trim();
-    __fmAcc=__fmAcc.slice(j+1);
-    const semi=line.indexOf(';'); if (semi<0) return {error:'Neplatná hlavička'};
-    const namePart=line.slice(0,semi); const sizeStr=line.slice(semi+1);
-    const size=parseInt(sizeStr,10)||0; if (!size && sizeStr!=='0') return {error:'Neplatná velikost'};
-    if (namePart.toUpperCase().includes('ERROR')) return {error:'Chyba na ESP: '+namePart};
-    return {name:namePart, size};
+  function parseHeader(payload){
+    const semi = payload.indexOf(';');
+    if (semi < 0) throw new Error(fmT('fileManager.errors.invalidHeader'));
+    const namePart = payload.slice(0, semi);
+    const sizeStr = payload.slice(semi + 1);
+    const size = parseInt(sizeStr, 10);
+    if (!Number.isFinite(size)) throw new Error(fmT('fileManager.errors.invalidSize'));
+    return { name: fmDecodePct(namePart), size };
+  }
+
+  function failFrame(frame){
+    if (frame.error === 'crc') throw new Error(fmT('fileManager.errors.frameCrc'));
+    throw new Error(fmT('fileManager.errors.frameLength'));
   }
 
   return await withReplLock(async ()=>{
     beginCapture(dev);
     try{
-      // Reset a start — identicky jako v doDownload()
+      // Reset and start - identical to doDownload()
       flushRx();
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
@@ -598,64 +646,65 @@ async function doDownloadToMemory(path){
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_down(${pyStr(path)}, ${chunk}, ${pause})`);
 
-      // HLAVIČKA
+      // HEADER
       const t0=Date.now(), T_HDR=15000; let header=null;
       while ((Date.now()-t0)<T_HDR){
         acc();
-        if (__fmAcc.indexOf('Traceback')>=0 || __fmAcc.indexOf('NameError')>=0) throw new Error('Chyba v REPL: '+__fmAcc.slice(0,200));
-        header = tryConsumeHeader();
-        if (header){ if (header.error) throw new Error(header.error); break; }
+        if (__fmAcc.indexOf('Traceback')>=0 || __fmAcc.indexOf('NameError')>=0) throw new Error(fmT('fileManager.errors.replError', { error: __fmAcc.slice(0,200) }));
+        const frame = fmConsumeFrame();
+        if (frame){
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'DLR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'DLH'){ header = parseHeader(frame.payload); break; }
+        }
         await delay(30);
       }
-      if (!header) throw new Error('Timeout hlavičky');
+      if (!header) throw new Error(fmT('fileManager.errors.headerTimeout'));
 
       const expectSize = header.size;
       const baseName = (header.name || path).split('/').pop() || 'download.bin';
       setProg(0);
 
-      // DATA: řádky Base64 až do <<FM_D_COMPL>> — kopie z doDownload()
-      const END='<<FM_D_COMPL>>';
-      let carry=''; const linesEst=Math.max(1, Math.ceil(expectSize/Math.max(1,chunk)));
+      // DATA frames (Base64)
+      const linesEst=Math.max(1, Math.ceil(expectSize/Math.max(1,chunk)));
       const T_DATA=20000 + linesEst*(pause+80); const t1=Date.now();
       let lastTick=0, lastPct=-1;
 
       while (true){
         acc();
-        let endIdx = __fmAcc.indexOf(END);
-        const takeUpto = (endIdx>=0) ? endIdx : __fmAcc.length;
-
-        if (takeUpto>0){
-          const segment = carry + __fmAcc.slice(0, takeUpto);
-          __fmAcc = __fmAcc.slice(takeUpto);
-          const rows = segment.split(/\r?\n/); carry = rows.pop() || '';
-          for (const r of rows){
-            const s=r.trim(); if (!s) continue;
-            const u8=b64toU8(s); parts.push(u8); gotLen += u8.length;
-          }
-          if (expectSize>0){
-            const now=Date.now(); const pct=(gotLen*100)/expectSize;
-            if ((now-lastTick)>80 && ((pct|0)!==lastPct)){ setProg(pct); lastTick=now; lastPct=pct|0; }
+        const frame = fmConsumeFrame();
+        if (frame){
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'DLR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'DLC'){
+            const u8 = b64toU8(frame.payload);
+            parts.push(u8); gotLen += u8.length;
+            if (expectSize>0){
+              const now=Date.now(); const pct=(gotLen*100)/expectSize;
+              if ((now-lastTick)>80 && ((pct|0)!==lastPct)){ setProg(pct); lastTick=now; lastPct=pct|0; }
+            }
+          } else if (frame.type === 'DLD') {
+            break;
           }
         }
-        if (endIdx>=0){ __fmAcc = __fmAcc.slice(END.length); break; }
-        if ((Date.now()-t1)>T_DATA) throw new Error('Timeout přenosu dat');
+        if ((Date.now()-t1)>T_DATA) throw new Error(fmT('fileManager.errors.dataTimeout'));
         await delay(Math.max(10, Math.min(60, pause||10)));
       }
 
-      if (gotLen !== expectSize) throw new Error(`Velikost nesouhlasí: očekáváno ${expectSize} B, dorazilo ${gotLen} B`);
+      if (gotLen !== expectSize) throw new Error(fmT('fileManager.errors.sizeMismatch', { expected: expectSize, got: gotLen }));
 
-      // Sloučení do výstupního Uint8Array
+      // Merge into output Uint8Array
       const out = new Uint8Array(expectSize);
       let off = 0;
       for (const p of parts){ out.set(p, off); off += p.length; }
 
-      // Ukliď progress overlay (ponechávám stejné chování jako při dokončení downloadu)
+      // Hide progress overlay (same behavior as after download completes)
       try { closeDownloadDialog && closeDownloadDialog(); } catch(_){}
       finishDownloadDialog()
       return { name: baseName, size: expectSize, bytes: out };
     } finally {
-      endCapture(dev);            // obnov terminál
-      uploadingBatch = false;     // povol status dotazy
+      endCapture(dev);            // restore terminal
+      uploadingBatch = false;     // allow status polling
       statusRunning = false;
       finishDownloadDialog()
     }
@@ -671,134 +720,111 @@ async function doDownloadToMemory(path){
 
 
 
-// ====== LISTING (stream přes <<FM_LIST>> ... <<FM_L_COMPL>>) ======
+// ====== LISTING (framed stream) ======
 async function fetchDirPaged(path){
-  const dev = active(); if (!dev) throw new Error('Zařízení není připojeno.');
+  const dev = active(); if (!dev) throw new Error(fmT('fileManager.errors.notConnected'));
 
-  // kratší pauza pro USB, delší pro BLE
+  // shorter pause for USB, longer for BLE
   let pause;
   if (getActiveLink() === 'ble') { pause = 35; }
   else                           { pause = 1;  }
 
-  function acc(){ fmAccumulate(dev); } // přilep do __fmAcc
+  function acc(){ fmAccumulate(dev); } // append into __fmAcc
 
-  // hlavička: <<FM_LIST>><path>\r?\n
-  function tryConsumeHeader(){
-    //console.log(__fmAcc);
-    const TAG = '<<FM_LIST>>';
-    const i = __fmAcc.indexOf(TAG);
-    if (i < 0) return null;
-    let j = __fmAcc.indexOf('\n', i);
-    if (j < 0) j = __fmAcc.indexOf('\r', i);
-    if (j < 0) return null;
-    const line = __fmAcc.slice(i + TAG.length, j).trim();
-    __fmAcc = __fmAcc.slice(j + 1);
-    if (!line || line.toUpperCase().includes('ERROR')) return { error: 'Chyba listingu' };
-    return { path: line };
+  function parseEntry(payload, basePath, out){
+    const k = payload.split(';');
+    if (k.length < 3) return;
+    const name = fmDecodePct(k[0]);
+    const sz = parseInt(k[1], 10);
+    const isD = (k[2] === 'D');
+    const size = Number.isFinite(sz) ? sz : 0;
+    const full = (basePath.endsWith('/') ? basePath : basePath + '/') + name;
+    out.push({
+      name,
+      path: full,
+      size: isD ? 0 : size,
+      isDirectory: isD,
+      extension: isD ? "" : (name.includes('.') ? name.split('.').pop() : ""),
+      icon: isD ? "dir" : "file"
+    });
   }
 
-  // parsování položek (bez ukončovacího tagu)
-  function parseRows(segment, basePath, out){
-    const rows = segment.split(/\r?\n/);
-    const carry = rows.pop() || ''; // poslední může být nedokončený
-    for (const r of rows){
-      const s = r.trim();
-      if (!s) continue;
-      const k = s.split(';');                 // jméno;velikost;F|D
-      if (k.length < 3) continue;
-      const name = k[0];
-      const sz   = parseInt(k[1], 10) || 0;
-      const isD  = (k[2] === 'D');
-      const full = (basePath.endsWith('/') ? basePath : basePath + '/') + name;
-      out.push({
-        name,
-        path: full,
-        size: isD ? 0 : sz,
-        isDirectory: isD,
-        extension: isD ? "" : (name.includes('.') ? name.split('.').pop() : ""),
-        icon: isD ? "dir" : "file"
-      });
-    }
-    return carry;
+  function failFrame(frame){
+    if (frame.error === 'crc') throw new Error(fmT('fileManager.errors.frameCrc'));
+    throw new Error(fmT('fileManager.errors.frameLength'));
   }
 
   return withReplLock(async ()=>{
-    beginCapture(dev); // umlč terminál + vynuluj __fmAcc
+    beginCapture(dev); // mute terminal + clear __fmAcc
     try{
-      // soft-reset příjmu
+      // soft reset input
       fmPull(dev);
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
+
       acc();
       __fmAcc = "";
-      // spusť listing na ESP
+      // start listing on the ESP
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_list(${pyStr(path)}, ${pause})`);
 
-      // 1) hlavička
+      // 1) header
       const T_HDR = 15000;
       const t0 = Date.now();
       let header = null;
       while ((Date.now() - t0) < T_HDR){
         acc();
-        if (__fmAcc.indexOf('Traceback') >= 0) throw new Error('Chyba v REPL');
-        header = tryConsumeHeader();
-        if (header){
-          if (header.error) throw new Error(header.error);
-          break;
+        if (__fmAcc.indexOf('Traceback') >= 0) throw new Error(fmT('fileManager.errors.replTraceback'));
+        const frame = fmConsumeFrame();
+        if (frame){
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'LSR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'LSTH'){ header = { path: fmDecodePct(frame.payload) }; break; }
         }
         await delay(25);
       }
-      if (!header) throw new Error('Timeout hlavičky');
+      if (!header) throw new Error(fmT('fileManager.errors.headerTimeout'));
 
       const basePath = header.path || path || '/';
-      const END = '<<FM_L_COMPL>>';
       const out = [];
-      let carry = '';
       let lastDataTs = Date.now();
-      const HARD = 60000;  // tvrdý limit
-      const IDLE = 4000;   // nic nové >4s → timeout
+      const HARD = 60000;  // hard limit
+      const IDLE = 4000;   // no new data >4s -> timeout
       const t1 = Date.now();
 
-      // 2) stream řádků až do ukončení
+      // 2) stream rows until end
       while (true){
         acc();
-        let endIdx = __fmAcc.indexOf(END);
-        const takeUpto = (endIdx >= 0) ? endIdx : __fmAcc.length;
-
-        if (takeUpto > 0){
-          const segment = carry + __fmAcc.slice(0, takeUpto);
-          __fmAcc = __fmAcc.slice(takeUpto);
-          carry = parseRows(segment, basePath, out);
+        const frame = fmConsumeFrame();
+        if (frame){
           lastDataTs = Date.now();
-        }
-
-        if (endIdx >= 0){
-          __fmAcc = __fmAcc.slice(END.length); // spolkni ukončovací tag
-          break;
+          if (frame.type === 'ERR') failFrame(frame);
+          if (frame.type === 'LSR') throw new Error(fmDecodePct(frame.payload));
+          if (frame.type === 'LSTE') parseEntry(frame.payload, basePath, out);
+          if (frame.type === 'LSTD') break;
         }
 
         const now = Date.now();
-        if ((now - lastDataTs) > IDLE) throw new Error('Timeout listingu');
-        if ((now - t1) > HARD) throw new Error('Příliš dlouhý listing');
+        if ((now - lastDataTs) > IDLE) throw new Error(fmT('fileManager.errors.listingTimeout'));
+        if ((now - t1) > HARD) throw new Error(fmT('fileManager.errors.listingTooLong'));
         await delay(30);
       }
 
-      // 3) hotovo
+      // 3) done
       return { path: basePath, contents: out };
     } finally {
-      endCapture(dev); // obnov terminál
+      endCapture(dev); // restore terminal
     }
   });
 }
 
-// ====== RENDER TABULKY ======
+// ====== TABLE RENDER ======
 async function loadDirectoryContents(path){
   return withDirLoadLock(async ()=>{
-    // vždy zruš výběr, ať se nepřenáší položky z jiné cesty
+    // always clear selection so items don't carry across paths
     clearSelection();
 
-    // helper pro správu výběru bez duplikátů
+    // helper to manage selection without duplicates
     function setSelected(path, on){
       if (!Array.isArray(selectedFiles)) selectedFiles = [];
       const i = selectedFiles.indexOf(path);
@@ -810,7 +836,7 @@ async function loadDirectoryContents(path){
     updateBreadcrumb();
 
     const ov = qs('popup-overlay');
-    if (ov && ov.style.display === 'none') showLoading('Načítám...');
+    if (ov && ov.style.display === 'none') showLoading(fmT('fileManager.popup.loading'));
 
     try{
       const data = await fetchDirPaged(currentPath);
@@ -841,24 +867,25 @@ async function loadDirectoryContents(path){
       list.forEach(file=>{
         const tr=document.createElement('tr');
 
-        // --- výběr s větším hitboxem ---
+        // --- selection with a larger hitbox ---
         const tdSel=document.createElement('td');
         tdSel.className = 'fm-col-sel';
 
         const lbl=document.createElement('label');
         lbl.className = 'fm-chk-wrap';
-        lbl.title = 'Vybrat položku';
+        lbl.dataset.i18nTitle = 'fileManager.popup.selectItem';
+        lbl.title = fmT('fileManager.popup.selectItem');
 
         const cb=document.createElement('input');
         cb.type='checkbox';
         cb.className='fm-chk';
         cb.checked = selectedFiles.includes(file.path);
 
-        // zvětšený klikací prostor; vystyluj si .fm-chk-hit v CSS
+        // larger click area; style .fm-chk-hit in CSS
         const hit=document.createElement('span');
         hit.className='fm-chk-hit';
 
-        // nepropagovat na klikatelné buňky řádku
+        // don't propagate to clickable row cells
         cb.addEventListener('click', (e)=> e.stopPropagation());
         lbl.addEventListener('click', (e)=> e.stopPropagation());
 
@@ -869,7 +896,7 @@ async function loadDirectoryContents(path){
         lbl.append(cb, hit);
         tdSel.appendChild(lbl);
 
-        // --- název a ikona ---
+        // --- name and icon ---
         const tdName=document.createElement('td');
         const icon=document.createElement('img'); icon.className='file-icon';
         icon.src = file.isDirectory ? ICON_FOLDER : ICON_FILE;
@@ -886,7 +913,7 @@ async function loadDirectoryContents(path){
           tdName.style.cursor='pointer';
         }
 
-        // --- velikost ---
+        // --- size ---
         const tdSize=document.createElement('td');
         tdSize.textContent = file.isDirectory ? '-' : (file.size + ' B');
 
@@ -917,68 +944,68 @@ function updateBreadcrumb(){
   });
 }
 
-// ====== HROMADNÉ OPERACE ======
+// ====== BULK OPERATIONS ======
 function downloadFiles(){
-  if (!selectedFiles.length){ showError('Nebyl vybrán žádný soubor.'); return; }
+  if (!selectedFiles.length){ showError(fmT('fileManager.errors.noSelection')); return; }
   (async ()=>{ for (const p of selectedFiles) await doDownload(p); })()
     .then(()=> clearSelection())
     .catch(e=> showError(String(e)));
 }
 async function moveTo(){
-  if (!selectedFiles.length){ showError('Nic nevybráno'); return; }
-  const dest = await askText('Cílová složka:'); if (!dest) return;
-  showLoading('Přesouvám...');
+  if (!selectedFiles.length){ showError(fmT('fileManager.errors.nothingSelected')); return; }
+  const dest = await askText(fmT('fileManager.prompts.destinationFolder')); if (!dest) return;
+  showLoading(fmT('fileManager.dialogs.moving'));
   (async ()=>{
     await ensureImports();
     const arr = '[' + selectedFiles.map(p=>pyStr(p)).join(',') + ']';
     return mpEvalJson('F.move(' + arr + ',' + pyStr(dest) + ')');
   })()
-    .then(r=>{ if(!r.ok) throw new Error(r.error||'move'); loadDirectoryContents(currentPath); clearSelection(); showNotification('Přesunuto'); })
-    .catch(e=> showError('Chyba: '+e));
+    .then(r=>{ if(!r.ok) throw new Error(r.error||'move'); loadDirectoryContents(currentPath); clearSelection(); showNotification(fmT('fileManager.dialogs.moved')); })
+    .catch(e=> showError(fmT('fileManager.errors.errorPrefix', { error: String(e) })));
 }
 async function new_Folder(){
-  const name = await askText('Název složky:'); if (!name) return;
+  const name = await askText(fmT('fileManager.prompts.folderName')); if (!name) return;
   const p = joinPath(currentPath, name).replace(/\/\//g,'/');
   (async ()=>{
     await ensureImports();
     return mpEvalJson('F.mkdir(' + pyStr(p) + ')');
   })()
-    .then(r=>{ if(!r.ok) throw new Error(r.error||'mkdir'); loadDirectoryContents(currentPath); clearSelection(); showNotification('Vytvořeno'); })
-    .catch(e=> showError('Chyba: '+e));
+    .then(r=>{ if(!r.ok) throw new Error(r.error||'mkdir'); loadDirectoryContents(currentPath); clearSelection(); showNotification(fmT('fileManager.dialogs.created')); })
+    .catch(e=> showError(fmT('fileManager.errors.errorPrefix', { error: String(e) })));
 }
 async function copyTo(){
-  if (!selectedFiles.length){ showError('Nic nevybráno'); return; }
-  const dest = await askText('Cílová složka:'); if (!dest) return;
-  showLoading('Kopíruji...');
+  if (!selectedFiles.length){ showError(fmT('fileManager.errors.nothingSelected')); return; }
+  const dest = await askText(fmT('fileManager.prompts.destinationFolder')); if (!dest) return;
+  showLoading(fmT('fileManager.dialogs.copying'));
   (async ()=>{
     await ensureImports();
     const arr = '[' + selectedFiles.map(p=>pyStr(p)).join(',') + ']';
     return mpEvalJson('F.copy(' + arr + ',' + pyStr(dest) + ')');
   })()
-    .then(r=>{ if(!r.ok) throw new Error(r.error||'copy'); loadDirectoryContents(currentPath); clearSelection(); showNotification('Zkopírováno'); })
-    .catch(e=> showError('Chyba: '+e));
+    .then(r=>{ if(!r.ok) throw new Error(r.error||'copy'); loadDirectoryContents(currentPath); clearSelection(); showNotification(fmT('fileManager.dialogs.copied')); })
+    .catch(e=> showError(fmT('fileManager.errors.errorPrefix', { error: String(e) })));
 }
 async function renameFile(){
-  if (selectedFiles.length !== 1){ await info('Vyberte jeden soubor.'); return; }
+  if (selectedFiles.length !== 1){ await info(fmT('fileManager.errors.selectOne')); return; }
   const base = selectedFiles[0].split('/').pop();
-  const newName = await askText('Nový název:', base);
+  const newName = await askText(fmT('fileManager.prompts.newName'), base);
   if (!newName) return;
   const newPath = joinPath(currentPath, newName).replace(/\/\//g,'/');
-  showLoading('Přejmenovávám...');
+  showLoading(fmT('fileManager.dialogs.renaming'));
   (async ()=>{
     await ensureImports();
     return mpEvalJson('F.rename(' + pyStr(selectedFiles[0]) + ',' + pyStr(newPath) + ')');
   })()
-    .then(r=>{ if(!r.ok) throw new Error(r.error||'rename'); loadDirectoryContents(currentPath); clearSelection(); showNotification('Přejmenováno'); })
-    .catch(e=> showError('Chyba: '+e));
+    .then(r=>{ if(!r.ok) throw new Error(r.error||'rename'); loadDirectoryContents(currentPath); clearSelection(); showNotification(fmT('fileManager.dialogs.renamed')); })
+    .catch(e=> showError(fmT('fileManager.errors.errorPrefix', { error: String(e) })));
 }
 
-// Smazání vybraných položek bez JSON. Jedna cesta = jeden REPL běh.
-// Použije fm_rpc.delete_path() (viz patch níže). Fallback na F._rmtree().
+// Delete selected items without JSON. One path = one REPL run.
+// Uses fm_rpc.delete_path() (see patch below). Fallback to F._rmtree().
 async function deleteFiles(){
-  if (!selectedFiles.length){ showError('Nic nevybráno'); return; }
-  showLoading('Mažu...');
-  uploadingBatch = true;            // vypne status dotazy, žádné Ctrl+C
+  if (!selectedFiles.length){ showError(fmT('fileManager.errors.nothingSelected')); return; }
+  showLoading(fmT('fileManager.dialogs.deleting'));
+  uploadingBatch = true;            // disables status polling, no Ctrl+C
   try{
     await ensureImports();          // import fm_rpc as F
     const targets = [...selectedFiles];
@@ -987,23 +1014,23 @@ async function deleteFiles(){
     }
     await loadDirectoryContents(currentPath);
     clearSelection();
-    showNotification('Smazáno');
+    showNotification(fmT('fileManager.dialogs.deleted'));
   }catch(e){
-    showError('Chyba: ' + (e && e.message || e));
+    showError(fmT('fileManager.errors.errorPrefix', { error: String(e && e.message || e) }));
   }finally{
     uploadingBatch = false;
   }
 }
 
-// Jedna cesta = jeden REPL běh; čeká na <<FM>>OK<<END>>
+// One path = one REPL run; waits for <<FM>>OK<<END>>
 async function deleteOnePath(path){
-  if (!path || path === '/') throw new Error('Mazání "/" je zakázáno');
+  if (!path || path === '/') throw new Error(fmT('fileManager.errors.deleteRoot'));
 
   const lines = [
     'import fm_rpc as F',
     `F.delete_all(${pyStr(path)})`
   ];
-  // mpExecOk: pošle ^C, umlčí terminál, provede 'lines' a přidá print('<<FM>>OK<<END>>')
+  // mpExecOk: sends ^C, mutes terminal, runs 'lines', and adds print('<<FM>>OK<<END>>')
   await mpExecOk(lines);
 }
 
@@ -1045,7 +1072,7 @@ function withReplLock(fn){
   })();
 }
 
-// Čtení z transportního FM bufferu
+// Read from transport FM buffer
 function fmPull(dev){
   if (dev && typeof dev.fmTakeAll === 'function') return dev.fmTakeAll();
   const s = (dev && dev.rawResponseBuffer) || "";
@@ -1054,10 +1081,89 @@ function fmPull(dev){
 }
 function fmAccumulate(dev){ const s = fmPull(dev); if (s) __fmAcc += s; }
 
+const FM_FRAME_START = "<<FMF>>";
+const FM_FRAME_END = "<<FMF_END>>";
+
+function fmParseHex(value){
+  if (!value) return null;
+  const n = parseInt(value, 16);
+  return Number.isFinite(n) ? (n >>> 0) : null;
+}
+
+function fmCrc32Ascii(str){
+  let crc = 0xFFFFFFFF;
+  for (let i=0;i<str.length;i++){
+    let c = str.charCodeAt(i) & 0xFF;
+    crc ^= c;
+    for (let j=0;j<8;j++){
+      if (crc & 1) crc = (crc >>> 1) ^ 0xEDB88320;
+      else crc = crc >>> 1;
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function fmReadLine(buf, start){
+  const idx = buf.indexOf('\n', start);
+  if (idx < 0) return null;
+  let line = buf.slice(start, idx);
+  if (line.endsWith('\r')) line = line.slice(0, -1);
+  return { line, next: idx + 1 };
+}
+
+function fmConsumeFrame(){
+  const start = __fmAcc.indexOf(FM_FRAME_START);
+  if (start < 0) {
+    if (__fmAcc.length > 200000) __fmAcc = __fmAcc.slice(-200000);
+    return null;
+  }
+  if (start > 0) __fmAcc = __fmAcc.slice(start);
+  const header = fmReadLine(__fmAcc, 0);
+  if (!header) return null;
+  const line = header.line.trim();
+  if (!line.startsWith(FM_FRAME_START)) {
+    __fmAcc = __fmAcc.slice(header.next);
+    return null;
+  }
+  const parts = line.slice(FM_FRAME_START.length).split('|');
+  if (parts.length < 3) {
+    __fmAcc = __fmAcc.slice(header.next);
+    return null;
+  }
+  const type = parts[0];
+  const len = fmParseHex(parts[1]);
+  const crc = fmParseHex(parts[2]);
+  if (len === null || crc === null) {
+    __fmAcc = __fmAcc.slice(header.next);
+    return null;
+  }
+  const payload = fmReadLine(__fmAcc, header.next);
+  if (!payload) return null;
+  const endLine = fmReadLine(__fmAcc, payload.next);
+  if (!endLine) return null;
+  if (endLine.line.trim() !== FM_FRAME_END) {
+    __fmAcc = __fmAcc.slice(payload.next);
+    return null;
+  }
+  __fmAcc = __fmAcc.slice(endLine.next);
+  if (payload.line.length !== len) {
+    return { type: "ERR", error: "len", want: len, got: payload.line.length };
+  }
+  const crcNow = fmCrc32Ascii(payload.line);
+  if ((crcNow >>> 0) !== (crc >>> 0)) {
+    return { type: "ERR", error: "crc" };
+  }
+  return { type, payload: payload.line };
+}
+
+function fmDecodePct(value){
+  try { return decodeURIComponent(value); } catch { return value; }
+}
+
 function beginCapture(dev){
   dev.__fm_save = { mute: !!dev.mute_terminal };
   dev.mute_terminal = true;
-  __fmAcc = ""; // čistý akumulátor pro nový příkaz
+  __fmAcc = ""; // clean accumulator for new command
 }
 function endCapture(dev){
   const s = dev.__fm_save || {};
@@ -1065,7 +1171,7 @@ function endCapture(dev){
   dev.__fm_save = null;
 }
 
-// Konzumeři tagovaných výstupů pro JSON/OK
+// Consume tagged outputs for JSON/OK
 function consumeJson(dev){
   fmAccumulate(dev);
   const a = __fmAcc.indexOf("<<FM>>{"); if (a < 0) return null;
@@ -1081,14 +1187,14 @@ function consumeOk(dev){
   return false;
 }
 
-// Jednorázové importy ujson/fm_rpc
+// One-time imports for ujson/fm_rpc
 async function ensureImports(){
   if (__importsReady) return;
   await mpExecOk(['import ujson as json', 'import fm_rpc as F']);
   __importsReady = true;
 }
 
-// Eval JSON výrazu s tagem
+// Eval JSON expression with tag
 async function mpEvalJson(expr){
   return withReplLock(async ()=>{
     const dev = active(); if (!dev) throw new Error('no transport');
@@ -1109,14 +1215,14 @@ async function mpEvalJson(expr){
   });
 }
 
-// Obecná exekuce řádků s potvrzením OK
+// Generic line execution with OK confirmation
 async function mpExecOk(lines){
   return withReplLock(async ()=>{
     const dev = active(); if (!dev) throw new Error('no transport');
     const code = Array.isArray(lines) ? lines.join('\n') : String(lines||'');
     beginCapture(dev);
     try{
-      await dev.sendData("\x03"); await delay(120);
+      await dev.sendData("\x03"); await delay(150);
       await dev.sendData("\r\n"); await delay(30);
       
       if (getActiveLink && getActiveLink() === 'ble') {
@@ -1135,12 +1241,12 @@ async function mpExecOk(lines){
 }
 
 
-// ====== EDITOR HOOKY ======
+// ====== EDITOR HOOKS ======
 async function open_block_editor(filename){
-  if (!(await dlgConfirm(String('Otevřít '+filename+' v blokovém editoru?')))) return;
+  if (!(await dlgConfirm(fmT('fileManager.confirm.openBlocks', { file: filename })))) return;
   try{
-    showLoading('Načítám '+filename);
-    const { bytes } = await doDownloadToMemory(filename);   // respektuje REPL lock i chunking
+    showLoading(fmT('fileManager.popup.loadingFile', { file: filename }));
+    const { bytes } = await doDownloadToMemory(filename);   // respects the REPL lock and chunking
     let xmlText;
 
     if (/\.xml\.gz$/i.test(filename)){
@@ -1154,7 +1260,7 @@ async function open_block_editor(filename){
       await window.__espideFM_openBlocksFromString(xmlText, filename);
       if (typeof closeFM === 'function') closeFM();
     } else {
-      alert('Loader pro Blockly v této stránce není dostupný.');
+      alert(fmT('fileManager.errors.loaderBlocksMissing'));
     }
   } catch(e){
     showError(String(e && e.message || e));
@@ -1165,17 +1271,17 @@ async function open_block_editor(filename){
 }
 
 async function open_text_editor(filename){
-  if (!(await dlgConfirm(String('Otevřít '+filename+' v textovém editoru?')))) return;
+  if (!(await dlgConfirm(fmT('fileManager.confirm.openText', { file: filename })))) return;
   try{
-    showLoading('Načítám '+filename);
-    const { bytes } = await doDownloadToMemory(filename);   // respektuje REPL lock i chunking
+    showLoading(fmT('fileManager.popup.loadingFile', { file: filename }));
+    const { bytes } = await doDownloadToMemory(filename);   // respects the REPL lock and chunking
     const text = new TextDecoder('utf-8').decode(bytes);
 
     if (typeof window.__espideFM_openTextTab === 'function'){
       window.__espideFM_openTextTab(filename, text);
       if (typeof closeFM === 'function') closeFM();
     } else {
-      await info('Loader pro textový editor v této stránce není dostupný.');
+      await info(fmT('fileManager.errors.loaderTextMissing'));
     }
   } catch(e){
     showError(String(e && e.message || e));
@@ -1185,12 +1291,12 @@ async function open_text_editor(filename){
   switchUITo("text")
 }
 
-// Tvrdý cleanup REPL stavu při zavření Filemanageru
+// Hard cleanup of REPL state when closing File Manager
 function fmForceCleanup(){
   try {
     const dev = active();
     if (dev) {
-      // vždy odmutuj terminál a zruš případný uložený stav capture
+      // always unmute terminal and clear any saved capture state
       endCapture(dev);
       dev.mute_terminal = false;
       if (dev.__fm_save) dev.__fm_save = null;
@@ -1201,5 +1307,5 @@ function fmForceCleanup(){
   }
 }
 
-// zpřístupni z index.html
+// expose from index.html
 window.fmForceCleanup = fmForceCleanup;

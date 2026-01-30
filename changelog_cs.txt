@@ -1,0 +1,149 @@
+[25.01.2026] 2.0.4
+- Přepínač světlý/tmavý motiv a výběr jazyka v menu, ukládání do localStorage
+- Stabilizace načítání jazyků (I18N) a překladů pro UI/toolbox
+- Sdílené odkazy: automatické načtení projektu z URL kódu po startu IDE
+- Toolbar ve Správci souborů je responsivní, jednorázové řazení a adaptivní tlačítka
+- Vylepšený update service workeru (verzované URL, auto-aktivace, reload)
+- Volitelné startovací volby: vynucený toolbox + zámek procesoru; skrytí ikony správce souborů
+- Instalátor: oprava hlavičky flash (ESP8266) + nastavení velikosti flash proti bootloopům
+- Instalátor: binární upload knihoven (.mpy) přes arrayBuffer pro zachování velikosti
+
+[14.01.2026] 2.0.3
+- Přidán tmavý režim s přepínačem v menu a uložením do localStorage
+- Přebarvené celé UI (Blockly toolbox/workspace, menu, dialogy)
+- Tmavé téma pro ACE editor a nastavení terminálu
+- Načítací obrazovka s logem a animovaným spinnerem
+- Podpora tmavých variant obrázků (dark_*) a automatické přepínání
+- Stylování File Manageru pro světlý/tmavý režim a izolace jeho CSS
+- Aktualizace cache SW pro nové tmavé assety
+
+[23.11.2025] 2.0.2
+- Drobné opravy ve správci souborů a načítání jeho knihovny
+- Upravena funkce pro zastavení programu pro lepší spolehlivost
+
+[14.11.2025] 2.0.1
+- Opraveny nefunkční dialogy po otevření správce souborů
+- Opraven nefunkční správce souborů po znovupřipojení zařízení
+- Odstraněny duplicitní importy javascriptu ve správci souborů
+- Při zavření správce souborů úklid a povolení REPLu
+
+[10.11.2025] 2.0.0
+- Opraveny dialogy ve správci souborů pro desktop verzi
+- Upravena funkce bluetooth připojení v desktop verzi
+- Úprava práce s cache pro desktop aplikaci
+- Zakázání tlačítek joysticku a instalace FW pro desktop verzi
+
+[4.11.2025] 2.0.0_beta
+- Přepracován výpočet velikosti okna na mobilních zařízeních
+- Opraveny chyby ve správci souborů
+- Do bluetooth knihovny doplněn kruhový buffer
+
+[9.10.2025] 1.13.6
+- Přidání správce souborů
+- Přepsání Bluetooth knihovny kvůli chybě v Micropythonu
+- Přidán hack pro zastavování programu v Bluetooth režimu
+- Doplněny funkce pro ukládání souborů do ESP
+
+[21.9.2025] 1.13.5
+- Optimalizace uživatelského rozhraní pro mobilní zařízení
+- Upscale grafiky pro lepší zobrazení displejích s vysokým PPI
+- Ošetření přepínání mezi USB a Bluetooth připojením
+- Doplnění textového režimu s panely
+- Ukládání obsahu textových editorů do localstorage
+
+
+[21.9.2025] 1.13.4
+- Přidána podpora pro Bluetooth low energy
+- Oprava některých dialogů na mobilních zařízeních
+
+
+[14.9.2025] 1.13.3
+- Do projektu se ukládají rozšíření jako komentář v xml
+- Načítání projektu ze souboru nastaví procesor a integruje doplňky
+- Načítání projektu z URL: nastaví procesor a integruje doplňky
+- Doplněn seznam změn a verzování editoru do rozbalovacího menu
+
+
+[12.8.2025]  1.13.2
+- Přidána podpora pro procesory ESP8266
+
+
+[16.6.2025]  1.13.1
+- Přidána funkce pro instalaci knihoven do procesoru pomocí USB
+
+
+[13.4.2025]  1.13.0
+- Přidána podpora pro procesory RP2040
+
+
+[2.3.2025]  1.12.0
+- Vydána USB - Serial verze ESP IDE V1.12
+- Přidána podpora pro ESP32S3
+- Přidány bloky pro souborový systém
+- Přidány bloky pro laserový dálkoměr VL53L0X
+- Přidány bloky pro expandér portů PCF8574
+- Přidány bloky pro UART komunikace
+- Úprava rozložení toolboxu.
+
+
+[22.2.2025]  1.11.0
+- Přepracovány funkce pro načítání toolboxu
+- Optimalizován webserver
+- Doplněn správce souborů
+- Komprimace uživatelských projektů pro úsporu FLASH paměti
+
+
+[19.5.2024]  1.10.0
+- Optimalizován kód webserveru
+- Přepracována inicializace I2C rozhraní.
+- Opraveny chyb
+
+
+[27.3.2024]  1.10.0
+- Nasazen nový kód pro webserver
+- Rozšířeny bloky pro ovládání DC motorů pomocí PWM
+- Přidány bloky pro 5x5 neopixel matici
+- Optimalizováno uživatelské rozhraní pro mobilní zařízení
+
+
+[12.2.2024]  1.08.0
+- Přidána podpora pro ESP32C3
+- Nové rozhraní pro správu uživatelských bloků
+- Implementován HTTP request blok
+- Try Catch a další funkce.
+
+
+[16.1.2024]  1.7.0
+- Virtuální joysticky pro snadné ovládání robotických vozítek
+
+
+[17.10.2023]  1.6.0
+- Implementována podpora ESP Now komunikace mezi procesory
+- Optimalizován webserver.
+
+
+[25.3.2023]  1.05.0
+- Přidán blok pro čtení ADC pinů pro joystick
+- Přidána podpora pro senzor TCS34725
+- Přidána podpora pro Rotační enkodéry
+- Přidána podpora pro gyroskop MPU6050
+- Přidána podpora pro ovládání modelářských servomotorů
+
+
+[9.5.2022]  1.03.0
+- Vytvoření editoru obrázků pro OLED Display
+- Experimentální podpora pro ESP8266.
+
+
+[22.4.2022]  1.02.0
+- Přidán vzdálený náhled na OLED Display.
+
+
+[15.1.2022]  1.01.0
+- Rozšířeny bloky pro ovládání robota
+- Optimalizován kód webserveru
+- Opraveny chyby.
+
+
+[2019] 1.0.0
+- Vydána první verze ESP IDE.

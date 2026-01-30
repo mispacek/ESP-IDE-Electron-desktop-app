@@ -1,5 +1,5 @@
 <xml id="toolbox" style="display: none" >
-    <category name="Logika" colour="#ffab19">
+    <category name="Logika" colour="#ffab19" data-i18n-name="toolbox.categories.logic">
         <block type="controls_if"></block>
         <block type="controls_if">
             <mutation else="1"></mutation>
@@ -24,7 +24,7 @@
             <field name="BOOL">TRUE</field>
         </block>
     </category>
-    <category name="Cykly" colour="#f1cd18">
+    <category name="Cykly" colour="#f1cd18" data-i18n-name="toolbox.categories.loops">
         <block type="loop_forever"></block>
         <block type="controls_repeat_ext">
             <value name="TIMES">
@@ -76,7 +76,7 @@
             <field name="FLOW">BREAK</field>
         </block>
     </category>
-    <category name="Matematika" colour="#40bf4a">
+    <category name="Matematika" colour="#40bf4a" data-i18n-name="toolbox.categories.math">
         <block type="math_arithmetic">
             <field name="OP">ADD</field>
             <value name="A">
@@ -233,7 +233,7 @@
         </block>
         <block type="any_to_int"></block>
     </category>
-    <category name="Pole" colour="#4cbfe6">
+    <category name="Pole" colour="#4cbfe6" data-i18n-name="toolbox.categories.lists">
         <block type="lists_create_with">
             <mutation items="0"></mutation>
         </block>
@@ -284,7 +284,7 @@
         </block>
         <block type="lists_sort"></block>
     </category>
-    <category name="Text" colour="#9966ff">
+    <category name="Text" colour="#9966ff" data-i18n-name="toolbox.categories.text">
         <block type="text">
             <field name="TEXT"></field>
         </block>
@@ -379,9 +379,9 @@
             </value>
         </block>
     </category>
-    <category name="Proměnné" colour="#ff8c1a" custom="VARIABLE"></category>
-    <category name="Funkce" colour="#ff6680" custom="PROCEDURE"></category>
-    <category name="Vstupy"  colour="#00979d">
+    <category name="Proměnné" colour="#ff8c1a" custom="VARIABLE" data-i18n-name="toolbox.categories.variables"></category>
+    <category name="Funkce" colour="#ff6680" custom="PROCEDURE" data-i18n-name="toolbox.categories.functions"></category>
+    <category name="Vstupy"  colour="#00979d" data-i18n-name="toolbox.categories.inputs">
         <block type="gpio_get">
             <value name="pin">
                 <shadow type="pinout">
@@ -420,7 +420,7 @@
             </value>
         </block>
         <block type="pinout"></block>
-        <label text="I2C expandér portů PCF8574"></label>
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
         <block type="init_pcf8574">
             <value name="pin_SDA">
                 <shadow type="pinout">
@@ -442,7 +442,7 @@
         </block>
         <block type="get_port_pcf8574"></block>
     </category>
-    <category name="Výstupy"  colour="#00979d">
+    <category name="Výstupy"  colour="#00979d" data-i18n-name="toolbox.categories.outputs">
         <block type="gpio_set">
             <value name="pin">
                 <shadow type="pinout">
@@ -456,7 +456,8 @@
             </value>
         </block>
         <block type="pwm">
-            <value name="pin">
+            <field name="ID">22</field>
+			<value name="pin">
                 <shadow type="pinout">
                     <field name="PIN">22</field>
                 </shadow>
@@ -496,7 +497,7 @@
             </value>
         </block>
         <block type="pinout"></block>
-        <label text="I2C expandér portů PCF8574"></label>
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
         <block type="init_pcf8574">
             <value name="pin_SDA">
                 <shadow type="pinout">
@@ -536,7 +537,7 @@
             </value>
         </block>
     </category>
-    <category name="Čas"  colour="#00979d">
+    <category name="Čas"  colour="#00979d" data-i18n-name="toolbox.categories.time">
         <block type="utime.delay">
             <value name="TIME">
                 <shadow type="math_number">
@@ -566,7 +567,7 @@
             </value>
         </block>
     </category>
-    <category name="Program"  colour="#00979d">
+    <category name="Program"  colour="#00979d" data-i18n-name="toolbox.categories.program">
         <block type="python_try_catch"></block>
         <block type="python_catch_err"></block>
         <block type="exec_python">
@@ -578,9 +579,9 @@
         </block>
         <block type="def_exit"></block>
     </category>
-    <category name="Display" colour="#c953e2">
+    <category name="Display" colour="#c953e2" data-i18n-name="toolbox.categories.display">
 		
-		<block type="oled_init">
+		<block type="oled_init_hw" inline="false">
 			<value name="SDA_PIN">
 				<shadow type="pinout">
 					<field name="PIN">19</field>
@@ -591,6 +592,7 @@
 					<field name="PIN">23</field>
 				</shadow>
 			</value>
+			<field name="HW_I2C">TRUE</field>
 		</block>
 
 		<block type="fb_fill"></block>
@@ -639,8 +641,9 @@
                 </shadow>
             </value>
         </block>
-        <button text="otevřít editor obrázků" callbackKey="open_image_editor"></button>
+        <button text="otevřít editor obrázků" callbackKey="open_image_editor" data-i18n-text="toolbox.buttons.openImageEditor"></button>
         <block type="fb_draw_pic">
+            <field name="name" data-i18n-text="toolbox.defaults.imageName">jmeno_obrazku</field>
             <value name="px">
                 <shadow type="math_number">
                     <field name="NUM">0</field>
@@ -756,8 +759,8 @@
             </value>
         </block>
     </category>
-    <category name="Snímače"  colour="#1CA1FF">
-        <label text="Teploměr/vlhkoměr s DHT11, DHT22, AM2302"></label>
+    <category name="Snímače"  colour="#1CA1FF" data-i18n-name="toolbox.categories.sensors">
+        <label text="Teploměr/vlhkoměr s DHT11, DHT22, AM2302" data-i18n-text="toolbox.labels.dht"></label>
         <block type="dht_init" disabled="false">
             <value name="pin">
                 <shadow type="pinout">
@@ -768,7 +771,7 @@
         <block type="dht_measure" disabled="false"></block>
         <block type="dht_read_temp" disabled="false"></block>
         <block type="dht_read_humidity" disabled="false"></block>
-        <label text="Ultrazvukový dálkoměr HC-SR04"></label>
+        <label text="Ultrazvukový dálkoměr HC-SR04" data-i18n-text="toolbox.labels.hcSr04"></label>
         <block type="hcsr_init" disabled="false">
             <value name="echo">
                 <shadow type="pinout">
@@ -785,7 +788,7 @@
         <block type="hcsr_read_cm" disabled="false"></block>
         
 		
-		<label text="Joystick"></label>
+		<label text="Joystick" data-i18n-text="toolbox.labels.joystick"></label>
 
 		<block type="joystick_init" disabled="false">
             <value name="vrx">
@@ -814,7 +817,7 @@
             <field name="joy_name">1</field>
           </block>
         
-        <label text="Rotační enkodér"></label>
+        <label text="Rotační enkodér" data-i18n-text="toolbox.labels.rotaryEncoder"></label>
         <block type="encoder_init" disabled="false">
             <value name="A">
                 <shadow type="pinout">
@@ -845,7 +848,7 @@
                 </shadow>
             </value>
         </block>
-        <label text="Snímač barev TCS34725"></label>
+        <label text="Snímač barev TCS34725" data-i18n-text="toolbox.labels.tcs34725"></label>
         <block type="tcs34725_init" disabled="false">
             <value name="exposure">
                 <shadow type="math_number">
@@ -865,7 +868,7 @@
         </block>
         <block type="tcs34725_is_col" disabled="false"></block>
         <block type="tcs34725_rgb" disabled="false"></block>
-        <label text="Gyro MPU6050"></label>
+        <label text="Gyro MPU6050" data-i18n-text="toolbox.labels.mpu6050"></label>
         <block type="mpu6050_init" disabled="false">
             <value name="SCL">
                 <shadow type="pinout">
@@ -884,7 +887,7 @@
         <block type="mpu6050_get_accel" disabled="false"></block>
         <block type="mpu6050_get_gyro" disabled="false"></block>
         <block type="mpu6050_get_temp" disabled="false"></block>
-        <label text="Dálkoměr Vl53l0X"></label>
+        <label text="Dálkoměr Vl53l0X" data-i18n-text="toolbox.labels.vl53l0x"></label>
         <block type="vl53l0x_init" disabled="false">
             <value name="SDA">
                 <shadow type="pinout">
@@ -902,8 +905,8 @@
         <block type="vl53l0x_dist_mm" disabled="false"></block>
         <block type="vl53l0x_dist_cm" disabled="false"></block>
     </category>
-    <category name="Pohony"  colour="#a6be39">
-        <label text="Modelářské servo"></label>
+    <category name="Pohony"  colour="#a6be39" data-i18n-name="toolbox.categories.motors">
+        <label text="Modelářské servo" data-i18n-text="toolbox.labels.servo"></label>
         <block type="servo_init" disabled="false">
             <value name="pin">
                 <shadow type="pinout">
@@ -932,7 +935,7 @@
                 </shadow>
             </value>
         </block>
-        <label text="Stejnosměrný motor"></label>
+        <label text="Stejnosměrný motor" data-i18n-text="toolbox.labels.dcMotor"></label>
         <block type="dc_motor_init" disabled="false">
             <value name="pin1">
                 <shadow type="pinout">
@@ -953,8 +956,8 @@
             </value>
         </block>
     </category>
-    <category name="NeoPixel" colour="#df006e">
-        <label text="NeoPixel Led pásky"></label>
+    <category name="NeoPixel" colour="#df006e" data-i18n-name="toolbox.categories.neopixel">
+        <label text="NeoPixel Led pásky" data-i18n-text="toolbox.labels.neopixelStrips"></label>
         <block type="neopixel_init">
             <value name="pin">
                 <shadow type="pinout">
@@ -1053,8 +1056,8 @@
             </value>
         </block>
     </category>
-    <category name="Komunikace" colour="#24c48e">
-        <label text="Wi-Fi"></label>
+    <category name="Komunikace" colour="#24c48e" data-i18n-name="toolbox.categories.communication">
+        <label text="Wi-Fi" data-i18n-text="toolbox.labels.wifi"></label>
         <block type="wifi_conect">
 			<value name="ssid">
 				<shadow type="text">
@@ -1069,18 +1072,13 @@
 		</block>
 		
 		
-		
-		
 		<block type="net_ap_mode">
-			<field name="NAME">vytvořit Wi-Fi Acces Point</field>
-			<field name="NET_NETWORK_NAME">název sítě: </field>
-			<field name="NET_NETWORK_KEY">heslo: </field>
-				<value name="wifi_essid">
-					<shadow type="text">
-						<field name="TEXT">ESP Wi-Fi</field>
-					</shadow>
-				</value>
-				<value name="wifi_key">
+			<value name="wifi_essid">
+				<shadow type="text">
+					<field name="TEXT">ESP Wi-Fi</field>
+				</shadow>
+			</value>
+			<value name="wifi_key">
 				<shadow type="text">
 					<field name="TEXT">WifiHeslo</field>
 				</shadow>
@@ -1088,7 +1086,7 @@
 		</block>
 		
 	
-		<label text="ESP Now"></label>
+		<label text="ESP Now" data-i18n-text="toolbox.labels.espNow"></label>
         <block type="esp_now_send_str">
             <value name="message">
                 <shadow type="text">
@@ -1098,7 +1096,7 @@
         </block>
         <block type="esp_now_data_check"></block>
         <block type="esp_now_new_data"></block>
-        <label text="Internet věcí Blynk.io"></label>
+        <label text="Internet věcí Blynk.io" data-i18n-text="toolbox.labels.blynk"></label>
         <block type="blynk_connect">
             <value name="Blynk_ID">
                 <shadow type="text"></shadow>
@@ -1114,7 +1112,7 @@
         </block>
         <block type="blynk_read"></block>
         <block type="blynk_is_connected"></block>
-        <label text="Čtení dat z webového serveru (HTTP Request)"></label>
+        <label text="Čtení dat z webového serveru (HTTP Request)" data-i18n-text="toolbox.labels.httpRequest"></label>
         <block type="http_request">
             <value name="url">
                 <shadow type="text">
@@ -1122,7 +1120,7 @@
                 </shadow>
             </value>
         </block>
-        <label text="Sériová linka - UART"></label>
+        <label text="Sériová linka - UART" data-i18n-text="toolbox.labels.uart"></label>
         <block type="uart_init">
             <field name="baud">19200</field>
             <field name="bits">8</field>
@@ -1179,7 +1177,7 @@
             </value>
         </block>
     </category>
-    <category name="Souborový systém" colour="#a6745d">
+    <category name="Souborový systém" colour="#a6745d" data-i18n-name="toolbox.categories.filesystem">
         <block type="file_read_custom">
             <value name="FILENAME">
                 <shadow type="text">

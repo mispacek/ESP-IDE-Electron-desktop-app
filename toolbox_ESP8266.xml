@@ -1,5 +1,5 @@
 <xml id="toolbox" style="display: none" >
-    <category name="Logika" colour="#ffab19">
+    <category name="Logika" colour="#ffab19" data-i18n-name="toolbox.categories.logic">
         <block type="controls_if"></block>
 
 		<block type="controls_if">
@@ -33,7 +33,7 @@
         </block>
     </category>
     
-    <category name="Cykly" colour="#f1cd18">
+    <category name="Cykly" colour="#f1cd18" data-i18n-name="toolbox.categories.loops">
         <block type="loop_forever"></block>
         <block type="controls_repeat_ext">
             <value name="TIMES">
@@ -89,7 +89,7 @@
         </block>
     </category>
     
-    <category name="Matematika" colour="#40bf4a">
+    <category name="Matematika" colour="#40bf4a" data-i18n-name="toolbox.categories.math">
         
 		<block type="math_arithmetic">
             <field name="OP">ADD</field>
@@ -261,7 +261,7 @@
     </category>
     
     
-    <category name="Pole" colour="#4cbfe6">
+    <category name="Pole" colour="#4cbfe6" data-i18n-name="toolbox.categories.lists">
         <block type="lists_create_with">
             <mutation items="0"></mutation>
         </block>
@@ -278,28 +278,28 @@
         <block type="lists_indexOf">
             <value name="VALUE">
                 <block type="variables_get">
-                    <field name="VAR">seznam1</field>
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
                 </block>
             </value>
         </block>
         <block type="lists_getIndex">
             <value name="VALUE">
                 <block type="variables_get">
-                    <field name="VAR">seznam1</field>
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
                 </block>
             </value>
         </block>
         <block type="lists_setIndex">
             <value name="LIST">
                 <block type="variables_get">
-                    <field name="VAR">seznam1</field>
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
                 </block>
             </value>
         </block>
         <block type="lists_getSublist">
             <value name="LIST">
                 <block type="variables_get">
-                    <field name="VAR">seznam1</field>
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
                 </block>
             </value>
         </block>
@@ -318,7 +318,7 @@
     
     
     
-    <category name="Text" colour="#9966ff">
+    <category name="Text" colour="#9966ff" data-i18n-name="toolbox.categories.text">
         <block type="text">
             <field name="TEXT"></field>
         </block>
@@ -416,12 +416,12 @@
         </block>
     </category>
     
-    <category name="Proměnné" colour="#ff8c1a" custom="VARIABLE">
+    <category name="Proměnné" colour="#ff8c1a" custom="VARIABLE" data-i18n-name="toolbox.categories.variables">
     </category>
             
-    <category name="Funkce" colour="#ff6680" custom="PROCEDURE"></category>
+    <category name="Funkce" colour="#ff6680" custom="PROCEDURE" data-i18n-name="toolbox.categories.functions"></category>
     
-    <category name="Vstupy"  colour="#00979d">
+    <category name="Vstupy"  colour="#00979d" data-i18n-name="toolbox.categories.inputs">
         <block type="gpio_get">
             <value name="pin">
                 <shadow type="pinout8266">
@@ -463,7 +463,7 @@
         <block type="pinout8266"></block>
         
         
-        <label text="I2C expandér portů PCF8574"></label>
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
         
         <block type="init_pcf8574">
             <value name="pin_SDA">
@@ -490,7 +490,7 @@
         
     </category>
     
-    <category name="Výstupy"  colour="#00979d">
+    <category name="Výstupy"  colour="#00979d" data-i18n-name="toolbox.categories.outputs">
         <block type="gpio_set">
             <value name="pin">
                 <shadow type="pinout8266">
@@ -505,7 +505,8 @@
         </block>
         
         <block type="pwm">
-            <value name="pin">
+            <field name="ID">0</field>
+			<value name="pin">
                 <shadow type="pinout8266">
                     <field name="PIN">0</field>
                 </shadow>
@@ -545,7 +546,7 @@
         <block type="pinout8266"></block>
         
         
-        <label text="I2C expandér portů PCF8574"></label>
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
         
         
         <block type="init_pcf8574">
@@ -598,7 +599,7 @@
     </category>
 
     
-    <category name="Čas"  colour="#00979d">
+    <category name="Čas"  colour="#00979d" data-i18n-name="toolbox.categories.time">
         <block type="utime.delay">
            <value name="TIME">
             <shadow type="math_number">
@@ -640,7 +641,7 @@
       </category>
       
       
-      <category name="Program"  colour="#00979d">
+      <category name="Program"  colour="#00979d" data-i18n-name="toolbox.categories.program">
         <!--
         <block type="get_ssid"></block> 
         <block type="get_ip"></block> 
@@ -657,6 +658,7 @@
                 </shadow>
             </value>
         </block>
+        <block type="ace_code_editor"></block>
         
         <block type="def_exit"></block> 
         
@@ -665,9 +667,9 @@
       </category>
       
       
-      <category name="Display" colour="#c953e2">
+      <category name="Display" colour="#c953e2" data-i18n-name="toolbox.categories.display">
           
-          <block type="oled_init">
+          <block type="oled_init" inline="false">
 			<value name="SDA_PIN">
 				<shadow type="pinout8266">
 					<field name="PIN">4</field>
@@ -733,9 +735,10 @@
             </value>
           </block>
           
-          <button text="otevřít editor obrázků" callbackKey="open_image_editor"></button>
+          <button text="otevřít editor obrázků" callbackKey="open_image_editor" data-i18n-text="toolbox.buttons.openImageEditor"></button>
           
           <block type="fb_draw_pic">
+            <field name="name" data-i18n-text="toolbox.defaults.imageName">jmeno_obrazku</field>
             <value name="px">
                 <shadow type="math_number">
                     <field name="NUM">0</field>
@@ -859,8 +862,8 @@
       
       
       
-      <category name="Snímače"  colour="#1CA1FF">
-          <label text="Teploměr/vlhkoměr s DHT11, DHT22, AM2302"></label>
+      <category name="Snímače"  colour="#1CA1FF" data-i18n-name="toolbox.categories.sensors">
+          <label text="Teploměr/vlhkoměr s DHT11, DHT22, AM2302" data-i18n-text="toolbox.labels.dht"></label>
           <block type="dht_init" disabled="false">
             <value name="pin">
                 <shadow type="pinout8266">
@@ -874,7 +877,7 @@
           <block type="dht_read_humidity" disabled="false"></block>
           
           
-          <label text="Ultrazvukový dálkoměr HC-SR04"></label>
+          <label text="Ultrazvukový dálkoměr HC-SR04" data-i18n-text="toolbox.labels.hcSr04"></label>
           <block type="hcsr_init" disabled="false">
             <value name="echo">
                 <shadow type="pinout8266">
@@ -894,7 +897,7 @@
           
           
           
-          <label text="Rotační enkodér"></label>
+          <label text="Rotační enkodér" data-i18n-text="toolbox.labels.rotaryEncoder"></label>
           <block type="encoder_init" disabled="false">
             <value name="A">
                 <shadow type="pinout8266">
@@ -933,7 +936,7 @@
           
           
           
-          <label text="Snímač barev TCS34725"></label>
+          <label text="Snímač barev TCS34725" data-i18n-text="toolbox.labels.tcs34725"></label>
           <block type="tcs34725_init" disabled="false">
             <value name="exposure">
                 <shadow type="math_number">
@@ -957,7 +960,7 @@
           <block type="tcs34725_rgb" disabled="false"></block>
           
           
-          <label text="Gyro MPU6050"></label>
+          <label text="Gyro MPU6050" data-i18n-text="toolbox.labels.mpu6050"></label>
           <block type="mpu6050_init" disabled="false">
             <value name="SCL">
                 <shadow type="pinout8266">
@@ -980,7 +983,7 @@
           <block type="mpu6050_get_temp" disabled="false"></block>
           
           
-          <label text="Dálkoměr Vl53l0X"></label>
+          <label text="Dálkoměr Vl53l0X" data-i18n-text="toolbox.labels.vl53l0x"></label>
           
           <block type="vl53l0x_init" disabled="false">
             <value name="SDA">
@@ -1005,8 +1008,8 @@
       </category>
       
       
-      <category name="Pohony"  colour="#a6be39">
-          <label text="Modelářské servo"></label>
+      <category name="Pohony"  colour="#a6be39" data-i18n-name="toolbox.categories.motors">
+          <label text="Modelářské servo" data-i18n-text="toolbox.labels.servo"></label>
           <block type="servo_init" disabled="false">
             <value name="pin">
                 <shadow type="pinout8266">
@@ -1039,7 +1042,7 @@
             </value>
           </block>
           
-          <label text="Stejnosměrný motor"></label>
+          <label text="Stejnosměrný motor" data-i18n-text="toolbox.labels.dcMotor"></label>
           
           <block type="dc_motor_init" disabled="false">
             <value name="pin1">
@@ -1066,8 +1069,8 @@
       
       
     
-    <category name="NeoPixel" colour="#df006e">
-      <label text="NeoPixel Led pásky"></label>
+    <category name="NeoPixel" colour="#df006e" data-i18n-name="toolbox.categories.neopixel">
+      <label text="NeoPixel Led pásky" data-i18n-text="toolbox.labels.neopixelStrips"></label>
 
       <block type="neopixel_init">
        <value name="pin">
@@ -1220,40 +1223,37 @@
     </category>
     
     
-    <category name="Komunikace" colour="#24c48e">
+    <category name="Komunikace" colour="#24c48e" data-i18n-name="toolbox.categories.communication">
       
-        <label text="Wi-Fi"></label>
+        <label text="Wi-Fi" data-i18n-text="toolbox.labels.wifi"></label>
         <block type="wifi_conect">
 			<value name="ssid">
 				<shadow type="text">
-					<field name="TEXT">MojeWiFi</field>
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiSsid">MojeWiFi</field>
 				</shadow>
 			</value>
 			<value name="pass">
 				<shadow type="text">
-					<field name="TEXT">MojeHeslo</field>
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiPassword">MojeHeslo</field>
 				</shadow>
 			</value>
 		</block>
 		
 		<block type="net_ap_mode">
-			<field name="NAME">vytvořit Wi-Fi Acces Point</field>
-			<field name="NET_NETWORK_NAME">název sítě: </field>
-			<field name="NET_NETWORK_KEY">heslo: </field>
-				<value name="wifi_essid">
-					<shadow type="text">
-						<field name="TEXT">ESP Wi-Fi</field>
-					</shadow>
-				</value>
-				<value name="wifi_key">
+			<value name="wifi_essid">
 				<shadow type="text">
-					<field name="TEXT">WifiHeslo</field>
+					<field name="TEXT">ESP Wi-Fi</field>
+				</shadow>
+			</value>
+			<value name="wifi_key">
+				<shadow type="text">
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiApPassword">WifiHeslo</field>
 				</shadow>
 			</value>
 		</block>
       
                 
-      <label text="Internet věcí Blynk.io"></label>
+      <label text="Internet věcí Blynk.io" data-i18n-text="toolbox.labels.blynk"></label>
         
       <block type="blynk_connect">
        <value name="Blynk_ID">
@@ -1276,7 +1276,7 @@
       
       <block type="blynk_is_connected"></block> 
 
-      <label text="Čtení dat z webového serveru (HTTP Request)"></label>
+      <label text="Čtení dat z webového serveru (HTTP Request)" data-i18n-text="toolbox.labels.httpRequest"></label>
       
       <block type="http_request">
        <value name="url">
@@ -1286,7 +1286,7 @@
        </value>
       </block>
       
-      <label text="Sériová linka - UART"></label>
+      <label text="Sériová linka - UART" data-i18n-text="toolbox.labels.uart"></label>
       
       <block type="uart_init">
         <field name="baud">19200</field>
@@ -1349,7 +1349,7 @@
     <block type="uart_write">
         <value name="buffer">
             <shadow type="text">
-                <field name="TEXT">Ahoj !</field>
+                <field name="TEXT" data-i18n-text="toolbox.defaults.uartHello">Ahoj !</field>
             </shadow>
         </value>
     </block> 
@@ -1357,11 +1357,11 @@
       
     </category>
 
-    <category name="Souborový systém" colour="#a6745d">
+    <category name="Souborový systém" colour="#a6745d" data-i18n-name="toolbox.categories.filesystem">
       <block type="file_read_custom">
         <value name="FILENAME">
           <shadow type="text">
-            <field name="TEXT">soubor.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.filename">soubor.txt</field>
           </shadow>
         </value>
         <field name="MODE">r</field>
@@ -1369,7 +1369,7 @@
       <block type="file_write_auto">
         <value name="FILENAME">
           <shadow type="text">
-            <field name="TEXT">soubor.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.filename">soubor.txt</field>
           </shadow>
         </value>
         <value name="DATA">
@@ -1381,19 +1381,19 @@
       <block type="file_append_line_auto">
         <value name="FILENAME">
           <shadow type="text">
-            <field name="TEXT">soubor.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.filename">soubor.txt</field>
           </shadow>
         </value>
         <value name="LINE">
           <shadow type="text">
-            <field name="TEXT">nový řádek</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.appendLine">nový řádek</field>
           </shadow>
         </value>
       </block>
       <block type="file_delete_auto">
         <value name="FILENAME">
           <shadow type="text">
-            <field name="TEXT">soubor.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.filename">soubor.txt</field>
           </shadow>
         </value>
       </block>
@@ -1414,12 +1414,12 @@
       <block type="rename_file_auto">
         <value name="OLDNAME">
           <shadow type="text">
-            <field name="TEXT">stary.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.oldFilename">stary.txt</field>
           </shadow>
         </value>
         <value name="NEWNAME">
           <shadow type="text">
-            <field name="TEXT">novy.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.newFilename">novy.txt</field>
           </shadow>
         </value>
       </block>
@@ -1427,7 +1427,7 @@
       <block type="file_stat_custom">
         <value name="FILENAME">
           <shadow type="text">
-            <field name="TEXT">soubor.txt</field>
+            <field name="TEXT" data-i18n-text="toolbox.defaults.filename">soubor.txt</field>
           </shadow>
         </value>
         <field name="STAT_OPTION">exist</field>

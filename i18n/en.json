@@ -1,0 +1,374 @@
+{
+  "actions": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "open": "Open",
+    "tryAgain": "Try again",
+    "rename": "Rename",
+    "yes": "Yes",
+    "no": "No",
+    "saveToDevice": "Save file to device",
+    "saveToPc": "Save file to PC",
+    "copy": "Copy"
+  },
+  "app": {
+    "languageLabel": "Language",
+    "languageOptionEn": "English",
+    "languageOptionCs": "Czech"
+  },
+  "blocks": {
+    "wholeCategory": "Entire category {name}"
+  },
+  "buttons": {
+    "usbConnectTitle": "Connect or disconnect the device via USB",
+    "bleConnectTitle": "Connect or disconnect the device via Bluetooth"
+  },
+  "dialogs": {
+    "saveTitle": "Save file to PC",
+    "saveButton": "Save",
+    "extensionsTitle": "Add-on manager",
+    "extensionsDrop": "Drop *.newblk files here",
+    "extensionsLoad": "Load add-on from PC",
+    "extensionsSave": "Save changes",
+    "blockVisibilityTitle": "Set block visibility",
+    "selectProcessorTitle": "Select processor",
+    "changelogClose": "Close",
+    "renameFileTitle": "Rename file to:",
+    "renameInvalidTitle": "Invalid name",
+    "renameFailedTitle": "Unable to rename",
+    "closeTabConfirm": "Close '{name}' without saving to PC?",
+    "textModeTitle": "Text mode",
+    "noTabOpen": "No tab is open.",
+    "projectNameRequired": "You must enter a valid project name!",
+    "projectNamePlaceholder": "project_name",
+    "nothingToSaveTitle": "Nothing to save",
+    "imageEditorTitle": "Image editor"
+  },
+  "errors": {
+    "title": "Error",
+    "extensionsLoad": "Add-on failed to load: {error}",
+    "extensionScriptTitle": "Add-on error",
+    "extensionToolboxTitle": "Invalid add-on toolbox",
+    "blockVisibilityFailed": "An error occurred while configuring block visibility.",
+    "switchProcessorFailed": "Failed to switch processor: {error}",
+    "programLoadFailed": "Failed to load program: {error}",
+    "appInitFailed": "App initialization failed.",
+    "fileLoadFailed": "Failed to load file.",
+    "fileLoadFailedDetail": "File load failed: {error}",
+    "fileOpenFailedTitle": "Unable to open file",
+    "projectLoadFailedTitle": "Project load failed",
+    "invalidFileNameTitle": "Invalid file name",
+    "invalidTabName": "Check the tab name.",
+    "saveFailedTitle": "Save failed",
+    "notSupportedInElectron": "Not supported in Electron.",
+    "librariesConfigFailed": "Failed to load library configuration.",
+    "bluetoothErrorTitle": "Bluetooth connection error.",
+    "unsupportedBrowserTitle": "Unsupported browser.",
+    "unsupportedBrowserBody": "Your browser does not support WebSerial API or WebBluetooth API. Use a current version of Chrome, Edge, Opera, or Bluefy on Apple devices.",
+    "notConnectedTitle": "Device not connected.",
+    "notConnectedBody": "Connect the device via USB or Bluetooth.",
+    "invalidExtensionTitle": "Invalid add-on",
+    "invalidExtensionBody": "The file must contain the <!toolbox!> tag."
+  },
+  "fileManager": {
+    "title": "File Manager",
+    "toolbar": {
+      "upload": "Upload to ESP",
+      "download": "Download to PC",
+      "move": "Move",
+      "copy": "Copy",
+      "rename": "Rename",
+      "newFolder": "New folder",
+      "delete": "Delete",
+      "clearSelection": "Clear selection",
+      "close": "Close"
+    },
+    "table": {
+      "selected": "Selected",
+      "name": "Name",
+      "size": "Size"
+    },
+    "popup": {
+      "close": "Close",
+      "working": "Working...",
+      "loading": "Loading...",
+      "loadingFile": "Loading {file}",
+      "selectItem": "Select item"
+    },
+    "status": {
+      "usedTitle": "Used: {pct}%",
+      "usedSummary": "{used}MB / {total}MB used ({pct}%)"
+    },
+    "upload": {
+      "batchPrefix": "File {index}/{total}: ",
+      "inProgress": "Uploading:",
+      "summaryError": "Uploaded: {ok} ok, {fail} failed.",
+      "summaryOkLabel": "OK",
+      "summaryErrorLabel": "Errors",
+      "summarySuccess": "Uploaded: {ok} files."
+    },
+    "download": {
+      "inProgress": "Downloading:",
+      "completed": "Downloaded: {name} ({size} B)"
+    },
+    "prompts": {
+      "destinationFolder": "Destination folder:",
+      "folderName": "Folder name:",
+      "newName": "New name:"
+    },
+    "dialogs": {
+      "moving": "Moving...",
+      "moved": "Moved",
+      "copying": "Copying...",
+      "copied": "Copied",
+      "renaming": "Renaming...",
+      "renamed": "Renamed",
+      "deleting": "Deleting...",
+      "deleted": "Deleted",
+      "created": "Created"
+    },
+    "errors": {
+      "notConnected": "Device is not connected.",
+      "noSelection": "No file selected.",
+      "nothingSelected": "Nothing selected.",
+      "selectOne": "Select one file.",
+      "deleteRoot": "Deleting \"/\" is not allowed.",
+      "uploadFailed": "Upload error: {error}",
+      "errorPrefix": "Error: {error}",
+      "invalidHeader": "Invalid header.",
+      "invalidSize": "Invalid size.",
+      "espError": "ESP error: {error}",
+      "replError": "REPL error: {error}",
+      "replTraceback": "REPL error.",
+      "headerTimeout": "Header timeout.",
+      "dataTimeout": "Data transfer timeout.",
+      "sizeMismatch": "Size mismatch: expected {expected} B, got {got} B.",
+      "listingError": "Listing error.",
+      "listingTimeout": "Listing timeout.",
+      "listingTooLong": "Listing is taking too long.",
+      "frameCrc": "Frame CRC mismatch.",
+      "frameLength": "Frame length mismatch.",
+      "gzipUnsupported": "GZIP is not supported in this browser.",
+      "loaderBlocksMissing": "Blockly loader is not available on this page.",
+      "loaderTextMissing": "Text editor loader is not available on this page."
+    },
+    "confirm": {
+      "openBlocks": "Open {file} in the block editor?",
+      "openText": "Open {file} in the text editor?"
+    },
+    "common": {
+      "file": "file"
+    }
+  },
+  "loading": {
+    "releaseToLoad": "Release to start loading the file.",
+    "startup": "Loading..."
+  },
+  "menu": {
+    "autostartLabel": "Auto-run on boot",
+    "autostartTitle": "Automatically run after device boot",
+    "darkModeLabel": "Dark mode",
+    "darkModeTitle": "Toggle dark mode",
+    "openProject": "Open project from PC",
+    "openProjectTitle": "Load a project from PC into the editor",
+    "saveProject": "Save to PC",
+    "saveProjectTitle": "Download the current file/project to your PC",
+    "openFileText": "Open file from PC",
+    "openFileTitle": "Load a file from PC into the text editor",
+    "saveFileText": "Save file to PC",
+    "saveFileTitle": "Download the current tab content to PC",
+    "shareProject": "Share project",
+    "shareProjectTitle": "Share the current Blockly project online",
+    "shareFile": "Share file",
+    "shareFileTitle": "Share the active text file online",
+    "shareLoad": "Load shared project",
+    "shareLoadTitle": "Load a project by share code",
+    "installFirmware": "Install firmware to device",
+    "installFirmwareTitle": "Flash firmware to the device",
+    "blocksVisibility": "Set block visibility",
+    "blocksVisibilityTitle": "Configure visible block categories",
+    "extensionsManager": "Add-on manager",
+    "extensionsManagerTitle": "Manage add-ons",
+    "bluetoothJoystick": "Bluetooth joystick app",
+    "bluetoothJoystickTitle": "Open the Bluetooth joystick app",
+    "versionLabel": "Version:",
+    "processorTitle": "Current processor",
+    "moreTitle": "More options"
+  },
+  "mode": {
+    "blocksTitle": "Block programming",
+    "textTitle": "Text programming",
+    "blocksAlt": "Blocks",
+    "textAlt": "Code"
+  },
+  "python": {
+    "neopixelWritePrefix": "NeoPixel write error at index ",
+    "neopixelWriteSuffix": " valid range is 0 to ",
+    "dhtReadError": "Temperature sensor read error.",
+    "httpReadStatusError": "HTTP read error. Status code = ",
+    "httpReadError": "HTTP read error.",
+    "espNowPowerSaveDisableFailed": "Failed to disable Wi-Fi power save.",
+    "espNowInit": "ESP Now initialized.",
+    "espNowAlreadyInit": "ESP Now already initialized.",
+    "laserInitErrorPrefix": "Laser rangefinder init failed for",
+    "gyroCalibStart": "Calibrating gyro - keep the board still!",
+    "gyroCalibDone": "Calibration done."
+  },
+  "repl": {
+    "common": {
+      "transferProgress": "Sending: {percent}%",
+      "programStopped": "Program stopped."
+    },
+    "usb": {
+      "connected": "Connected via USB - ESP IDE!",
+      "noPortSelected": "Connect error: No port selected.",
+      "openFailed": "Connect error: The selected serial port cannot be opened.",
+      "connectError": "Connect error: {error}",
+      "disconnected": "Device disconnected.",
+      "disconnectError": "Disconnect error: {error}",
+      "notConnected": "Device is not connected.",
+      "sendCommandError": "Command send error: {error}",
+      "sendDataError": "Data send error: {error}",
+      "rawEnterFailed": "Failed to enter raw REPL mode.",
+      "rawEnterError": "Raw REPL enter error: {error}",
+      "rawExitError": "Raw REPL exit error: {error}",
+      "rawOkTimeout": "Timeout waiting for OK\\x04: {buffer}",
+      "sendFileError": "File send error: {error}"
+    },
+    "ble": {
+      "notSupported": "This browser does not support Web Bluetooth.",
+      "connectInProgress": "Connection is already in progress.",
+      "uartMissing": "BLE UART characteristics not found (NUS/ADA/CH9143/MPY).",
+      "connected": "Connected via BLE - ESP IDE!",
+      "disconnected": "BLE disconnected.",
+      "notConnected": "Not connected to a BLE device.",
+      "sessionEnded": "Interrupted: session ended.",
+      "rawEnterFailed": "Failed to enter raw REPL mode (BLE).",
+      "rawError": "Raw REPL error (BLE): {error}",
+      "rawExitError": "Raw REPL exit error (BLE): {error}",
+      "rawOkTimeout": "Timeout waiting for OK\\x04 (BLE): {buffer}",
+      "sendFileError": "File send error (BLE): {error}",
+      "joyNotWritable": "Joystick characteristic is not writable."
+    }
+  },
+  "status": {
+    "deviceDisconnected": "Your device was disconnected.",
+    "deviceConnectedTitle": "Device connected!",
+    "deviceConnectedText": "Do you want to connect to it?"
+  },
+  "share": {
+    "savingTitle": "Sharing project",
+    "savingBody": "Creating a share link...",
+    "resultTitle": "Project shared",
+    "codeLabel": "Share code",
+    "urlLabel": "Share URL",
+    "copyCode": "Copy code",
+    "copyUrl": "Copy URL",
+    "copied": "Copied",
+    "loadTitle": "Load shared project",
+    "loadAction": "Load",
+    "codePlaceholder": "Enter 6-character code",
+    "loadInvalid": "Enter a 6-character code (A-Z, 0-9).",
+    "loadError": "Load failed: {error}",
+    "loadInvalidPayload": "Invalid shared project data.",
+    "error": "Share failed: {error}",
+    "invalidProject": "Project is not ready.",
+    "invalidId": "Invalid share code."
+  },
+  "terminal": {
+    "uploadingFile": "Uploading file: {file}",
+    "savingFile": "Saving: {file}",
+    "noPortSelected": "**No port selected.**"
+  },
+  "text": {
+    "newTab": "+ New",
+    "newTabTitle": "New file",
+    "quickPanelTitle": "Quick connect and processor selection",
+    "toolboxLoading": "Loading..."
+  },
+  "textProject": {
+    "newFileBase": "new_file",
+    "newFileHint": "# write your code here\n",
+    "defaultBaseName": "file",
+    "defaultFileName": "file.py"
+  },
+  "topbar": {
+    "run": "Run code",
+    "stop": "Stop program",
+    "openFile": "Open file from PC",
+    "saveFile": "Save file to PC",
+    "undo": "Undo",
+    "redo": "Redo",
+    "showCode": "Show code",
+    "deviceInfo": "Device info",
+    "restartDevice": "Restart device",
+    "fileManager": "File manager"
+  },
+  "validation": {
+    "fileNameEmpty": "Name cannot be empty.",
+    "fileNameInvalidChars": "Name contains invalid characters \\ : * ? \" < > |",
+    "fileNameExists": "A file with the same name already exists."
+  },
+  "toolbox": {
+    "categories": {
+      "program": "Program",
+      "logic": "Logic",
+      "loops": "Loops",
+      "math": "Math",
+      "text": "Text",
+      "variables": "Variables",
+      "functions": "Functions",
+      "lists": "Lists",
+      "inputs": "Inputs",
+      "outputs": "Outputs",
+      "sensors": "Sensors",
+      "communication": "Comms",
+      "display": "Display",
+      "filesystem": "File system",
+      "motors": "Motors",
+      "time": "Time",
+      "neopixel": "NeoPixel",
+      "picoed": "Pico:ed",
+      "espbit": "ESP:Bit blocks"
+    },
+    "labels": {
+      "drv8835DcDriver": "DRV8835 DC motor driver",
+      "drv8835StepperDriver": "DRV8835 stepper motor driver",
+      "vl53l0x": "VL53L0X distance sensor",
+      "espNow": "ESP Now",
+      "mpu6050": "MPU6050 gyro",
+      "pcf8574": "PCF8574 I2C port expander",
+      "blynk": "IoT Blynk.io",
+      "joystick": "Joystick",
+      "servo": "Hobby servo",
+      "neopixelStrips": "NeoPixel LED strips",
+      "rotaryEncoder": "Rotary encoder",
+      "tcs34725": "TCS34725 color sensor",
+      "bmi270": "BMI270 motion sensor",
+      "dcMotor": "DC motor",
+      "uart": "Serial - UART",
+      "bme280": "BME280 temp/humidity/pressure",
+      "dht": "DHT11/DHT22/AM2302 temp/humidity",
+      "hcSr04": "HC-SR04 ultrasonic distance",
+      "wifi": "Wi-Fi",
+      "httpRequest": "Read data from web server (HTTP request)"
+    },
+    "defaults": {
+      "filename": "file.txt",
+      "oldFilename": "old.txt",
+      "newFilename": "new.txt",
+      "listName": "list1",
+      "appendLine": "new line",
+      "wifiSsid": "MyWiFi",
+      "wifiPassword": "MyPassword",
+      "wifiApPassword": "WiFiPassword",
+      "uartHello": "Hello!",
+      "imageName": "image_name"
+    },
+    "buttons": {
+      "openImageEditor": "Open image editor"
+    }
+  }
+}

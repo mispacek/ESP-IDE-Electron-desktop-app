@@ -1,0 +1,374 @@
+{
+  "actions": {
+    "ok": "OK",
+    "cancel": "Zrušit",
+    "close": "Zavřít",
+    "save": "Uložit",
+    "open": "Otevřít",
+    "tryAgain": "Zkusit znovu",
+    "rename": "Přejmenovat",
+    "yes": "Ano",
+    "no": "Ne",
+    "saveToDevice": "Uložit soubor do zařízení",
+    "saveToPc": "Uložit soubor do PC",
+    "copy": "Kopírovat"
+  },
+  "app": {
+    "languageLabel": "Language",
+    "languageOptionEn": "English",
+    "languageOptionCs": "Čeština"
+  },
+  "blocks": {
+    "wholeCategory": "Celá kategorie {name}"
+  },
+  "buttons": {
+    "usbConnectTitle": "Připojit nebo odpojit zařízení pomocí USB",
+    "bleConnectTitle": "Připojit nebo odpojit zařízení pomocí Bluetooth"
+  },
+  "dialogs": {
+    "saveTitle": "Uložit soubor do PC",
+    "saveButton": "Uložit",
+    "extensionsTitle": "Správce doplňků",
+    "extensionsDrop": "Sem přetáhni *.newblk soubory",
+    "extensionsLoad": "Načíst rozšíření z PC",
+    "extensionsSave": "Uložit změny",
+    "blockVisibilityTitle": "Nastavit zobrazení bloků",
+    "selectProcessorTitle": "Vyberte procesor",
+    "changelogClose": "Zavřít",
+    "renameFileTitle": "Přejmenovat soubor na:",
+    "renameInvalidTitle": "Chybný název",
+    "renameFailedTitle": "Nelze přejmenovat",
+    "closeTabConfirm": "Zavřít '{name}' bez uložení do PC?",
+    "textModeTitle": "Textový režim",
+    "noTabOpen": "Není otevřen žádný tab.",
+    "projectNameRequired": "Musíte zadat platné jméno projektu!",
+    "projectNamePlaceholder": "nazev_projektu",
+    "nothingToSaveTitle": "Nic k uložení",
+    "imageEditorTitle": "Editor obrázků"
+  },
+  "errors": {
+    "title": "Chyba",
+    "extensionsLoad": "Rozšíření se nepodařilo načíst: {error}",
+    "extensionScriptTitle": "Chyba v rozšíření",
+    "extensionToolboxTitle": "Chybný toolbox v rozšíření",
+    "blockVisibilityFailed": "Nastala chyba při nastavení zobrazení bloků.",
+    "switchProcessorFailed": "Nepodařilo se přepnout procesor: {error}",
+    "programLoadFailed": "Program se nepodařilo načíst: {error}",
+    "appInitFailed": "Nastala chyba při inicializaci aplikace.",
+    "fileLoadFailed": "Chyba při načítání souboru.",
+    "fileLoadFailedDetail": "Chyba při načítání souboru: {error}",
+    "fileOpenFailedTitle": "Nelze otevřít soubor",
+    "projectLoadFailedTitle": "Chyba při načítání projektu",
+    "invalidFileNameTitle": "Chybný název souboru",
+    "invalidTabName": "Zkontroluj název TABu.",
+    "saveFailedTitle": "Uložení se nepovedlo",
+    "notSupportedInElectron": "V Electronu není podporováno",
+    "librariesConfigFailed": "Nepodařilo se načíst konfiguraci knihoven.",
+    "bluetoothErrorTitle": "Chyba Bluetooth připojení.",
+    "unsupportedBrowserTitle": "Nepodporovaný prohlížeč.",
+    "unsupportedBrowserBody": "Váš prohlížeč nepodporuje WebSerial API ani WebBluetooth API. Pro správný chod ESP IDE použijte aktuální verzi prohlížeče Chrome, Edge, Opera nebo Bluefy na Apple zařízeních.",
+    "notConnectedTitle": "Zařízení nepřipojeno.",
+    "notConnectedBody": "Připojte zařízení pomocí USB nebo Bluetooth.",
+    "invalidExtensionTitle": "Neplatné rozšíření",
+    "invalidExtensionBody": "Soubor musí obsahovat značku <!toolbox!>."
+  },
+  "fileManager": {
+    "title": "Správce souborů",
+    "toolbar": {
+      "upload": "Nahrát do ESP",
+      "download": "Stáhnout do PC",
+      "move": "Přesunout",
+      "copy": "Kopírovat",
+      "rename": "Přejmenovat",
+      "newFolder": "Nová složka",
+      "delete": "Smazat",
+      "clearSelection": "Zrušit výběr",
+      "close": "Zavřít"
+    },
+    "table": {
+      "selected": "Vybráno",
+      "name": "Název",
+      "size": "Velikost"
+    },
+    "popup": {
+      "close": "Zavřít",
+      "working": "Pracuji...",
+      "loading": "Načítám...",
+      "loadingFile": "Načítám {file}",
+      "selectItem": "Vybrat položku"
+    },
+    "status": {
+      "usedTitle": "Využito: {pct}%",
+      "usedSummary": "{used}MB / {total}MB využito ({pct}%)"
+    },
+    "upload": {
+      "batchPrefix": "Soubor {index}/{total}: ",
+      "inProgress": "Nahrávám:",
+      "summaryError": "Nahráno: {ok} úspěšně, {fail} chyb.",
+      "summaryOkLabel": "OK",
+      "summaryErrorLabel": "Chyby",
+      "summarySuccess": "Nahráno: {ok} souborů."
+    },
+    "download": {
+      "inProgress": "Stahuji:",
+      "completed": "Staženo: {name} ({size} B)"
+    },
+    "prompts": {
+      "destinationFolder": "Cílová složka:",
+      "folderName": "Název složky:",
+      "newName": "Nový název:"
+    },
+    "dialogs": {
+      "moving": "Přesouvám...",
+      "moved": "Přesunuto",
+      "copying": "Kopíruji...",
+      "copied": "Zkopírováno",
+      "renaming": "Přejmenovávám...",
+      "renamed": "Přejmenováno",
+      "deleting": "Mažu...",
+      "deleted": "Smazáno",
+      "created": "Vytvořeno"
+    },
+    "errors": {
+      "notConnected": "Zařízení není připojeno.",
+      "noSelection": "Nebyl vybrán žádný soubor.",
+      "nothingSelected": "Nic nevybráno.",
+      "selectOne": "Vyberte jeden soubor.",
+      "deleteRoot": "Mazání \"/\" je zakázáno.",
+      "uploadFailed": "Chyba uploadu: {error}",
+      "errorPrefix": "Chyba: {error}",
+      "invalidHeader": "Neplatná hlavička.",
+      "invalidSize": "Neplatná velikost.",
+      "espError": "Chyba na ESP: {error}",
+      "replError": "Chyba v REPL: {error}",
+      "replTraceback": "Chyba v REPL.",
+      "headerTimeout": "Timeout hlavičky.",
+      "dataTimeout": "Timeout přenosu dat.",
+      "sizeMismatch": "Velikost nesouhlasí: očekáváno {expected} B, dorazilo {got} B.",
+      "listingError": "Chyba listingu.",
+      "listingTimeout": "Timeout listingu.",
+      "listingTooLong": "Příliš dlouhý listing.",
+      "frameCrc": "Chyba CRC rámce.",
+      "frameLength": "Nesouhlasí délka rámce.",
+      "gzipUnsupported": "GZIP není podporován tímto prohlížečem.",
+      "loaderBlocksMissing": "Loader pro Blockly v této stránce není dostupný.",
+      "loaderTextMissing": "Loader pro textový editor v této stránce není dostupný."
+    },
+    "confirm": {
+      "openBlocks": "Otevřít {file} v blokovém editoru?",
+      "openText": "Otevřít {file} v textovém editoru?"
+    },
+    "common": {
+      "file": "soubor"
+    }
+  },
+  "loading": {
+    "releaseToLoad": "Puštěním se zahájí načítání souboru.",
+    "startup": "Načítání..."
+  },
+  "menu": {
+    "autostartLabel": "Automaticky spustit",
+    "autostartTitle": "Po zapnutí procesoru se soubor automaticky spustí",
+    "darkModeLabel": "Tmavý režim",
+    "darkModeTitle": "Přepnout tmavý režim",
+    "openProject": "Otevřít projekt z PC",
+    "openProjectTitle": "Soubor z PC načíst do editoru",
+    "saveProject": "Uložit do PC",
+    "saveProjectTitle": "Stáhnout právě otevřený soubor/projekt do PC",
+    "openFileText": "Otevřít soubor z PC",
+    "openFileTitle": "Načíst soubor z PC do textového editoru",
+    "saveFileText": "Uložit soubor do PC",
+    "saveFileTitle": "Stáhnout obsah aktuálního TABu do PC",
+    "shareProject": "Sdílet projekt",
+    "shareProjectTitle": "Sdílet aktuální Blockly projekt online",
+    "shareFile": "Sdílet soubor",
+    "shareFileTitle": "Sdílet aktivní soubor online",
+    "shareLoad": "Načíst sdílený projekt",
+    "shareLoadTitle": "Načíst projekt podle sdílecího kódu",
+    "installFirmware": "Nahrát firmware do zařízení",
+    "installFirmwareTitle": "Nahrát firmware do zařízení",
+    "blocksVisibility": "Nastavit zobrazení bloků",
+    "blocksVisibilityTitle": "Nastavit zobrazení bloků",
+    "extensionsManager": "Správce doplňků",
+    "extensionsManagerTitle": "Správce doplňků",
+    "bluetoothJoystick": "Aplikace Bluetooth joystick",
+    "bluetoothJoystickTitle": "Aplikace Bluetooth joystick",
+    "versionLabel": "Verze:",
+    "processorTitle": "Aktuální procesor",
+    "moreTitle": "Další možnosti"
+  },
+  "mode": {
+    "blocksTitle": "Programování v blocích",
+    "textTitle": "Programování textem",
+    "blocksAlt": "Bloky",
+    "textAlt": "Kód"
+  },
+  "python": {
+    "neopixelWritePrefix": "Chyba zapisu NeoPixelu na indexu ",
+    "neopixelWriteSuffix": " platny rozsah je 0 az ",
+    "dhtReadError": "Chyba pri cteni teplotniho snimace.",
+    "httpReadStatusError": "Chyba pri cteni HTTP dat. Status code = ",
+    "httpReadError": "Chyba pri cteni HTTP dat.",
+    "espNowPowerSaveDisableFailed": "Nepodarilo se vypnout usporny rezim Wi-Fi.",
+    "espNowInit": "ESP Now inicializovan.",
+    "espNowAlreadyInit": "ESP Now uz inicializovan.",
+    "laserInitErrorPrefix": "Chyba inicializace laseroveho dalkomeru",
+    "gyroCalibStart": "Kalibruji gyro - nehybejte s deskou!",
+    "gyroCalibDone": "Kalibrace dokoncena."
+  },
+  "repl": {
+    "common": {
+      "transferProgress": "Odesilani: {percent}%",
+      "programStopped": "Zastaveni programu"
+    },
+    "usb": {
+      "connected": "Pripojeno pres USB - ESP IDE!",
+      "noPortSelected": "Chyba pripojeni: Nebyl vybran zadny port.",
+      "openFailed": "Chyba pripojeni: Zvoleny seriovy port nelze otevrit.",
+      "connectError": "Chyba pripojeni: {error}",
+      "disconnected": "Zarizeni odpojeno.",
+      "disconnectError": "Chyba odpojeni: {error}",
+      "notConnected": "Zarizeni neni pripojeno.",
+      "sendCommandError": "Chyba odeslani prikazu: {error}",
+      "sendDataError": "Chyba odeslani dat: {error}",
+      "rawEnterFailed": "Nepodarilo se vstoupit do raw REPL rezimu.",
+      "rawEnterError": "Chyba pri vstupu do raw REPL: {error}",
+      "rawExitError": "Chyba pri opusteni raw REPL: {error}",
+      "rawOkTimeout": "Timeout pri cekani na OK\\x04: {buffer}",
+      "sendFileError": "Chyba pri odesilani souboru: {error}"
+    },
+    "ble": {
+      "notSupported": "Tento prohlizec nepodporuje Web Bluetooth.",
+      "connectInProgress": "Pripojeni uz probiha.",
+      "uartMissing": "Nepodarilo se najit BLE UART charakteristiky (NUS/ADA/CH9143/MPY).",
+      "connected": "Pripojeno pres BLE - ESP IDE!",
+      "disconnected": "BLE odpojeno.",
+      "notConnected": "Nejsi pripojen k BLE zarizeni.",
+      "sessionEnded": "Preruseno: relace byla ukoncena.",
+      "rawEnterFailed": "Nepodarilo se vstoupit do raw REPL rezimu (BLE).",
+      "rawError": "Chyba raw REPL (BLE): {error}",
+      "rawExitError": "Chyba opusteni raw REPL (BLE): {error}",
+      "rawOkTimeout": "Timeout pri cekani na OK\\x04 (BLE): {buffer}",
+      "sendFileError": "Chyba pri odesilani souboru (BLE): {error}",
+      "joyNotWritable": "Joystick charakteristika neni zapisovatelna."
+    }
+  },
+  "status": {
+    "deviceDisconnected": "Tvé zařízení bylo odpojeno.",
+    "deviceConnectedTitle": "Zařízení připojeno!",
+    "deviceConnectedText": "Chcete se k němu připojit?"
+  },
+  "share": {
+    "savingTitle": "Sdílení projektu",
+    "savingBody": "Vytvářím odkaz...",
+    "resultTitle": "Projekt sdílen",
+    "codeLabel": "Kód projektu",
+    "urlLabel": "URL projektu",
+    "copyCode": "Kopírovat kód",
+    "copyUrl": "Kopírovat URL",
+    "copied": "Zkopírováno",
+    "loadTitle": "Načíst sdílený projekt",
+    "loadAction": "Načíst",
+    "codePlaceholder": "Zadejte kód projektu (6 znaků A-Z, 0-9).",
+    "loadInvalid": "Zadejte kód projektu (6 znaků A-Z, 0-9).",
+    "loadError": "Načtení selhalo: {error}",
+    "loadInvalidPayload": "Neplatná data sdíleného projektu.",
+    "error": "Sdílení selhalo: {error}",
+    "invalidProject": "Projekt není připraven.",
+    "invalidId": "Neplatný kód projektu."
+  },
+  "terminal": {
+    "uploadingFile": "Nahrávám soubor: {file}",
+    "savingFile": "Ukládám: {file}",
+    "noPortSelected": "**Nebyl vybrán žádný port.**"
+  },
+  "text": {
+    "newTab": "+ Nový",
+    "newTabTitle": "Nový soubor",
+    "quickPanelTitle": "Rychlé připojení a výběr procesoru",
+    "toolboxLoading": "Načítání..."
+  },
+  "textProject": {
+    "newFileBase": "novy_soubor",
+    "newFileHint": "# sem piš svůj kód\n",
+    "defaultBaseName": "soubor",
+    "defaultFileName": "soubor.py"
+  },
+  "topbar": {
+    "run": "Spustit kód",
+    "stop": "Zastavit program",
+    "openFile": "Otevřít soubor z PC",
+    "saveFile": "Uložit soubor do PC",
+    "undo": "Zpět",
+    "redo": "Znovu",
+    "showCode": "Zobrazit kód",
+    "deviceInfo": "Informace o zařízení",
+    "restartDevice": "Restart zařízení",
+    "fileManager": "Správce souborů"
+  },
+  "validation": {
+    "fileNameEmpty": "Název nesmí být prázdný.",
+    "fileNameInvalidChars": "Název obsahuje zakázané znaky \\ : * ? \" < > |",
+    "fileNameExists": "Soubor se stejným názvem už existuje."
+  },
+  "toolbox": {
+    "categories": {
+      "program": "Program",
+      "logic": "Logika",
+      "loops": "Cykly",
+      "math": "Matematika",
+      "text": "Text",
+      "variables": "Proměnné",
+      "functions": "Funkce",
+      "lists": "Pole",
+      "inputs": "Vstupy",
+      "outputs": "Výstupy",
+      "sensors": "Snímače",
+      "communication": "Komunikace",
+      "display": "Display",
+      "filesystem": "Soubory",
+      "motors": "Pohony",
+      "time": "Čas",
+      "neopixel": "NeoPixel",
+      "picoed": "Pico:ed",
+      "espbit": "Bloky pro ESP:Bit"
+    },
+    "labels": {
+      "drv8835DcDriver": "Driver DC motorů DRV8835",
+      "drv8835StepperDriver": "Driver krokových Motorů DRV8835",
+      "vl53l0x": "Dálkoměr Vl53l0X",
+      "espNow": "ESP Now",
+      "mpu6050": "Gyro MPU6050",
+      "pcf8574": "I2C expandér portů PCF8574",
+      "blynk": "Internet věcí Blynk.io",
+      "joystick": "Joystick",
+      "servo": "Modelářské servo",
+      "neopixelStrips": "NeoPixel Led pásky",
+      "rotaryEncoder": "Rotační enkodér",
+      "tcs34725": "Snímač barev TCS34725",
+      "bmi270": "Snímač polohy BMI270",
+      "dcMotor": "Stejnosměrný motor",
+      "uart": "Sériová linka - UART",
+      "bme280": "Teploměr / vlhkoměr / tlakoměr BME280",
+      "dht": "Teploměr/vlhkoměr s DHT11, DHT22, AM2302",
+      "hcSr04": "Ultrazvukový dálkoměr HC-SR04",
+      "wifi": "Wi-Fi",
+      "httpRequest": "Čtení dat z webového serveru (HTTP Request)"
+    },
+    "defaults": {
+      "filename": "soubor.txt",
+      "oldFilename": "stary.txt",
+      "newFilename": "novy.txt",
+      "listName": "seznam1",
+      "appendLine": "novy radek",
+      "wifiSsid": "MojeWiFi",
+      "wifiPassword": "MojeHeslo",
+      "wifiApPassword": "WifiHeslo",
+      "uartHello": "Ahoj !",
+      "imageName": "jmeno_obrazku"  
+    },
+    "buttons": {
+      "openImageEditor": "otevřít editor obrázků"
+    }
+  }
+}

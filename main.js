@@ -5,7 +5,7 @@ const path = require('node:path');
 let mainWin;   // hlavní okno
 let splash;    // splash screen
 
-const SPLASH_MIN = 1250;          // ms – změň podle potřeby
+const SPLASH_MIN = 1350;          // ms – změň podle potřeby
 let splashStart;                  // čas, kdy jsme splash otevřeli
 
 

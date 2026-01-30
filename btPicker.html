@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
 <meta charset="utf-8">
-<title>Výběr Bluetooth zařízení</title>
+<title>Select Bluetooth device</title>
 <style>
   /* layout jako portPicker */
   html,body{height:100%;margin:0}
@@ -36,11 +36,11 @@
 </style>
 </head>
 <body>
-  <h2>Vyber Bluetooth zařízení</h2>
+  <h2>Select Bluetooth device</h2>
 
-  <div id="devList"><div class="empty">Hledám zařízení…</div></div>
+  <div id="devList"><div class="empty">Loading…</div></div>
 
-  <div id="closeRow"><button id="closeBtn">Zavřít</button></div>
+  <div id="closeRow"><button id="closeBtn">Close</button></div>
 
 <script>
   const devListEl = document.getElementById('devList');
@@ -50,7 +50,7 @@
   function render(list){
     devListEl.innerHTML = '';
     if (!list || !list.length){
-      devListEl.innerHTML = '<div class="empty">Nic nenalezeno. Zkontrolujte, že je zařízení zapnuté a v dosahu.</div>';
+      devListEl.innerHTML = '<div class="empty">Nothing found. Check that the device is powered on and within range.</div>';
       return;
     }
     for (const d of list){

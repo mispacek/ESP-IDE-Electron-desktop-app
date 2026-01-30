@@ -1,0 +1,1519 @@
+<xml id="toolbox" style="display: none" >
+    <category name="Logika" colour="#ffab19" data-i18n-name="toolbox.categories.logic">
+        <block type="controls_if"></block>
+
+		<block type="controls_if">
+			<mutation else="1"></mutation>
+		</block>
+
+
+		<block type="logic_compare">
+			<field name="OP">EQ</field>
+		</block>
+		
+		<block type="logic_compare">
+			<field name="OP">GT</field>
+		</block>
+		
+		<block type="logic_compare">
+			<field name="OP">LT</field>
+		</block>
+	
+        <block type="logic_operation">
+            <field name="OP">AND</field>
+        </block>
+		
+		<block type="logic_operation">
+            <field name="OP">OR</field>
+        </block>
+		
+        <block type="logic_negate"></block>
+        <block type="logic_boolean">
+            <field name="BOOL">TRUE</field>
+        </block>
+    </category>
+    
+    <category name="Cykly" colour="#f1cd18" data-i18n-name="toolbox.categories.loops">
+        <block type="loop_forever"></block>
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="controls_whileUntil">
+            <field name="MODE">WHILE</field>
+        </block>
+        <block type="controls_for">
+            <field name="VAR" variabletype="">i</field>
+            <value name="FROM">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="TO">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+            <value name="BY">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="timer"></block>
+        <block type="utime.deadline">
+          <value name="TIME">
+          <shadow type="math_number">
+            <field name="NUM">100</field>
+          </shadow>
+          </value>
+        </block>
+        <block type="stop_timer">
+           <value name="timerNumber">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+          </value>
+        </block>
+        
+        <block type="controls_forEach">
+            <field name="VAR" id="tdl-Vv6An4XV{3]g3N=h" variabletype="">j</field>
+        </block>
+        
+        <block type="controls_flow_statements" disabled="false">
+            <field name="FLOW">BREAK</field>
+        </block>
+    </category>
+    
+    <category name="Matematika" colour="#40bf4a" data-i18n-name="toolbox.categories.math">
+        
+		<block type="math_arithmetic">
+            <field name="OP">ADD</field>
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+		
+		
+		<block type="math_arithmetic">
+            <field name="OP">MINUS</field>
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+		
+		<block type="math_arithmetic">
+            <field name="OP">MULTIPLY</field>
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+		
+		<block type="math_arithmetic">
+            <field name="OP">DIVIDE</field>
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+		
+		
+		<block type="math_number">
+            <field name="NUM">0</field>
+        </block>
+		
+		
+		<block type="zmena_rozsahu">
+            <value name="in_min">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="in_max">
+                <shadow type="math_number">
+                    <field name="NUM">1023</field>
+                </shadow>
+            </value>
+            <value name="out_min">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="out_max">
+                <shadow type="math_number">
+                    <field name="NUM">255</field>
+                </shadow>
+            </value>
+        </block>	
+		
+        <block type="math_single">
+            <field name="OP">ROOT</field>
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">9</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_trig">
+            <field name="OP">SIN</field>
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">45</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_constant">
+            <field name="CONSTANT">PI</field>
+        </block>
+        <block type="math_number_property">
+            <mutation divisor_input="false"></mutation>
+            <field name="PROPERTY">EVEN</field>
+            <value name="NUMBER_TO_CHECK">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_round">
+            <field name="OP">ROUND</field>
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">3.1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_modulo">
+            <value name="DIVIDEND">
+                <shadow type="math_number">
+                    <field name="NUM">64</field>
+                </shadow>
+            </value>
+            <value name="DIVISOR">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_constrain">
+            <value name="VALUE">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+            <value name="LOW">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="HIGH">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_random_int">
+            <value name="FROM">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="TO">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+                
+        <block type="any_to_int">
+        </block>
+        
+    </category>
+    
+    
+    <category name="Pole" colour="#4cbfe6" data-i18n-name="toolbox.categories.lists">
+        <block type="lists_create_with">
+            <mutation items="0"></mutation>
+        </block>
+        <block type="lists_create_with"></block>
+        <block type="lists_repeat">
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">5</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="lists_length"></block>
+        <block type="lists_isEmpty"></block>
+        <block type="lists_indexOf">
+            <value name="VALUE">
+                <block type="variables_get">
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
+                </block>
+            </value>
+        </block>
+        <block type="lists_getIndex">
+            <value name="VALUE">
+                <block type="variables_get">
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
+                </block>
+            </value>
+        </block>
+        <block type="lists_setIndex">
+            <value name="LIST">
+                <block type="variables_get">
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
+                </block>
+            </value>
+        </block>
+        <block type="lists_getSublist">
+            <value name="LIST">
+                <block type="variables_get">
+                    <field name="VAR" data-i18n-text="toolbox.defaults.listName">seznam1</field>
+                </block>
+            </value>
+        </block>
+        <block type="lists_split">
+            <value name="DELIM">
+                <shadow type="text">
+                    <field name="TEXT">,</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="lists_sort"></block>
+    </category>
+    
+    
+    
+    
+    
+    
+    <category name="Text" colour="#9966ff" data-i18n-name="toolbox.categories.text">
+        <block type="text">
+            <field name="TEXT"></field>
+        </block>
+        <block type="text_print">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="text_join" inline="true">
+			<mutation items="2"></mutation>
+			<value name="ADD0">
+				<block type="text">
+					<field name="TEXT">ESP</field>
+				</block>
+			</value>
+			<value name="ADD1">
+				<block type="text">
+					<field name="TEXT"> IDE</field>
+				</block>
+			</value>
+		</block>
+				
+		<block type="text_append">
+            <field name="VAR" id="_6:_6UxDDLtGoc},k=]`" variabletype="">item</field>
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT"></field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_length">
+            <value name="VALUE">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_isEmpty">
+            <value name="VALUE">
+                <shadow type="text">
+                    <field name="TEXT"></field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_indexOf">
+            <field name="END">FIRST</field>
+            <value name="VALUE">
+                <block type="variables_get">
+                    <field name="VAR" id="IAx@0bR~YUFX$^fZ85QJ" variabletype="">text</field>
+                </block>
+            </value>
+            <value name="FIND">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_charAt">
+            <mutation at="true"></mutation>
+            <field name="WHERE">FROM_START</field>
+            <value name="VALUE">
+                <block type="variables_get">
+                    <field name="VAR" id="IAx@0bR~YUFX$^fZ85QJ" variabletype="">text</field>
+                </block>
+            </value>
+        </block>
+        <block type="text_trim">
+            <field name="MODE">BOTH</field>
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="text_getSubstring">
+            <mutation at1="true" at2="true"></mutation>
+            <field name="WHERE1">FROM_START</field>
+            <field name="WHERE2">FROM_START</field>
+            <value name="STRING">
+                <block type="variables_get">
+                    <field name="VAR" id="IAx@0bR~YUFX$^fZ85QJ" variabletype="">text</field>
+                </block>
+            </value>
+        </block>
+        <block type="text_changeCase">
+            <field name="CASE">UPPERCASE</field>
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
+    
+    <category name="Proměnné" colour="#ff8c1a" custom="VARIABLE" data-i18n-name="toolbox.categories.variables">
+    </category>
+            
+    <category name="Funkce" colour="#ff6680" custom="PROCEDURE" data-i18n-name="toolbox.categories.functions"></category>
+    
+    <category name="Vstupy"  colour="#00979d" data-i18n-name="toolbox.categories.inputs">
+        <block type="gpio_get">
+            <value name="pin">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="gpio_init_get">
+            <value name="pin">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="esp32S3_adc">
+          <value name="pin">
+            <shadow type="adc_ESP32S3_pinout">
+              <field name="PIN">1</field>
+            </shadow>
+          </value>
+        </block>
+        
+        
+        <block type="esp32S3_touch_pin_sens" disabled="false">
+        </block>
+        
+        
+        <block type="gpio_interrupt">
+          <value name="pin">
+            <shadow type="pinout_ESP32S3">
+              <field name="PIN">1</field>
+            </shadow>
+          </value>
+        </block>
+        
+        
+        <block type="gpio_interrupt_off">
+          <value name="pin">
+            <shadow type="pinout_ESP32S3">
+              <field name="PIN">1</field>
+            </shadow>
+          </value>
+        </block>
+        
+        <block type="pinout_ESP32S3"></block>
+        
+        
+        
+        
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
+        
+        <block type="init_pcf8574">
+            <value name="pin_SDA">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="pin_SCL">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="get_pin_pcf8574">
+            <value name="PIN">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="get_port_pcf8574"></block>
+        
+        
+        
+        
+        
+    </category>
+    
+    <category name="Výstupy"  colour="#00979d" data-i18n-name="toolbox.categories.outputs">
+        <block type="gpio_set">
+            <value name="pin">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="value">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+		
+		<block type="pwm">
+			<field name="ID">1</field>
+			<value name="pin">
+				<shadow type="pinout_ESP32S3">
+					<field name="PIN">1</field>
+				</shadow>
+			</value>
+			<value name="frequency">
+				<shadow type="math_number">
+					<field name="NUM">50</field>
+				</shadow>
+			</value>
+			<value name="duty">
+				<shadow type="math_number">
+					<field name="NUM">0</field>
+				</shadow>
+			</value>
+		</block>
+		        
+        <block type="pwm.freq">
+            <value name="frequency">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="pwm.duty">
+            <value name="duty">
+                <shadow type="math_number">
+                    <field name="NUM">512</field>
+                </shadow>
+            </value>
+        </block>
+        
+        <block type="pwm.deinit"></block>
+        
+        <block type="pinout_ESP32S3"></block>
+        
+        
+        
+        <label text="I2C expandér portů PCF8574" data-i18n-text="toolbox.labels.pcf8574"></label>
+        
+        
+        <block type="init_pcf8574">
+            <value name="pin_SDA">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="pin_SCL">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+        </block>
+        
+        
+        <block type="set_pin_pcf8574">
+            <value name="PIN">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="Value">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        
+        
+        <block type="invert_pin_pcf8574">
+            <value name="PIN">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        
+        
+        <block type="set_port_pcf8574">
+            <value name="PORT">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        
+        
+    </category>
+
+    
+    <category name="Čas"  colour="#00979d" data-i18n-name="toolbox.categories.time">
+        <block type="utime.delay">
+           <value name="TIME">
+            <shadow type="math_number">
+              <field name="NUM">1</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="utime.vars"></block>
+        <block type="cas_var"></block>
+        <block type="ntp_sync">
+        <value name="tz">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        </block>
+        <!--
+        <block type="utime.ticks_add">
+           <value name="TIME1">
+            <shadow type="utime.vars"></shadow>
+          </value>
+          <value name="TIME2">
+          <shadow type="math_number">
+            <field name="NUM">100</field>
+          </shadow>
+          </value>
+        </block>
+        <block type="utime.ticks_diff"></block>
+        -->
+        <block type="esp32_set_rtc"></block>
+        <block type="esp32_get_rtc"></block>
+        <block type="deep_sleep">
+         <value name="interval">
+            <shadow type="math_number">
+              <field name="NUM">1000</field>
+            </shadow>
+          </value>
+        </block>
+      </category>
+      
+      
+      <category name="Program"  colour="#00979d" data-i18n-name="toolbox.categories.program">
+        <!--
+        <block type="get_ssid"></block> 
+        <block type="get_ip"></block> 
+        -->
+      
+        <block type="python_try_catch"></block> 
+        <block type="python_catch_err"></block> 
+        
+
+        <block type="exec_python">
+            <value name="command">
+                <shadow type="text">
+                <field name="TEXT"></field>
+                </shadow>
+            </value>
+        </block>
+        <block type="ace_code_editor"></block>
+        
+        <block type="def_exit"></block> 
+        
+
+
+      </category>
+      
+      
+      <category name="Display" colour="#c953e2" data-i18n-name="toolbox.categories.display">
+          
+          
+          <block type="fb_fill">
+          </block>
+          
+          <block type="oded_refresh">
+          </block>
+          
+          <block type="fb_txt">
+            <value name="text">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="barva">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="fb_txt_mini">
+            <value name="text">
+                <shadow type="text">
+                    <field name="TEXT">abc</field>
+                </shadow>
+            </value>
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="barva">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <button text="otevřít editor obrázků" callbackKey="open_image_editor" data-i18n-text="toolbox.buttons.openImageEditor"></button>
+          
+          <block type="fb_draw_pic">
+            <field name="name" data-i18n-text="toolbox.defaults.imageName">jmeno_obrazku</field>
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="data">
+                <shadow type="text">
+                    <field name="TEXT">bytearray(b'\x7e\xd5\xab\xd5\xab\xd5\xab\x7e'), 8, 8</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="fb_pixel">
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="col">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="fb_line">
+            <value name="px1">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py1">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="px2">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="py2">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="col">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="fb_rect">
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="sirka">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="vyska">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="col">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="fb_rect_fill">
+            <value name="px">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="py">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="sirka">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="vyska">
+                <shadow type="math_number">
+                    <field name="NUM">32</field>
+                </shadow>
+            </value>
+            <value name="col">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+      </category>
+      
+      
+      
+      
+      <category name="Bloky pro ESP:Bit"  colour="#f6a017" data-i18n-name="toolbox.categories.espbit">
+              <block type="esp_bit_button" disabled="false"></block>
+			  
+			  <block type="omg_set_neopixel">
+				<field name="neopixel_idx">0</field>
+				<value name="barva">
+					<shadow type="neopixel_color_colors">
+						<field name="color">#FF0000</field>
+					</shadow>
+				</value>
+			  </block>
+			  			  
+			  <label text="Teploměr / vlhkoměr / tlakoměr BME280" data-i18n-text="toolbox.labels.bme280"></label>
+              <block type="ESP_Bit_temp" disabled="false"></block>
+              <block type="ESP_Bit_humidity" disabled="false"></block>
+              <block type="ESP_Bit_pressure" disabled="false"></block>
+              <block type="ESP_Bit_rosny_bod" disabled="false"></block>
+              
+              
+              <label text="Snímač polohy BMI270" data-i18n-text="toolbox.labels.bmi270"></label>
+              <block type="esp_bit_gyro" disabled="false"></block>
+              <block type="esp_bit_gyro_acc" disabled="false"></block>
+              <block type="esp_bit_gyro_acc_angle" disabled="false"></block>
+              <block type="esp_bit_gyro_zero" disabled="false"></block>
+              <block type="esp_bit_gyro_calib" disabled="false"></block>
+              
+              
+              <label text="Driver DC motorů DRV8835" data-i18n-text="toolbox.labels.drv8835DcDriver"></label>
+              <block type="ESP_Bit_dc_motor_speed" disabled="false">
+                <value name="in_speed">
+                    <shadow type="math_number">
+                        <field name="NUM">0</field>
+                    </shadow>
+                </value>
+              </block>
+              
+			  <label text="Driver krokových Motorů DRV8835" data-i18n-text="toolbox.labels.drv8835StepperDriver"></label>
+              
+			  <block type="omg_stepper_init">
+				<field name="step_size">BIPOLAR4WIRE</field>
+			  </block>
+			  
+			  <block type="omg_stepper_set_speed">
+				<value name="speed">
+					<shadow type="math_number">
+						<field name="NUM">50</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_set_accel">
+				<value name="accel">
+					<shadow type="math_number">
+						<field name="NUM">20</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_set_pos">
+				<value name="pos">
+					<shadow type="math_number">
+						<field name="NUM">0</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_move_to">
+				<value name="pos">
+					<shadow type="math_number">
+						<field name="NUM">500</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_move">
+				<value name="pos">
+					<shadow type="math_number">
+						<field name="NUM">100</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_move_to_nonblocking">
+				<value name="pos">
+					<shadow type="math_number">
+						<field name="NUM">500</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_move_nonblocking">
+				<value name="pos">
+					<shadow type="math_number">
+						<field name="NUM">100</field>
+					</shadow>
+				</value>
+			  </block>
+			  
+			  <block type="omg_stepper_stop" disabled="false"></block>
+			  <block type="omg_stepper_current_pos" disabled="false"></block>
+			  <block type="omg_stepper_target_pos" disabled="false"></block>
+			  <block type="omg_stepper_distance" disabled="false"></block>
+			  
+			  
+			  
+      </category>
+      
+      
+      <category name="Snímače"  colour="#1CA1FF" data-i18n-name="toolbox.categories.sensors">
+          <label text="Teploměr/vlhkoměr s DHT11, DHT22, AM2302" data-i18n-text="toolbox.labels.dht"></label>
+          <block type="dht_init" disabled="false">
+            <value name="pin">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="dht_measure" disabled="false"></block>
+          <block type="dht_read_temp" disabled="false"></block>
+          <block type="dht_read_humidity" disabled="false"></block>
+          
+          
+          <label text="Ultrazvukový dálkoměr HC-SR04" data-i18n-text="toolbox.labels.hcSr04"></label>
+          <block type="hcsr_init" disabled="false">
+            <value name="echo">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="trigger">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="hcsr_read_mm" disabled="false"></block>
+          <block type="hcsr_read_cm" disabled="false"></block>
+          
+          <label text="Joystick" data-i18n-text="toolbox.labels.joystick"></label>
+          <block type="joystick_init" disabled="false">
+            <value name="vrx">
+                <shadow type="adc_ESP32S3_pinout">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="vry">
+                <shadow type="adc_ESP32S3_pinout">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+            <value name="sw">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">3</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="get_joy_axis">
+			<field name="joy_name">1</field>
+			<field name="axis">X</field>
+          </block>
+
+          <block type="get_joy_state" disabled="false">
+			<field name="joy_name">1</field>
+		  </block>
+
+          
+          
+          <label text="Rotační enkodér" data-i18n-text="toolbox.labels.rotaryEncoder"></label>
+          <block type="encoder_init" disabled="false">
+            <value name="A">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+            <value name="reverse">
+                <shadow type="logic_boolean">
+                    <field name="BOOL">FALSE</field>
+                </shadow>
+            </value>
+            <value name="scale">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="encoder_get" disabled="false"></block>
+          
+          <block type="encoder_set" disabled="false">
+            <value name="Val">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+          </block>
+          
+
+
+          
+          
+          
+          <label text="Snímač barev TCS34725" data-i18n-text="toolbox.labels.tcs34725"></label>
+          <block type="tcs34725_init" disabled="false">
+            <value name="exposure">
+                <shadow type="math_number">
+                    <field name="NUM">25</field>
+                </shadow>
+            </value>
+            <value name="scl">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="sda">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+          </block>
+          
+          
+          <block type="tcs34725_is_col" disabled="false"></block>
+          <block type="tcs34725_rgb" disabled="false"></block>
+          
+          
+          <label text="Gyro MPU6050" data-i18n-text="toolbox.labels.mpu6050"></label>
+          <block type="mpu6050_init" disabled="false">
+            <value name="SCL">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="SDA">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="mpu6050_calibrate" disabled="false"></block>
+          <block type="mpu6050_fetch" disabled="false"></block>
+          
+          <block type="mpu6050_get_angle" disabled="false"></block>
+          <block type="mpu6050_get_accel" disabled="false"></block>
+          <block type="mpu6050_get_gyro" disabled="false"></block>
+          <block type="mpu6050_get_temp" disabled="false"></block>
+          
+          
+          <label text="Dálkoměr Vl53l0X" data-i18n-text="toolbox.labels.vl53l0x"></label>
+          
+          <block type="vl53l0x_init" disabled="false">
+            <value name="SDA">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="SCL">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+        </block>
+
+
+        <block type="vl53l0x_fast_dist_mm" disabled="false"></block>
+        <block type="vl53l0x_fast_dist_cm" disabled="false"></block>
+        
+        <block type="vl53l0x_dist_mm" disabled="false"></block>
+        <block type="vl53l0x_dist_cm" disabled="false"></block>
+          
+      </category>
+      
+      
+      <category name="Pohony"  colour="#a6be39" data-i18n-name="toolbox.categories.motors">
+          <label text="Modelářské servo" data-i18n-text="toolbox.labels.servo"></label>
+          <block type="servo_init" disabled="false">
+            <value name="pin">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="servo_angle" disabled="false">
+            <value name="uhel">
+                <shadow type="math_number">
+                    <field name="NUM">90</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="set_servo_speed" disabled="false">
+            <value name="speed">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="set_servo_us" disabled="false">
+            <value name="time">
+                <shadow type="math_number">
+                    <field name="NUM">1500</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <label text="Stejnosměrný motor" data-i18n-text="toolbox.labels.dcMotor"></label>
+          
+          <block type="dc_motor_init" disabled="false">
+            <value name="pin1">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">1</field>
+                </shadow>
+            </value>
+            <value name="pin2">
+                <shadow type="pinout_ESP32S3">
+                    <field name="PIN">2</field>
+                </shadow>
+            </value>
+          </block>
+          
+          <block type="dc_motor_speed" disabled="false">
+            <value name="in_speed">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+          </block>
+          
+      </category>
+      
+      
+    
+    <category name="NeoPixel" colour="#df006e" data-i18n-name="toolbox.categories.neopixel">
+      <label text="NeoPixel Led pásky" data-i18n-text="toolbox.labels.neopixelStrips"></label>
+
+      <block type="neopixel_init">
+       <value name="pin">
+          <shadow type="pinout_ESP32S3">
+            <field name="PIN">42</field>
+          </shadow>
+       </value>
+
+       <value name="number">
+        <shadow type="math_number">
+          <field name="NUM">1</field>
+        </shadow>
+       </value>
+      </block>
+      
+      
+      
+      <block type="neopixel_control">
+       <value name="address">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+
+       <value name="color">
+        <shadow type="neopixel_color_colors">
+        </shadow>
+       </value>
+      </block>
+      
+      
+      
+      <block type="neopixel_write"></block>
+      
+      
+
+      <block type="neopixel_color_numbers">
+       <value name="red">
+        <shadow type="math_number">
+          <field name="NUM">223</field>
+        </shadow>
+       </value>
+       <value name="green">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+       <value name="blue">
+        <shadow type="math_number">
+          <field name="NUM">110</field>
+        </shadow>
+       </value>
+      </block>
+
+      <block type="neopixel_color_colors"></block>
+
+      <block type="HSL_to_RGB">
+        <value name="hue">
+        <shadow type="math_number">
+          <field name="NUM">330</field>
+        </shadow>
+        </value>
+        <value name="saturation">
+        <shadow type="math_number">
+          <field name="NUM">100</field>
+        </shadow>
+        </value>
+        <value name="lightness">
+        <shadow type="math_number">
+          <field name="NUM">44</field>
+        </shadow>
+        </value>
+      </block>
+
+
+      
+      <block type="neopixel_control">
+        <value name="address">
+        <shadow type="math_number">
+        <field name="NUM">0</field>
+        </shadow>
+        </value>
+        <value name="color">
+        <block type="HSL_to_RGB">
+        <value name="hue">
+        <shadow type="math_number">
+        <field name="NUM">330</field>
+        </shadow>
+        </value>
+        <value name="saturation">
+        <shadow type="math_number">
+        <field name="NUM">100</field>
+        </shadow>
+        </value>
+        <value name="lightness">
+        <shadow type="math_number">
+        <field name="NUM">44</field>
+        </shadow>
+        </value>
+        </block>
+        </value>
+      </block>
+      
+
+      <block type="neopixel_control">
+       <value name="address">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+
+       <value name="color">
+        <block type="neopixel_color_numbers">
+           <value name="red">
+            <shadow type="math_number">
+              <field name="NUM">223</field>
+            </shadow>
+           </value>
+           <value name="green">
+            <shadow type="math_number">
+              <field name="NUM">0</field>
+            </shadow>
+           </value>
+           <value name="blue">
+            <shadow type="math_number">
+              <field name="NUM">110</field>
+            </shadow>
+           </value>
+        </block>
+       </value>
+      </block>
+    
+      
+      <block type="neopixel_5x5">
+      </block>
+      
+      
+      <block type="get_pos_5x5">
+       <value name="posX">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+
+       <value name="posY">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+      </block>
+      
+      
+      
+    </category>
+    
+    
+    <category name="Komunikace" colour="#24c48e" data-i18n-name="toolbox.categories.communication">
+        <label text="Wi-Fi" data-i18n-text="toolbox.labels.wifi"></label>
+        <block type="wifi_conect">
+			<value name="ssid">
+				<shadow type="text">
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiSsid">MojeWiFi</field>
+				</shadow>
+			</value>
+			<value name="pass">
+				<shadow type="text">
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiPassword">MojeHeslo</field>
+				</shadow>
+			</value>
+		</block>
+		
+		<block type="net_ap_mode">
+			<field name="NAME">vytvořit Wi-Fi Acces Point</field>
+			<field name="NET_NETWORK_NAME">název sítě: </field>
+			<field name="NET_NETWORK_KEY">heslo: </field>
+				<value name="wifi_essid">
+					<shadow type="text">
+						<field name="TEXT">ESP Wi-Fi</field>
+					</shadow>
+				</value>
+				<value name="wifi_key">
+				<shadow type="text">
+					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiApPassword">WifiHeslo</field>
+				</shadow>
+			</value>
+		</block>
+      
+      
+      <label text="ESP Now" data-i18n-text="toolbox.labels.espNow"></label>
+      
+      <block type="esp_now_send_str">
+            <value name="message">
+                <shadow type="text">
+                    <field name="TEXT">data</field>
+                </shadow>
+            </value>
+      </block>
+        
+      <block type="esp_now_data_check"></block> 
+      <block type="esp_now_new_data"></block> 
+      
+                
+      <label text="Internet věcí Blynk.io" data-i18n-text="toolbox.labels.blynk"></label>
+        
+      <block type="blynk_connect">
+       <value name="Blynk_ID">
+        <shadow type="text">
+        </shadow>
+       </value>
+      </block>
+      
+      <block type="blynk_run"></block>
+      
+      <block type="blynk_write">
+       <value name="val">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+       </value>
+      </block>
+    
+      <block type="blynk_read"></block> 
+      
+      <block type="blynk_is_connected"></block> 
+
+      <label text="Čtení dat z webového serveru (HTTP Request)" data-i18n-text="toolbox.labels.httpRequest"></label>
+      
+      <block type="http_request">
+       <value name="url">
+        <shadow type="text">
+            <field name="TEXT">http://www.iotserver.cz/ide/test.txt</field>
+        </shadow>
+       </value>
+      </block>
+      
+      
+      <label text="Sériová linka - UART" data-i18n-text="toolbox.labels.uart"></label>
+      
+      <block type="uart_init">
+        <field name="baud">19200</field>
+        <field name="bits">8</field>
+        <field name="parity">None</field>
+        <field name="stop_bit">1</field>
+        <value name="rx_pin">
+            <shadow type="pinout_ESP32S3">
+                <field name="PIN">1</field>
+            </shadow>
+        </value>
+        <value name="tx_pin">
+            <shadow type="pinout_ESP32S3">
+                <field name="PIN">2</field>
+            </shadow>
+        </value>
+    </block>
+    
+    
+    <block type="uart_read_line">
+        <value name="timeout">
+        <shadow type="math_number">
+          <field name="NUM">1000</field>
+        </shadow>
+       </value>
+    </block>
+    
+    
+    <block type="uart_detect_message">
+        <value name="start_char">
+            <shadow type="text">
+                <field name="TEXT">{start}</field>
+            </shadow>
+        </value>
+        <value name="end_char">
+            <shadow type="text">
+                <field name="TEXT">{stop}</field>
+            </shadow>
+        </value>
+        <value name="timeout">
+        <shadow type="math_number">
+          <field name="NUM">1000</field>
+        </shadow>
+       </value>
+    </block>
+    
+    
+    
+    <block type="uart_read_num">
+        <value name="num">
+            <shadow type="math_number">
+          <field name="NUM">1</field>
+        </shadow>
+        </value>
+    </block> 
+    
+    <block type="uart_read_all"></block>
+    
+    
+    <block type="uart_write">
+        <value name="buffer">
+            <shadow type="text">
+                <field name="TEXT" data-i18n-text="toolbox.defaults.uartHello">Ahoj !</field>
+            </shadow>
+        </value>
+    </block> 
+     
+      
+      
+    </category>
+    
+    
+    
+</xml>

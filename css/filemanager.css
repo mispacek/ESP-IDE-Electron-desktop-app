@@ -1,119 +1,178 @@
 /* styles.css */
-body {
+#fm_root {
+    --fm-panel: var(--ui-bg-elevated, #ffffff);
+    --fm-border: var(--ui-border, #ddd);
+    --fm-border-soft: var(--ui-border-soft, #e2e8f0);
+    --fm-text: var(--ui-text, #1f2328);
+    --fm-muted: var(--ui-text-muted, #4b5563);
+    --fm-toolbar: var(--ui-bg-panel, #f0f0f0);
+    --fm-btn-bg: var(--button-bg, #a0a0a0);
+    --fm-btn-hover: var(--button-hover, #808080);
+    --fm-btn-text: var(--button-text, #ffffff);
+    --fm-link: var(--ui-accent, #007bff);
+    --fm-progress-bg: var(--ui-border-soft, #ddd);
+    --fm-progress: var(--ui-accent, #ff4d4d);
+    --fm-popup-bg: var(--dialog-bg, #ffffff);
+    --fm-popup-border: var(--dialog-border, #ddd);
     font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    background-color: var(--fm-bg);
+    color: var(--fm-text);
     margin: 0;
     padding: 0;
+    min-height: 100%;
 }
 
-.file-manager {
+html.theme-dark #fm_root {
+    --fm-panel: #1a212b;
+    --fm-border: #2d333b;
+    --fm-border-soft: #3a414c;
+    --fm-text: #e6edf3;
+    --fm-muted: #9aa4af;
+    --fm-toolbar: #131821;
+    --fm-btn-bg: #263043;
+    --fm-btn-hover: #2f3b50;
+    --fm-btn-text: #e6edf3;
+    --fm-link: #6ea8ff;
+    --fm-progress-bg: #2a3340;
+    --fm-progress: #ff6b6b;
+    --fm-popup-bg: #161c24;
+    --fm-popup-border: #394352;
+}
+
+#fm_root a { color: var(--fm-link); }
+
+#fm_root .file-manager {
     max-width: 1320px;
     margin: auto;
-    border: 1px solid #ddd;
-    background-color: #fff;
+    border: 1px solid var(--fm-border);
+    background-color: var(--fm-panel);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
-.toolbar {
+#fm_root .toolbar {
     display: flex;
     gap: 10px;
     padding: 6px;
-    background-color: #f0f0f0;
-    color: white;
+    background-color: var(--fm-toolbar);
+    color: var(--fm-text);
     position: relative;
-    max-width: 1318px;
+    width: 100%;
+    max-width: none;
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow-x: auto;
     top: 0;
     z-index: 1000;
+    box-sizing: border-box;
 }
 
-.toolbar button {
-    padding: 10px 15px;
-    border: none;
+#fm_root .toolbar button {
+    flex: 0 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border: 1px solid var(--fm-border);
     border-radius: 5px;
-    background-color: #a0a0a0;
-    color: white;
+    background-color: var(--fm-btn-bg);
+    color: var(--fm-btn-text);
     cursor: pointer;
     font-size: 16px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.toolbar button:hover {
-    background-color: #808080;
+#fm_root .toolbar button:hover {
+    background-color: var(--fm-btn-hover);
 }
 
-.toolbar button img.icon {
+#fm_root .toolbar button img.icon {
     width: 16px;
     height: 16px;
     margin-right: 5px;
     vertical-align: middle;
 }
 
-.breadcrumb {
+#fm_root .breadcrumb {
     margin-top: 0px; /* To ensure breadcrumb is not hidden under the fixed toolbar */
     padding: 10px;
     font-size: 18px;
 }
 
-.breadcrumb a {
+#fm_root .breadcrumb a {
     text-decoration: none;
-    color: #007bff;
+    color: var(--fm-link);
     margin-right: 5px;
 }
 
-.breadcrumb a:hover {
+#fm_root .breadcrumb a:hover {
     text-decoration: underline;
 }
 
-.file-list {
+#fm_root .file-list {
     margin-top: 0px;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--fm-border);
     border-radius: 5px;
     overflow: auto;
     max-height: calc(100vh - 140px); /* Adjust height to ensure it fits within the viewport */
 }
 
-#file-table {
+#fm_root #file-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-#file-table th, #file-table td {
+#fm_root #file-table th, #fm_root #file-table td {
     padding: 10px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--fm-border);
 }
 
-#file-table th {
-    background-color: #f0f0f0;
+#fm_root #file-table th {
+    background-color: var(--fm-toolbar);
 }
 
-.file-icon {
+#fm_root .file-icon {
     width: 20px;
     height: 20px;
     margin-right: 10px;
     vertical-align: middle;
 }
 
-#error-message {
+#fm_root #error-message {
     margin-top: 10px;
     color: red;
 }
 
 /* Media query for mobile devices */
-@media (max-width: 1050px) {
-    .toolbar button {
+@media (max-width: 1200px) {
+    #fm_root .toolbar button {
         padding: 15px;
     }
-    .toolbar button span {
+    #fm_root .toolbar button span {
         display: none;
     }
-    .toolbar button img.icon {
+    #fm_root .toolbar button img.icon {
         margin-right: 0;
     }
 }
 
-.popup-overlay {
+@media (min-width: 1201px) {
+    #fm_root .toolbar {
+        justify-content: space-between;
+        overflow-x: auto;
+    }
+    #fm_root .toolbar button {
+        flex: 0 0 auto;
+    }
+}
+
+#fm_root .popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -126,62 +185,63 @@ body {
     z-index: 2000;
 }
 
-.popup-window {
-    background: white;
+#fm_root .popup-window {
+    background: var(--fm-popup-bg);
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--fm-popup-border);
     max-width: 90%;
     max-height: 90%;
     overflow-y: auto;
 }
 
-.popup-button {
+#fm_root .popup-button {
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: #a0a0a0;
-    color: white;
-    border: none;
+    background-color: var(--fm-btn-bg);
+    color: var(--fm-btn-text);
+    border: 1px solid var(--fm-border);
     border-radius: 5px;
     cursor: pointer;
 }
 
-.popup-button:hover {
-    background-color: #808080;
+#fm_root .popup-button:hover {
+    background-color: var(--fm-btn-hover);
 }
 
-#breadcrumb-container {
+#fm_root #breadcrumb-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-#status-container {
+#fm_root #status-container {
     display: flex;
     align-items: center;
     margin-right: 10px;
 }
 
-#progressbar-container {
+#fm_root #progressbar-container {
     width: 100px;
     height: 20px;
-    background-color: #ddd;
+    background-color: var(--fm-progress-bg);
     border-radius: 5px;
     overflow: hidden;
     margin-right: 10px;
 }
 
-#progressbar {
+#fm_root #progressbar {
     height: 100%;
     width: 0;
-    background-color: red;
+    background-color: var(--fm-progress);
     border-radius: 5px;
     transition: width 1s, background-color 1s;
 }
 
-#memory-status {
+#fm_root #memory-status {
     font-size: 14px;
-    color: #333;
+    color: var(--fm-muted);
 }
 
 #fm_overlay .fm-chk{

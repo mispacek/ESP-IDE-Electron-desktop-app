@@ -1,0 +1,132 @@
+[25.01.2026] 2.0.4
+- Theme toggle (light/dark) and language selection in menu, saved to localStorage
+- I18N packs and Blockly locale loading stabilized for UI/toolbox translations
+- Share links: auto-load project by URL code after IDE init
+- File Manager toolbar made responsive with single-row layout and adaptive buttons
+- Service worker update flow improved (versioned registration, auto-activate, reload)
+- Optional startup flags: force toolbox + lock processor dropdown; hide File Manager icon
+- Installer: ESP8266 flash header params + flashSize support to prevent bootloops
+- Installer: binary library upload (.mpy) via arrayBuffer to keep correct size
+
+[14.01.2026] 2.0.3
+- Added dark mode with switch in menu and saving to localStorage
+- Recolored entire UI (Blockly toolbox/workspace, menu, dialogs)
+- Dark theme for ACE editor and terminal settings
+- Loading screen with logo and animated spinner
+- Support for dark image variants (dark_*) and automatic switching
+- Styling of File Manager for light/dark mode and isolation of its CSS
+- Update cache SW for new dark assets
+
+[23.11.2025] 2.0.2
+- Minor fixes in file manager and loading its library
+- Modified function for stopping the program for better reliability
+
+[14.11.2025] 2.0.1
+- Fixed broken dialogs after opening file manager
+- Fixed broken file manager after reconnecting device
+- Removed duplicate javascript imports in file manager
+- When close file manager cleanup and enable REPL
+
+[10.11.2025] 2.0.0
+- Fixed dialogs in file manager for desktop version
+- Modified bluetooth connection function in desktop version
+- Modified cache work for desktop application
+- Disabling joystick buttons and installing FW for desktop version
+
+[4.11.2025] 2.0.0_beta
+- Reworked window size calculation on mobile devices
+- Fixed bugs in file manager
+- Added circular buffer to bluetooth library
+
+[9.10.2025] 1.13.6
+- Added file manager
+- Rewrote Bluetooth library due to bug in Micropython
+- Added hack for stopping program in Bluetooth mode
+- Added functions for saving files to ESP
+
+[21.9.2025] 1.13.5
+- Optimized user interface for mobile devices
+- Upscale graphics for better display on high PPI displays
+- Handling switching between USB and Bluetooth connections
+- Added text mode with panels
+- Saving text editor content to localstorage
+
+[21.9.2025] 1.13.4
+- Added support for Bluetooth low energy
+- Fixed some dialogs on mobile devices
+
+[14.9.2025] 1.13.3
+- Extensions are saved to the project as comments in xml
+- Loading a project from a file sets the processor and integrates add-ons
+- Loading a project from a URL: sets the processor and integrates add-ons
+- Added the list of changes and editor versioning to the drop-down menu
+
+[12.8.2025] 1.13.2
+- Added support for ESP8266 processors
+
+[16.6.2025] 1.13.1
+- Added the function for installing libraries to the processor via USB
+
+[13.4.2025] 1.13.0
+- Added support for RP2040 processors
+
+[2.3.2025] 1.12.0
+- Released USB - Serial version of ESP IDE V1.12
+- Added support for ESP32S3
+- Added blocks for file system
+- Added blocks for VL53L0X laser rangefinder
+- Added blocks for PCF8574 port expander
+- Added blocks for UART communication
+- Toolbox layout adjustment.
+
+[2.22.2025] 1.11.0
+- Reworked functions for loading toolbox
+- Optimized webserver
+- Added file manager
+- Compression of user projects to save FLASH memory
+
+[19.5.2024] 1.10.0
+- Optimized webserver code
+- Reworked I2C interface initialization.
+- Bug fixes
+
+[27.3.2024] 1.10.0
+- New code for webserver implemented
+- Extended blocks for controlling DC motors using PWM
+- Added blocks for 5x5 neopixel matrix
+- Optimized user interface for mobile devices
+
+[12.2.2024] 1.08.0
+- Added support for ESP32C3
+- New interface for managing user blocks
+- Implemented HTTP request block
+- Try Catch and other functions.
+
+[16.1.2024] 1.7.0
+- Virtual joysticks for easy control of robotic vehicles
+
+[17.10.2023] 1.6.0
+- Implemented support for ESP Now communication between processors
+- Optimized webserver.
+
+[25.3.2023] 1.05.0
+- Added a block for reading ADC pins for the joystick
+- Added support for the TCS34725 sensor
+- Added support for Rotary encoders
+- Added support for the MPU6050 gyroscope
+- Added support for controlling model servo motors
+
+[9.5.2022] 1.03.0
+- Created an image editor for OLED Display
+- Experimental support for ESP8266.
+
+[22.4.2022] 1.02.0
+- Added remote view of OLED Display.
+
+[15.1.2022] 1.01.0
+- Expanded blocks for controlling the robot
+- Optimized the webserver code
+- Fixed bugs.
+
+[2019] 1.0.0
+- First version of ESP IDE released.

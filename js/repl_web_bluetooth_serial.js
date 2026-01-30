@@ -1,14 +1,46 @@
 /* *****************************************************
- * Třída MicroPythonBLE – nová webBluetooth komunikace *
+ * MicroPythonBLE class - Web Bluetooth transport
  *******************************************************/
 
-// === Web Bluetooth UUIDs (NUS + Adafruit NUS + CH9143), inspirováno ViperIDE transports.js ===
+// === REPL i18n helpers ===
+if (typeof window !== 'undefined') {
+  if (!window.__espideReplFallbacks) window.__espideReplFallbacks = {};
+  Object.assign(window.__espideReplFallbacks, {
+    "repl.common.transferProgress": "Sending: {percent}%",
+    "repl.ble.notSupported": "This browser does not support Web Bluetooth.",
+    "repl.ble.connectInProgress": "Connection is already in progress.",
+    "repl.ble.uartMissing": "BLE UART characteristics not found (NUS/ADA/CH9143/MPY).",
+    "repl.ble.connected": "Connected via BLE - ESP IDE!",
+    "repl.ble.disconnected": "BLE disconnected.",
+    "repl.ble.notConnected": "Not connected to a BLE device.",
+    "repl.ble.sessionEnded": "Interrupted: session ended.",
+    "repl.ble.rawEnterFailed": "Failed to enter raw REPL mode (BLE).",
+    "repl.ble.rawError": "Raw REPL error (BLE): {error}",
+    "repl.ble.rawExitError": "Raw REPL exit error (BLE): {error}",
+    "repl.ble.rawOkTimeout": "Timeout waiting for OK\\x04 (BLE): {buffer}",
+    "repl.ble.sendFileError": "File send error (BLE): {error}",
+    "repl.ble.joyNotWritable": "Joystick characteristic is not writable."
+  });
+}
+function replT(key, vars){
+  try {
+    if (typeof window !== 'undefined' && window.__espideI18n && typeof window.__espideI18n.t === 'function') {
+      return window.__espideI18n.t(key, vars);
+    }
+    if (typeof window !== 'undefined' && typeof window.t === 'function') return window.t(key, vars);
+  } catch (_) {}
+  const base = (typeof window !== 'undefined' && window.__espideReplFallbacks && window.__espideReplFallbacks[key]) || key;
+  if (!vars) return base;
+  return base.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
+}
+
+// === Web Bluetooth UUIDs (NUS + Adafruit NUS + CH9143), inspired by ViperIDE transports.js ===
 
 // Nordic UART Service (NUS)
 const NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const NUS_TX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // Write
 const NUS_RX      = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // Notify
-const NUS_TX_LIMIT = 20;  // konzervativní (často funguje až 244, 128 je bezpečné)
+const NUS_TX_LIMIT = 20;  // conservative (often works up to 244, 128 is safe)
 
 // Adafruit NUS (CircuitPython BLE)
 const ADA_NUS_SERVICE = 'adaf0001-4369-7263-7569-74507974686e';
@@ -18,19 +50,19 @@ const ADA_FT_SERVICE  = 0xfebb; // FileTransfer/Version service
 const ADA_VER         = 'adaf0100-4669-6c65-5472-616e73666572';
 const ADA_NUS_TX_LIMIT= 20;
 
-// CH9143 (často klony BLE↔UART)
+// CH9143 (common BLE-UART clones)
 const CH9143_SERVICE  = '0000fff0-0000-1000-8000-00805f9b34fb';
 const CH9143_TX       = '0000fff2-0000-1000-8000-00805f9b34fb';
 const CH9143_RX       = '0000fff1-0000-1000-8000-00805f9b34fb';
 const CH9143_CTRL     = '0000fff3-0000-1000-8000-00805f9b34fb';
 const CH9143_TX_LIMIT = 20;
 
-// ESP IDE – služba pro joystick
+// ESP IDE joystick service
 const JOY_SERVICE = '23f10010-5f90-11ee-8c99-0242ac120002';
-const JOY_CHAR    = '23f10012-5f90-11ee-8c99-0242ac120002'; // 4× Int8: Lx,Ly,Rx,Ry
+const JOY_CHAR    = '23f10012-5f90-11ee-8c99-0242ac120002'; // 4x Int8: Lx,Ly,Rx,Ry
 
 
-// ---- MicroPythonBLE: API kompatibilní s MicroPythonSerial ----
+// ---- MicroPythonBLE: API compatible with MicroPythonSerial ----
 class MicroPythonBLE {
   constructor(terminal, onUiState) {
     this.terminal = terminal;
@@ -43,17 +75,17 @@ class MicroPythonBLE {
     this.rx = null;
     this.tx = null;
     this.tx_limit = 20;
-    this.joy = null;   // charakteristika pro joystick
+    this.joy = null;   // joystick characteristic
     
     
     this.fm_in_buffer  = "";
-    this.fm_buf_enabled = true;            // sbírej vždy
-    this.fm_buf_limit   = 262144;          // 256 KiB ochrana proti přetečení
+    this.fm_buf_enabled = true;            // always collect
+    this.fm_buf_limit   = 262144;          // 256 KiB overflow guard
 
     this._notifyHandler = this._onNotify.bind(this);
     this._writeBusy = Promise.resolve();
 
-    // stejné vyšší vrstvy jako v MicroPythonSerial
+    // same high-level flags as in MicroPythonSerial
     this.inRawMode = false;
     this.rawResponseBuffer = "";
     this.mute_terminal = false;
@@ -72,28 +104,28 @@ class MicroPythonBLE {
         this._abort = null;
         this._teardown();
 
-        // vynuluj stavy vyšších vrstev a TX pipeline
+        // reset higher-layer state and the TX pipeline
         this.inRawMode = false;
         this.rawResponseBuffer = "";
         this._writeBusy = Promise.resolve();
-        this._session++;              // invaliduj probíhající zápisy
+        this._session++;              // invalidate in-flight writes
   }
 
   _ui(s) { try { this.onUiState(s); } catch(_) {} }
 
   _onGattDisconnect = () => {
-    // když spojení spadne „samo“, ukaž ERROR; když jsme odpojili my, DISCONNECTED
+    // if the link drops unexpectedly -> ERROR; if we initiated it -> DISCONNECTED
     const state = this._expectingDisconnect ? STATE.DISCONNECTED : STATE.ERROR;
     this._ui(state);
     this._expectingDisconnect = false;
 
-    // udrž alias a UI konzistentní
+    // keep alias and UI consistent
     if (activeLink === 'ble') {
       activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
     }
 
     this._teardown();
-    this.terminal.writeln("**BLE odpojeno.**");
+    this.terminal.writeln("**" + replT("repl.ble.disconnected") + "**");
   };
 
 
@@ -106,8 +138,8 @@ class MicroPythonBLE {
   
   
   async connect() {
-    if (!navigator.bluetooth) throw new Error("Tento prohlížeč nepodporuje Web Bluetooth.");
-    if (this._connecting) throw new Error("Připojení již probíhá.");
+    if (!navigator.bluetooth) throw new Error(replT("repl.ble.notSupported"));
+    if (this._connecting) throw new Error(replT("repl.ble.connectInProgress"));
     this._connecting = true;
     let ok = false;
     try {
@@ -121,7 +153,7 @@ class MicroPythonBLE {
       this.device.addEventListener("gattserverdisconnected", this._onGattDisconnect, { signal: this._abort.signal });
       this.server = await this.device.gatt.connect();
 
-      // Projedeme primární služby a zkusíme NUS / ADA / CH9143
+      // Scan primary services and resolve NUS / ADA / CH9143
         const primaryServices = await this.server.getPrimaryServices();
         for (const svc of primaryServices) {
           if (svc.uuid === NUS_SERVICE) {
@@ -137,7 +169,7 @@ class MicroPythonBLE {
             this.tx       = await svc.getCharacteristic(ADA_NUS_TX);
             this.tx_limit = ADA_NUS_TX_LIMIT;
 
-            // Volitelně zkontroluj verzi ADA FT služby (nebude-li, nevadí)
+            // Optionally validate ADA FT service version (ignore if missing)
             try {
               const ft = await this.server.getPrimaryService(ADA_FT_SERVICE);
               const v  = await ft.getCharacteristic(ADA_VER);
@@ -155,13 +187,13 @@ class MicroPythonBLE {
         }
 
       if (!this.service || !this.rx || !this.tx) {
-        throw new Error("Nepodařilo se najít BLE UART (NUS/ADA/CH9143/MPY) charakteristiky.");
+        throw new Error(replT("repl.ble.uartMissing"));
       }
 
       await this.rx.startNotifications();
       this.rx.addEventListener("characteristicvaluechanged", this._notifyHandler);
 
-      // 4) Volitelně připoj joystick charakteristiku
+      // 4) Optionally attach the joystick characteristic
       try {
           const joySvc = await this.server.getPrimaryService(JOY_SERVICE);
           this.joy = await joySvc.getCharacteristic(JOY_CHAR);
@@ -171,7 +203,7 @@ class MicroPythonBLE {
           console.debug('[BLE] JOY characteristic missing', e);
       }
 
-      this.terminal.write('\x1b[32mPřipojeno přes BLE — ESP IDE!\x1b[m');
+      this.terminal.write('\x1b[32m' + replT("repl.ble.connected") + '\x1b[m');
       await this.sendData("\x02"); // Ctrl-B
 
       this._ui(STATE.CONNECTED);
@@ -179,11 +211,11 @@ class MicroPythonBLE {
     } finally {
       this._connecting = false;
       if (!ok) {
-        // pokud se cokoliv rozbilo uprostřed, vše uhasit
+        // if something failed mid-connection, clean everything up
         this._finalizeCleanup();
         this._ui(STATE.ERROR);
       } else {
-        // nová platná relace
+        // new valid session
         this._session++;
       }
     }
@@ -202,10 +234,10 @@ class MicroPythonBLE {
       }
     } finally {
       this._finalizeCleanup();
-      this._abort?.abort();           // odregistrovat všechny addEventListener s tímto signálem
+      this._abort?.abort();           // unregister all addEventListener handlers
       this._abort = null;
       this._teardown();
-      this.terminal.writeln("**BLE odpojeno.**");
+      this.terminal.writeln("**" + replT("repl.ble.disconnected") + "**");
       this._ui(STATE.DISCONNECTED);
       this._expectingDisconnect = false;
     }
@@ -221,7 +253,7 @@ class MicroPythonBLE {
 
   _onNotify(ev) {
     const v = ev.target.value;
-    // převod na text:
+    // decode to text
     let s = "";
     for (let i = 0; i < v.byteLength; i++) s += String.fromCharCode(v.getUint8(i));
     if (this.inRawMode) this.rawResponseBuffer += s;
@@ -236,16 +268,16 @@ class MicroPythonBLE {
     
   }
 
-  // --- Nízká vrstva kompatibilní s MicroPythonSerial ---
+  // --- Low-level layer compatible with MicroPythonSerial ---
 
   async sendCommand(command) {
-    if (!this.tx) throw new Error("Nejsi připojen k BLE zařízení.");
+    if (!this.tx) throw new Error(replT("repl.ble.notConnected"));
     if (!command.endsWith("\n")) command += "\r\n";
     await this._writeChunked(command);
   }
 
   async sendData(data) {
-    if (!this.tx) throw new Error("Nejsi připojen k BLE zařízení.");
+    if (!this.tx) throw new Error(replT("repl.ble.notConnected"));
     await this._writeChunked(data);
   }
   
@@ -260,20 +292,20 @@ class MicroPythonBLE {
       } else if (props.write) {
         await this.joy.writeValue(buf);
       } else {
-        throw new Error("Joystick characteristic is not writable");
+        throw new Error(replT("repl.ble.joyNotWritable"));
       }
   }
 
   async _writeChunked(text) {
       const mySession = this._session;
       this._writeBusy = this._writeBusy.then(async () => {
-        const mtu = this.tx_limit || 20;               // 20 pro WebBT
+        const mtu = this.tx_limit || 20;               // 20 for WebBT
         const enc = new TextEncoder();
         const bytes = enc.encode(text);
         let i = 0;
-        let window = 4;                                // počet bloků na „mikro-takt“
+        let window = 4;                                // number of blocks per micro-tick
         while (i < bytes.length) {
-          if (mySession !== this._session) throw new Error("Přerušeno: relace byla ukončena.");
+          if (mySession !== this._session) throw new Error(replT("repl.ble.sessionEnded"));
           let ok = 0;
           for (; ok < window && i < bytes.length; ok++) {
             const slice = bytes.slice(i, i + mtu);
@@ -285,13 +317,13 @@ class MicroPythonBLE {
                 await this.tx.writeValue(slice);
               i += mtu;
             } catch (e) {
-              // Zpomal, když stack zahlásí „operation in progress“
+              // Back off when the stack reports "operation in progress"
               window = Math.max(1, Math.floor(window / 2));
               await new Promise(r => setTimeout(r, 8));
-              break; // ukonči vnitřní smyčku, zkus znovu
+              break; // stop inner loop, retry
             }
           }
-          // Mikro-yield nech OS vyprázdnit fronty; jemné zrychlování až na 8
+          // Micro-yield to let OS drain queues; ramp up to 8
           await new Promise(r => setTimeout(r, 1));
           if (ok === window && window < 8) window++;
         }
@@ -299,7 +331,7 @@ class MicroPythonBLE {
       return this._writeBusy;
     }
 
-  // --- Stejná „vyšší“ API jako u Serialu (kopie používající sendData/sendCommand) ---
+  // --- High-level API matches Serial (mirrors sendData/sendCommand) ---
 
   async enterRawREPL() {
     try {
@@ -313,11 +345,11 @@ class MicroPythonBLE {
         await new Promise(r => setTimeout(r, 100));
       }
       if (!this.rawResponseBuffer.includes("raw REPL")) {
-        throw new Error("Nepodařilo se vstoupit do raw REPL režimu (BLE).");
+        throw new Error(replT("repl.ble.rawEnterFailed"));
       }
     } catch (e) {
       console.error(e);
-      this.terminal.writeln(`**Chyba raw REPL (BLE): ${e.message}**`);
+      this.terminal.writeln("**" + replT("repl.ble.rawError", { error: e.message }) + "**");
       throw e;
     }
   }
@@ -328,7 +360,7 @@ class MicroPythonBLE {
       this.inRawMode = false;
     } catch (e) {
       console.error(e);
-      this.terminal.writeln(`**Chyba opuštění raw REPL (BLE): ${e.message}**`);
+      this.terminal.writeln("**" + replT("repl.ble.rawExitError", { error: e.message }) + "**");
     }
   }
 
@@ -336,7 +368,7 @@ class MicroPythonBLE {
     this.rawResponseBuffer = "";
     await this.sendCommand(command + "\r");
     await this.sendData("\x04"); // EOT
-    // čekání na "OK\x04" stejně jako u Serialu
+    // wait for "OK\x04" just like Serial
     const result = await new Promise((resolve, reject) => {
       const start = Date.now();
       const tick = () => {
@@ -345,7 +377,7 @@ class MicroPythonBLE {
           this.rawResponseBuffer = "";
           resolve(out);
         } else if (Date.now() - start > 2000) {
-          reject(new Error("Timeout při čekání na OK\\x04 (BLE): " + this.rawResponseBuffer));
+          reject(new Error(replT("repl.ble.rawOkTimeout", { buffer: this.rawResponseBuffer })));
         } else {
           setTimeout(tick, 10);
         }
@@ -355,7 +387,7 @@ class MicroPythonBLE {
     return result;
   }
 
-  // Pomocný splitter (sdílený pattern se Serialem)
+  // Helper splitter (shared pattern with Serial)
   splitIntoChunks(content, chunkSize) {
     const chunks = [];
     for (let i = 0; i < content.length; i += chunkSize) {
@@ -365,18 +397,18 @@ class MicroPythonBLE {
   }
 
 
-  // Stejná implementace sendFile jako u Serialu: používá execRawCommand, sendData, exitRawREPL atd.
+  // sendFile matches Serial: uses execRawCommand, sendData, exitRawREPL, etc.
   async sendFile(filename, content, init=false) {
       try {
         const bar = document.getElementById("myProgress");
         if (bar) { bar.style.transition = "none"; bar.style.opacity = 1; bar.style.width = "0%"; }
 
-        // Přepni do raw REPL a připrav zápis
+        // Enter raw REPL and prepare the write
         await this.enterRawREPL();
         await this.execRawCommand(`import sys, os`);
         await this.execRawCommand(`from ubinascii import a2b_base64`);
 
-        // Vytvoř adresář pokud je potřeba
+        // Create a folder if needed
         if (filename.includes("/")) {
           const folder = filename.substring(0, filename.lastIndexOf("/"));
           await this.sendData(`try:\r`);
@@ -387,7 +419,7 @@ class MicroPythonBLE {
 
         await this.execRawCommand(`f=open("${filename}","wb")`);
 
-        // --- JEDINÁ PODSTATNÁ ZMĚNA: robustní převod na Base64 z bajtů ---
+        // --- Key change: robust base64 encoding from bytes ---
         const toBytes = (x) => {
           if (x instanceof Uint8Array) return x;
           if (x instanceof ArrayBuffer) return new Uint8Array(x);
@@ -403,14 +435,14 @@ class MicroPythonBLE {
         const bytes = toBytes(content);
         const base64 = u8ToB64(bytes);
 
-        // Odeslání po Base64 řetězci jako dřív
-        const chunkSize = 128; // ponecháno
+        // Send base64 chunks
+        const chunkSize = 128; // keep as-is
         for (let i = 0; i < base64.length; i += chunkSize) {
           const base64Chunk = base64.substring(i, i + chunkSize);
           await this.execRawCommand(`f.write(a2b_base64("${base64Chunk}"))`);
           if (bar) {
             const percent = Math.min(Math.floor(((i + chunkSize) / base64.length) * 100), 100);
-            this.terminal.write(`\rOdesílání: ${percent}%   `);
+            this.terminal.write("\r" + replT("repl.common.transferProgress", { percent }) + "   ");
             bar.style.transition = "width 0.1s ease";
             bar.style.width = percent + "%";
           }
@@ -423,7 +455,7 @@ class MicroPythonBLE {
         this.terminal.writeln("");
       } catch (e) {
         console.error(e);
-        this.terminal.writeln(`**Chyba při odesílání souboru (BLE): ${e.message}**`);
+        this.terminal.writeln("**" + replT("repl.ble.sendFileError", { error: e.message }) + "**");
       }
   }
 
