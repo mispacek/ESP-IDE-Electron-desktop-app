@@ -7,6 +7,16 @@
   }
 
   whenReady(()=> {
+    const localizedText = (key, fallback) => {
+      try {
+        if (window.__espideI18n && typeof window.__espideI18n.t === 'function') {
+          const value = window.__espideI18n.t(key);
+          if (value && value !== key) return value;
+        }
+      } catch (_) {}
+      return fallback;
+    };
+
     /* ---------- Fallback, pokud preload ještě nevytvořil window.dlg ---------- */
     if (!window.dlg) {
       window.dlg = {};
@@ -30,12 +40,12 @@
 
     const dlgConfirm = (msg, cb)=>
       window.dlg.message({
-        type:'question',buttons:['Ano','Ne'],defaultId:0,cancelId:1,message:msg
+        type:'question',buttons:[localizedText('actions.yes', 'Yes'), localizedText('actions.no', 'No')],defaultId:0,cancelId:1,message:msg
       }).then(r=>cb(r.response===0));
 
     const dlgPrompt = (msg, def, cb)=>
       Swal.fire({input:'text',inputValue:def||'',title:msg,
-                 showCancelButton:true,confirmButtonText:'OK',cancelButtonText:'Zrušit'
+                 showCancelButton:true,confirmButtonText:localizedText('actions.ok', 'OK'),cancelButtonText:localizedText('actions.cancel', 'Cancel')
       }).then(r=>cb(r.isConfirmed ? r.value : null));
 
     /* --------- Registrace podle toho, co prostředí nabízí ------------------------------ */

@@ -1,0 +1,16 @@
+{
+  "name": "espide-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP bridge for the ESP IDE developer API",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/server.test.mjs test/espide-ai-api.test.mjs test/browser-bridge.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ws": "^8.21.0",
+    "zod": "^4.4.3"
+  }
+}

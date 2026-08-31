@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Select USB device</title>
@@ -38,7 +38,7 @@
 </style>
 </head>
 <body>
-  <h2>Select USB device</h2>
+  <h2 id="pickerTitle">Select USB device</h2>
 
   <!-- scroll‑area s porty -->
   <div id="portList"></div>
@@ -46,7 +46,16 @@
   <!-- fixní spodní řádek -->
   <div id="closeRow"><button id="closeBtn">Close</button></div>
 
+<script src="electron/picker-i18n.js"></script>
 <script>
+  const pickerLanguage = new URLSearchParams(window.location.search).get('lang');
+  const pickerI18n = window.ESPIDE_PICKER_I18N.getMessages(pickerLanguage);
+  const pickerMessages = pickerI18n.messages;
+  document.documentElement.lang = pickerI18n.language;
+  document.title = pickerMessages.usbTitle;
+  document.getElementById('pickerTitle').textContent = pickerMessages.usbTitle;
+  document.getElementById('closeBtn').textContent = pickerMessages.close;
+
   // formátovací pomocník: dec ➜ 0xABCD
   const hex = n => {
     if (n === undefined || n === null) return '-';
@@ -67,14 +76,18 @@
 
   window.picker.onPorts(ports => {
     const list = document.getElementById('portList');
-    list.innerHTML = '';
+    list.replaceChildren();
 
     ports.forEach(p => {
-      // DOM
       const btn = document.createElement('button');
       btn.className = 'portBtn';
-      btn.innerHTML = `<div class="port-name">${p.portName || p.portId} - ${p.displayName || ''}</div>
-                       <div class="port-info">VID ${hex(p.vendorId)}   PID ${hex(p.productId)}</div>`;
+      const name = document.createElement('div');
+      name.className = 'port-name';
+      name.textContent = `${p.portName || p.portId} - ${p.displayName || ''}`;
+      const info = document.createElement('div');
+      info.className = 'port-info';
+      info.textContent = `VID ${hex(p.vendorId)}   PID ${hex(p.productId)}`;
+      btn.append(name, info);
 
       btn.addEventListener('click', () => window.picker.choose(p.portId));
       list.appendChild(btn);

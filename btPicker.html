@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Select Bluetooth device</title>
@@ -36,31 +36,50 @@
 </style>
 </head>
 <body>
-  <h2>Select Bluetooth device</h2>
+  <h2 id="pickerTitle">Select Bluetooth device</h2>
 
-  <div id="devList"><div class="empty">Loading…</div></div>
+  <div id="devList"><div class="empty" id="loadingText">Searching for devices…</div></div>
 
   <div id="closeRow"><button id="closeBtn">Close</button></div>
 
+<script src="electron/picker-i18n.js"></script>
 <script>
+  const pickerLanguage = new URLSearchParams(window.location.search).get('lang');
+  const pickerI18n = window.ESPIDE_PICKER_I18N.getMessages(pickerLanguage);
+  const pickerMessages = pickerI18n.messages;
+  document.documentElement.lang = pickerI18n.language;
+  document.title = pickerMessages.bluetoothTitle;
+  document.getElementById('pickerTitle').textContent = pickerMessages.bluetoothTitle;
+  document.getElementById('closeBtn').textContent = pickerMessages.close;
+  document.getElementById('loadingText').textContent = pickerMessages.loading;
+
   const devListEl = document.getElementById('devList');
 
-  function esc(s){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
-
   function render(list){
-    devListEl.innerHTML = '';
+    devListEl.replaceChildren();
     if (!list || !list.length){
-      devListEl.innerHTML = '<div class="empty">Nothing found. Check that the device is powered on and within range.</div>';
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = pickerMessages.nothingFound;
+      devListEl.appendChild(empty);
       return;
     }
     for (const d of list){
-      const name = d.name && d.name.trim() ? d.name : '(nepojmenované)';
+      const name = d.name && d.name.trim() ? d.name : pickerMessages.unnamedDevice;
       const id = d.id || '';
       const btn = document.createElement('button');
       btn.className = 'devBtn';
-      btn.innerHTML =
-        `<div class="dev-name">${esc(name)}</div>
-         <div class="dev-info">MAC: <span class="mono">${esc(id)}</span></div>`;
+      const nameElement = document.createElement('div');
+      nameElement.className = 'dev-name';
+      nameElement.textContent = name;
+      const info = document.createElement('div');
+      info.className = 'dev-info';
+      info.append('MAC: ');
+      const address = document.createElement('span');
+      address.className = 'mono';
+      address.textContent = id;
+      info.appendChild(address);
+      btn.append(nameElement, info);
       btn.onclick = () => window.btPicker.choose(id);
       devListEl.appendChild(btn);
     }

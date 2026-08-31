@@ -1,21 +1,340 @@
+[22.08.2026] 2.0.211
+- Target Simulator je v seznamu hned za Generic; při prvním spuštění bez uložené volby se jako výchozí target použije Generic.
+
+[22.08.2026] 2.0.210
+- Simulator Lite: LED jsou menší a posunuté výše v kartě; popisek zobrazuje LED a GPIO na samostatných řádcích.
+
+[22.08.2026] 2.0.209
+- Simulator Lite: Všechny karty komponent používají stejnou barvu povrchu ve světlém i tmavém režimu.
+- Simulator Lite: Plocha je ve výchozím stavu průhledná a konfigurace podporuje volitelnou bitmapu pozadí s režimy auto, contain a cover.
+
+[22.08.2026] 2.0.208
+- Simulator Lite: Panel je skutečný měnitelný pravý dock, takže již nepřekrývá textové záložky ani terminál; lze jej skrýt nebo odpojit do přesouvatelného okna.
+- Simulator Lite: Hlavička je kompaktní, tovární reset FS je v nabídce a celý panel včetně iframe respektuje světlé i tmavé schéma ESP IDE.
+- Simulator Lite: Před nahráním programu se obnoví pouze Worker a RPC runtime; iframe, scéna a načtené assety zůstávají zachované. Úplný reload slouží jen jako nouzová obnova.
+- Simulator Lite: Tovární soubory se mezi restarty berou z verzované cache a OLED canvas je znovu sladěný s geometrií bitmapy 800×800.
+- Simulator Lite: NeoPixel má nový podklad s osmi přesně definovanými pozicemi LED, enkodér kompaktnější rozložení ovládání a plocha scény průhledné pozadí.
+- Simulator Lite: Režim serva lze přepínat za běhu, barvu LED měnit kliknutím a popisky DC motorů zobrazují GPIO na samostatném řádku.
+
+[20.08.2026] 2.0.170
+- Přidána podpora pro desku ESP32-S3 Robotic Board včetně nového toolboxu, povoleného Bluetooth a vyhrazených bloků digitálního i analogového pinoutu.
+- Do jádra Blockly integrovány bloky a Python generátory pro gyroskop a akcelerometr MPU6500 s podporou Madgwick filtru.
+- Doplněny české, anglické a německé překlady pro nové bloky i popisky v toolboxu.
+
+[16.08.2026] 2.0.159
+- Anglické verze pěti příkladů aktualizovaných 15. 8. 2026 byly znovu vytvořeny z českých zdrojů a mají přeložené nové komentáře, texty a názvy proměnných.
+
+[14.08.2026] 2.0.158
+- Ikony štětce, gumy a koše z Display Designeru jsou nyní přednačítané do offline cache aplikace.
+
+[14.08.2026] 2.0.157
+- Položka Příklady v novém menu používá novou samostatnou ikonu, která je zahrnutá také v offline cache aplikace.
+
+[14.08.2026] 2.0.156
+- Všech 12 ukázkových projektů je nově dostupných také v anglické verzi ve složce examples/en.
+- Anglické projekty mají přeložené komentáře, textové výstupy, názvy proměnných a podprogramů; zapojení, piny a logika zůstávají shodné s českými originály.
+
+[14.08.2026] 2.0.155
+- Menu Příklady nyní načítá lokální .blk projekty přímo ze serveru namísto dřívějších share kódů.
+- Katalog obsahuje kategorie Základy, Senzory a Displeje a na jednom místě propojuje přeložené názvy s relativními cestami projektů.
+- Čeština používá složku examples/cs s anglickým fallbackem; angličtina, němčina a další jazyky používají examples/en.
+- Stažený soubor se před otevřením kontroluje a při chybě zůstane aktuální projekt beze změny. Online se načítá aktuální verze, dříve otevřené příklady zůstávají dostupné z PWA cache i offline.
+- Šipky u položky Příklady a kategorií v jejím podmenu jsou nyní přesně výškově vystředěné.
+
+[04.08.2026] 2.0.152
+- Textové bloky pro získání znaku, podřetězce, hledání, změnu velikosti písmen a ořezání mezer nyní bezpečně převádějí číselný vstup na text.
+- Bloky délky a kontroly prázdné hodnoty nově přijímají čísla, přičemž zachovávají původní chování pro texty, seznamy a další kolekce.
+- OLED bloky pro výpis běžným a malým písmem nyní dovolují připojit číselný blok; generovaný MicroPython hodnotu automaticky převede na text.
+- Distribuční Blockly bloky a Python generátor byly znovu sestaveny.
+
+[30.07.2026] 2.0.151
+- Do Nastavení byla přidána volba automatické zálohy Blockly projektu do /backup.blk.gz s režimy Nikdy, Jen přes USB a Vždy.
+- Menu Projekt umí otevřít poslední zálohu ze zařízení a při chybějící nebo poškozené záloze zobrazí srozumitelnou chybu.
+- Nabídka Projekt nyní využívá dostupnou výšku obrazovky, takže se na běžném displeji zobrazí celá bez posuvníku.
+- Nově ukládané a sdílené Blockly projekty obsahují pouze skutečně použité doplňky; při chybějící závislosti se neúplný projekt neuloží.
+- Chybějící modul závislostí při neúplné aktualizaci už nezastaví načtení toolboxu; ukládání projektu zůstane bezpečně zablokované do dokončení aktualizace.
+- Ikony kategorií toolboxu se nyní správně doplní i při pomalejším načtení překladů z webového serveru.
+
+[28.07.2026] 2.0.148
+- Blok „Vykreslit návrh OLED“ má nové výchozí zapnuté zatržítko „Překreslit displej“.
+- Zapnutá volba přidá `display.show()` až za vykreslení statického pozadí i všech dynamických vrstev. Po vypnutí zůstává možné do framebufferu dokreslit dalšími bloky a displej překreslit samostatně.
+- Doplněny české, anglické a německé překlady a znovu sestaveny distribuční Blockly bloky i Python generátor.
+
+[28.07.2026] 2.0.147
+- Volba bílé/černé barvy vybrané vrstvy byla přesunuta z přeplněného pravého sloupce do kontextové lišty pod displejem.
+- Nákres zobrazuje barvu pouze jednou ve své liště štětce; obecná barva vrstvy se pro nákres ani při aktivním kreslicím nástroji nezobrazuje.
+- Každý nový obdélník, elipsa, čára, text a bitmapa vzniká vždy bílý bez ohledu na dříve zvolenou barvu jiné vrstvy nebo štětce.
+- Uvolněné místo v pravém panelu bylo vráceno seznamu vrstev.
+
+[28.07.2026] 2.0.146
+- Všechny obdélníky, elipsy, čáry, texty a bitmapy mají jednotnou volbu bílé nebo černé barvy; staré inverzní texty se automaticky převedou na černou.
+- Nákres používá samostatnou bílou a černou 1bitovou masku, takže v jedné vrstvě podporuje bílé pixely, černé pixely i skutečně průhlednou gumu. Staré nákresy zůstávají kompatibilní.
+- Generátor kreslí černé jednoduché tvary přímo barvou 0. Černé rasterizované objekty a dynamické nákresy používají transparentní blity a druhá maska se vytváří jen tehdy, když obsahuje černé pixely.
+- Otevření grafického editoru nyní zruší výběr zdrojového Blockly bloku a přesune focus do dialogu, takže klávesa Delete nemůže omylem odstranit blok pod editorem.
+
+[28.07.2026] 2.0.145
+- Nákres má nyní výběrový obrys podle skutečně nakreslených pixelů a lze jej za tento obrys uchopit, táhnout myší nebo přesouvat změnou X/Y.
+- Přesun nákresu pouze mění souřadnicový posun jeho vrstvy; zabalená 128×64 bitmapa se nepřevzorkovává a další tahy štětcem správně používají její lokální souřadnice.
+
+[27.07.2026] 2.0.144
+- Živý náhled používá pro Bluetooth samostatný šetrný profil: 48bajtové části framebufferu, transportní úseky nejvýše 20 znaků, 90ms mezery uvnitř příkazu, 140ms mezery mezi příkazy a výrazně delší timeouty.
+- Inicializační Python se již neposílá ani nekompiluje jako jeden velký blok. Je rozdělen do několika menších RAW REPL příkazů a každý příkaz se na všech typech připojení odesílá po omezených částech.
+- USB zůstává rychlé se 128bajtovými částmi framebufferu, ale také získalo mírné dělení dlouhých inicializačních příkazů pro procesory s menší RAM.
+
+[27.07.2026] 2.0.143
+- Přepnutí viditelnosti vrstvy nyní okamžitě plánuje aktualizaci živého náhledu.
+- Aktivní náhled jednou za sekundu znovu porovná vyrastrovanou scénu s posledním potvrzeným snímkem. Beze změny neodesílá nic; při změně používá stejnou sekvenční frontu, takže nemohou vzniknout souběžné REPL přenosy.
+
+[27.07.2026] 2.0.142
+- Živý náhled se nyní aktualizuje také při přesouvání vybraných objektů šipkami, včetně rychlého opakování klávesy a kroku 5 px se `Shift`.
+- Přímé psaní do textové vrstvy rovněž plánuje překreslení připojeného displeje; společný debounce stále chrání REPL před zahlcením.
+
+[27.07.2026] 2.0.141
+- Návrhář OLED displeje dostal živý náhled na připojeném ESP přes stávající USB, BLE nebo WebREPL komunikaci bez úprav REPL driverů.
+- Pomocné funkce se instalují pouze do RAM pomocí RAW REPL; framebuffer se následně přenáší bezpečnými tisknutelnými Base64 příkazy po 128 bajtech a vykreslí se až samostatným voláním `show()`.
+- První náhled odešle celý framebuffer, další změny pouze upravené bloky. Debounce, sekvenční fronta a prodlevy mezi příkazy zabraňují zahlcení pomalejší desky.
+- Doplněny srozumitelné chyby pro nepřipojenou desku, chybějící framebuffer, chybějící `display.show()`, nesprávnou velikost framebufferu, odmítnutá data a timeout zařízení.
+
+[25.07.2026] 2.0.140
+- Nenápadná ikona tužky v bloku Návrháře OLED displeje byla nahrazena výrazným lokalizovaným CTA tlačítkem „Otevřít grafický editor“ na samostatném řádku bloku.
+
+[25.07.2026] 2.0.139
+- Opraven dynamický inverzní text na monochromatických framebufferech: knihovna nyní obrací masku přímo ve svém opakovaně používaném bufferu a vykresluje černé pixely pomocí transparentního klíče 1.
+- Oprava nepoužívá paletu ani další framebuffer a opakované stejné znaky znovu využívají již obrácenou masku.
+- Panel vlastností textu dostal více výšky na úkor menší části seznamu vrstev, takže nové zatržítko nepřetéká mimo svůj box.
+
+[25.07.2026] 2.0.138
+- Každý řádek v seznamu vrstev má vlastní lokální ikonu koše. Smazání jedné vrstvy vyžaduje potvrzení a lze je vrátit funkcí Undo.
+- Textové vrstvy podporují inverzní barvy pro vykreslení černých znaků přes světlé pozadí, a to i při dynamickém textu nebo souřadnicích.
+- Inverzní dynamický text používá původní jednobitovou masku fontu bez kopie fontu nebo dalšího framebufferu znaků.
+
+[25.07.2026] 2.0.137
+- Čáry v Návrháři OLED displeje mohou mít volitelnou šířku 1, 2, 3 nebo 5 px; stejný pixelový výsledek se používá v náhledu, statickém framebufferu i generovaném kódu.
+- Obdélníkům lze nastavit zaoblení rohů od 0 px až do poloviny kratší strany, a to pro obrysovou i vyplněnou variantu.
+- Jednopixelové čáry a obdélníky s ostrými rohy nadále používají rychlé funkce MicroPython `line()`, `rect()` a `fill_rect()`. Silnější čáry a dynamické zaoblené obdélníky se předem rastrují a vykreslují jako zarovnané transparentní bitmapy.
+
+[25.07.2026] 2.0.136
+- Přidán integrovaný Blockly blok Návrhář OLED displeje pro grafický návrh monochromatických scén 128×64 px; kompletní editovatelná scéna se ukládá přímo do mutace bloku a zůstává součástí projektu.
+- Návrhář podporuje obdélníky, čáry, elipsy, text, importované bitmapy a ruční nákresy štětcem nebo gumou o několika velikostech.
+- Objekty lze vybírat jednotlivě i ve skupinách, přesouvat myší nebo šipkami, měnit jejich velikost za rohy, duplikovat, kopírovat a vkládat přes `Ctrl+C`/`Ctrl+V`, zarovnávat a rovnoměrně rozmísťovat.
+- Vrstvy lze pojmenovat, skrýt, duplikovat, smazat a přesouvat šipkami v pořadí; dynamické vrstvy zůstávají automaticky nad statickým pozadím.
+- Doplněna místní historie změn s Undo/Redo, ochrana před zavřením s neuloženými změnami a zachytávání klávesových zkratek, aby se současně nekopíroval nebo nemazal blok pod dialogem.
+- Rozhraní návrháře respektuje světlý i tmavý motiv, má kontrastnější aktivní tlačítka, úsporné responzivní rozložení, zvětšený režim a stabilní panel vlastností a vrstev bez nežádoucího poskakování a vnořených posuvníků.
+- Pixelová mřížka používá samostatný canvas a celočíselné fyzické měřítko, takže jsou všechny pixely stejně velké a čáry zůstávají ostré i při DPI škálování; kurzor štětce a gumy ukazuje skutečnou velikost zásahu.
+- Tlačítko Bitmapa otevírá přímo systémový výběr PNG, JPEG, BMP nebo WebP. Import nabízí změnu rozměrů, práh černé, inverzi, dithering a volbu, zda černé pixely překreslí pozadí, nebo budou průhledné.
+- Textový nástroj nabízí integrované bitmapové fonty s předgenerovaným náhledem `ABCabc123`, výchozím fontem 5×8 a přímou editací obsahu textu; vlastní importované fonty se řadí na konec nabídky.
+- Přidán pokročilý editor monospace fontů s pixelovou editací 96 znaků, náhledem textu, změnou rozměru buňky, globálním posunem znaků X/Y, importem a exportem MFNT a generováním z fontů dostupných v systému.
+- Font editor umí načítat bitmapové fonty BDF, PSF1/PSF2, PSFU a jejich gzip varianty včetně Unicode tabulek; přidán také nástroj pro bezztrátový převod bitmapových OTB fontů do MFNT.
+- MFNT v1 se nově exportuje v procesorově výhodném formátu `MONO_VLSB` s výškou zarovnanou na celé osmipixelové stránky. Všechny náhledy a renderery dodržují povinnou mezeru 1 px mezi znaky.
+- Připravena firmware knihovna `/lib/espide_monofont.py`; generovaný kód používá běžný import `from espide_monofont import MonoFont`, cache instancí fontů a bezpečně nahrazuje nepodporované znaky mezerou bez seeku mimo soubor.
+- Statické vrstvy se ve výchozím stavu předpočítají v prohlížeči do jediného framebufferu. Dynamické texty, souřadnice X/Y a viditelnost lze volitelně vystavit jako vstupy mutace Blockly bloku a vykreslují se až nad statickým pozadím.
+- Přidán volitelný projektový režim ukládání všech neprázdných statických scén do jediného raw souboru `/gfx/scene.dat`; před spuštěním se spolu s potřebnými vlastními fonty odešle do zařízení a scény se načítají rychlým `seek()` a `readinto()`.
+- Prázdné a čistě dynamické scény již nevkládají ani neodesílají 1024 nulových bajtů, ale pouze vyčistí existující framebuffer. Generovaný kód používá kratší identifikátory a jednorázové souřadnice zapisuje přímo do kreslicích volání.
+- Sjednoceno bajtové zarovnání všech lokálních framebufferů, ošetřeny záporné souřadnice a objekty přesahující displej; ořez probíhá až při výsledném vykreslení a skryté části objektu zůstávají editovatelné.
+- Upravená sada nyní obsahuje 33 vzájemně odlišných integrovaných fontů a jejich lokální náhledy; nepoužívané podobné fonty 8×8, 8×16, 16×32 a 28×64 byly odstraněny také z offline cache.
+- Zrychlen start aplikace: počáteční jazyk Blockly se načítá ještě před registrací bloků, takže již nevznikají desítky falešných hlášení `No message string for %{BKY_...}` s nákladnými výpisy zásobníku.
+
+[21.07.2026] 2.0.72
+- Doplněna německá lokalizace rozhraní, Blockly bloků a editoru obrázků.
+- Přepínač jazyků nyní bezpečně obsluhuje češtinu, angličtinu a němčinu; rychlé změny se zpracují ve správném pořadí.
+- Dvojjazyčné doplňky bez německých textů používají v německém režimu anglický překlad místo českého výchozího textu.
+- Německé jazykové soubory jsou součástí offline cache a vlastní Blockly dialogy používají aktivní lokalizaci.
+- Německé rozhraní prošlo korekturou rodilého mluvčího; názvy, stavové texty a technická terminologie jsou přirozenější a oslovení je sjednocené na „du“.
+- Načítací obrazovka používá správný jazyk také během aktualizace offline verze, ještě před načtením hlavního jazykového balíčku.
+- Opraveny německé popisky souřadnic `x`/`y` u bloků displeje a grafu: chybné `j` bylo nahrazeno `y` a obě osy mají shodně malá písmena.
+
+[17.07.2026] 2.0.66
+- Verze aplikace, verzovanych assetu a offline cache se nastavuje pouze jako `APP_VERSION` v `index.html`; Service Worker ji prebira z registracni URL.
+- Precache stahuje nejvyse osm souboru paralelne, ma pevny timeout a nova verze se aktivuje jen po kompletnim ulozeni vsech offline souboru.
+- Hotova cache stejne verze se znovu nestahuje a staticke soubory se jiz zbytecne nerevaliduji na pozadi.
+- Aktualizace zustava pod loading obrazovkou, ale pri chybe nebo timeoutu pokracuje predchozi aktivni verze bez pozdejsiho necekaneho prevzeti stranky.
+- Opraven hard reload, pri kterem muze byt spravny Service Worker aktivni, ale aktualni dokument nema `navigator.serviceWorker.controller`.
+- `index.html` a `sw.js` se na serveru vzdy revaliduji; Service Worker CacheStorage a offline spusteni tim nejsou omezeny.
+
+[13.07.2026] 2.0.65
+- Zmensena typografie kategorii a nazvu projektu v bocnim panelu Priklady.
+
+[13.07.2026] 2.0.64
+- Do noveho menu Projekt byla mezi automaticke spusteni a otevreni z PC pridana polozka Priklady.
+- Priklady jsou zobrazeny v bocnim stromu se ctyrmi vyukovymi kategoriemi a nacitaji existujici sestiznakove share kody.
+- Katalog prikladu je ulozen samostatne v `js/examples_catalog.js` a podporuje preklady i svetly/tmavy motiv menu.
+
+[13.07.2026] 2.0.63
+- MCP browser bridge je ve vychozim stavu vypnuty a bezne otevreni ESP IDE se uz nepokousi pripojit k `ws://127.0.0.1:8765`.
+- AI bridge lze zapnout explicitne parametrem `?espide_mcp=1` nebo funkci `ESPIDE_AI_MCP_BRIDGE.enable()`.
+- Odstraneny nekonecne opakovane pokusy o WebSocket pripojeni pri vypnutem nebo ukoncenem MCP serveru.
+- Navysena verze aplikace a Service Worker cache, aby se opraveny bridge nacetl misto starsi cachovane verze.
+
+[13.07.2026] 2.0.62
+- Blockly automatizacni helper byl vyclenen z `index.html` do verzovaneho API `js/espide_ai_api.js` se zachovanim zpetne kompatibility.
+- Pridany nastroje pro cteni stavu IDE, seznamu a popisu bloku, Blockly workspace, vygenerovaneho kodu, terminalu, nastaveni a metadat doplnku.
+- Doplneny udalosti zmen workspace, pripojeni, jazyka, toolboxu a terminalu.
+- Pridano transakcni `apply_workspace_patch` s nahledem `dryRun`, kontrolou revize, validaci, automatickym rollbackem a funkci Undo.
+- Pridan lokalni MCP server a loopback browser bridge pro ovladani ESP IDE z Codexu bez OpenAI API klice ve webove aplikaci.
+- Pridana projektova Codex pravidla, workflow pro vyvoj doplnku, automaticke testy `.newblk` a podpora primych CZ/EN textu v blocich a toolboxu.
+
+[01.06.2026] 2.0.61
+- SPI inicializace OLED displeju pouziva i pin MISO, ktery MicroPython vyzaduje pro vytvoreni `SoftSPI`.
+- Upraveny popisky SPI OLED bloku a diagnosticke hlasky s piny.
+- Navysena verze aplikace a Service Worker cache, aby se aktualizovaly `sw.js`, Blockly JavaScript soubory a preklady.
+
+[31.05.2026] 2.0.60
+- Lokalne nacitane JS a CSS soubory v `index.html` se nyni verzuji jednotne podle verze aplikace.
+- Opraveno nacitani `js/new_menu.js` a `css/new_menu.css`, ktere zustavalo na stare query verzi `2026-05-29` a mohlo na nekterych zarizenich drzet starou podobu menu.
+
+[30.05.2026] 2.0.59
+- Jazykove JSON soubory `i18n/*.json` a Blockly prekladove soubory `js/{lang}.js` se nacitaji s verzovacim parametrem podle aktualni verze ESP IDE.
+- Service worker u statickych souboru respektuje query parametr, takze zmena `?v=` spolehlive vynuti nacteni nove verze.
+- Do offline cache doplnen soubor `js/en.js`.
+
+[30.05.2026] 2.0.58
+- Pri zapnuti automatickeho pridavani startovacich bloku se zobrazi dotaz, zda je uzivatel chce pridat i do aktualniho projektu.
+- Dotaz se zobrazi jen tehdy, kdyz na Blockly plose jeste neni blok `program_start` ani `program_loop`; vlozeni existujici program nenahrazuje.
+
+[30.05.2026] 2.0.57
+- Bloky `program_start` a `program_loop` jsou ve vsech toolboxech presunuty na zacatek sekce Program.
+
+[30.05.2026] 2.0.56
+- Opraveno poradi generovani startovnich programovych bloku.
+- Kod spusteny jednou se nyni generuje pred nekonecnou smyckou i tehdy, kdyz je blok smycky na plose umisten vyse.
+
+[30.05.2026] 2.0.55
+- Pri cistem otevreni editoru se na prazdnou Blockly plochu automaticky vlozi startovni bloky pro kod spusteny jednou a nekonecnou smycku.
+- Automaticke vlozeni se neprovadi pri nacteni hotoveho programu z odkazu nebo pri otevreni existujiciho projektu.
+- Do Nastaveni pridana volba pro zapnuti/vypnuti startovnich programovych bloku. Nastaveni se uklada do `localStorage` a vychozi stav je zapnuto.
+- Doplneny CZ/EN texty a pripraveno cachovani ikony `item_auto_start_blocks.png`.
+
+[29.05.2026] 2.0.54
+- Pridany programove bloky pro styl `setup()` / `loop()`: kod spusteny jednou a nekonecna smycka.
+- Blok nekonecne smycky generuje `import utime` a v kazde iteraci vola `utime.sleep_ms(0)`, aby se mohla obslouzit preruseni a dalsi ulohy.
+- Doplneny CZ/EN preklady a bloky jsou dostupne v kategorii Program pro vsechny toolboxy.
+
+[29.05.2026] 2.0.53
+- Ukladaci dialogy si nove pamatuji posledni pouzity nazev projektu.
+- Nazev se po ulozeni nebo nacteni souboru propise do dialogu pro ulozeni do PC i do ESP.
+- U textovych souboru se do projektovych dialogu uklada nazev bez pripony, aby pri pozdejsim ulozeni Blockly projektu nevznikaly dvojite pripony.
+
+[26.05.2026] 2.0.52
+- Doplnky s `toolbox_mode: addon_only` se uz neprepnou automaticky bez potvrzeni.
+- Pri nacteni takoveho doplnku se zobrazi dialog, kde lze zvolit nahradu celeho toolboxu nebo jen pridani bloku k beznemu toolboxu.
+- Volba uzivatele se uklada k doplnku a respektuje se i pri dalsim obnoveni toolboxu, nacteni projektu nebo instalaci z katalogu.
+- Doplneny CZ/EN texty dialogu pro rozhodnuti o rezimu toolboxu.
+
+[19.05.2026] 2.0.51
+- Servo knihovna ma vyrazne presnejsi rizeni polohy diky modernejsimu PWM zapisu.
+- Doplneny souvisejici toolboxy, cache a preklady pro aktualni beta build.
+
+[19.05.2026] 2.0.50
+- Pridany bloky pro ukladani a nacitani hodnot promennych do INI souboru.
+- Nova knihovna `pvstore.py` zachovava datove typy a chyby vypisuje do konzole.
+
+[19.05.2026] 2.0.49
+- OLED bloky umi vybrat typ displeje: automaticky, SSD1306, SSD1309 nebo SH1106.
+- Doplnena SPI varianta OLED driveru a lepsi podpora SH1106 offsetu.
+
+[19.05.2026] 2.0.48
+- Bluetooth pripojeni bylo upraveno pro lepsi kompatibilitu s Apple zarizenimi.
+- Vylepseno hlaseni chyb a stabilita prenosu pri BLE spojeni.
+
+[19.05.2026] 2.0.47
+- Pridan WebSocket ovladac pro desktopovou aplikaci ESP IDE.
+- Upraveno pripojovani desktopove aplikace bez zavislosti na WebSerial/WebBluetooth.
+
+[18.04.2026] 2.0.22
+- Stabilizovana instalace doplnku v Electronu pres `postMessage` transport.
+- Katalog doplnku se v Electronu otevira s `transport=postmessage`.
+- Webova instalace pres `localStorage` zustava beze zmen.
+- Zachovana kompatibilita se starsimi verzemi IDE (`espide.install.done` fallback).
+
+[18.04.2026] 2.0.21
+- Opraven update flow Service Workeru bez samovolneho restartu UI.
+- Pri nesouladu verze SW zustane loading aktivni, update se dokonci a reload probehne jeste pred otevrenim UI.
+- Pridano zjistovani verze SW pres zpravu `GET_VERSION`.
+- Offline/PWA: doplnen `toolbox_ESPBIT.xml`, manifest pouziva relativni `start_url`/`scope` a cesty ikon.
+
+[17.04.2026] 2.0.20
+- BLE na iOS/Bluefy: ciselne chyby (napr. `2`) se mapuji na srozumitelne hlasky + CZ/EN i18n.
+- Sjednoceny cache-busting `?v=` parametry v hlavnim HTML.
+- SW registrace pouziva relativni `sw.js` a scope odvozeny z aktualni URL (bez beta cesty).
+- Opravy `filemanager.html` a doplneni chybejicich souboru do SW precache.
+
+[29.03.2026] 2.0.14
+- Pridano komprimovane ukladani Blockly projektu do ESP (`.blk.gz` v `/BLK/`).
+- Pridan dialog `save_esp_dialog`; textovy rezim uklada soubory stejne jako drive (bez komprese).
+- File Manager umi otevrit komprimovane Blockly soubory (`.blk.gz` i `.xml.gz`).
+- Vylepsen vykon overlaye (odebran `backdrop-filter`).
+- SW: navysena verze cache a do precache pridan `js/pako.min.js`.
+
+[29.03.2026] 2.0.13
+- Nasazen novy system horniho menu (`css/new_menu.css`, `js/new_menu.js`, `media/new_menu/`).
+- Pridana 3 rozlozeni menu (`layout1`, `layout2`, `original`) s kompatibilitou k puvodnimu `more_menu`.
+- Stabilizovan `modeSwitch`, osetren konflikt s quick panelem a zlepsena responzivita topbaru.
+- Menu Zarizeni/Nastaveni prepracovano (USB/BLE stavove radky, vyber tematu, `autoRunOnBootDefault`, toolbox ikony).
+- Aktualizovany i18n texty, sjednocen vzhled/citelnost a optimalizovan `syncState()` (throttle 50 ms).
+- SW: doplnena precache o assety noveho menu.
+
+[21.03.2026] 2.0.12
+- Stabilizovano navazani USB REPL po pripojeni.
+- Vylepsena sekvence a casovani vstupu do RAW REPL (USB i BLE sjednoceno).
+- Pridan novy C-shaped blok `program_section` (popis + aktivace/deaktivace cele sekce).
+
+[19.03.2026] 2.0.11
+- Opraven orez offscreen screenshotu workspace (bez prazdneho mista vlevo).
+- Zpresnen vypocet bounding boxu + paddingu.
+- Ostatni screenshot rezimy zustaly beze zmen.
+
+[11.03.2026] 2.0.10
+- Stabilizovano full-workspace snimani pri vetsim Blockly zoomu.
+- Offscreen snimani bezi na stabilnim meritku 1.0, rozliseni se zvysuje render scale.
+- Zachovany puvodni souradnice top-level bloku (bez preskladani).
+- Odebrany docasne debug nastroje pro screenshoty.
+
+[11.03.2026] 2.0.9
+- Screenshoty Blockly do PNG maji transparentni pozadi jako vychozi.
+- Pridana volba bileho pozadi (`whiteBackground: true` / `background: "white"`).
+- Opraveno vykresleni pozadi pro `visible` i `offscreen` rezim.
+- Offscreen screenshot celeho workspace respektuje aktualni zoom.
+- `Ctrl+Shift+S` nyni defaultne exportuje transparentni screenshot.
+
+[24.02.2026] 2.0.8
+- Pridan univerzalni toolbox `toolbox_Generic.xml` pro obecna MicroPython zarizeni.
+- Doplneny toolboxy pro ESP32C6 a RP2350.
+- U ESP32 doplneno mereni napeti pres ADC v mV i V.
+
+[22.02.2026] 2.0.7
+- USB init neprepisuje existujici `run_code()` a `stop_code()` (zachovana logika v `boot.py`).
+- Rozsirena diagnostika chyb v `idecode` (typ vyjimky, traceback, tipy, lepsi handling `MemoryError`).
+- Pridany screenshot funkce Blockly (visible/offscreen, export PNG, hromadne snimani toolboxu).
+- Doplneny i18n texty pro screenshoty (CZ/EN).
+- Opraveno kodovani `index.html` na UTF-8 bez BOM.
+
+[20.02.2026] 2.0.6
+- Pridan binarni BLE protokol pro upload souboru (MAGIC/SEQ/LEN/CRC8) s window ACK.
+- Implementovano obnoveni prenosu (retry, NAK resync, status expected SEQ) + CANCEL.
+- Pred uploadem se zastavuje bezici kod (Ctrl+C), doplneno vyjednani MTU/chunk pres BLE Config.
+- Pri nedostupne podpore je fallback na legacy REPL upload.
+- Zlepseno BLE pripojovani (timeouty GATT kroku + dusledny cleanup po chybe).
+
+[16.02.2026] 2.0.5
+- Pridan dialog Bluetooth nastaveni v menu (vcetne CZ/EN textu).
+- Validace nazvu zarizeni: 3-8 znaku, zakladni ASCII.
+- Cteni/ulozeni jmena v `/cfg/ble_name.cfg`, pri vypnuti Bluetooth se konfigurace smaze.
+- Opraveno zavirani dialogu a osetreny kolize REPL behem cteni/ukladani.
+- Stabilizovana aktualizace Service Workeru.
+
 [25.01.2026] 2.0.4
-- Přepínač světlý/tmavý motiv a výběr jazyka v menu, ukládání do localStorage
-- Stabilizace načítání jazyků (I18N) a překladů pro UI/toolbox
-- Sdílené odkazy: automatické načtení projektu z URL kódu po startu IDE
-- Toolbar ve Správci souborů je responsivní, jednorázové řazení a adaptivní tlačítka
-- Vylepšený update service workeru (verzované URL, auto-aktivace, reload)
-- Volitelné startovací volby: vynucený toolbox + zámek procesoru; skrytí ikony správce souborů
-- Instalátor: oprava hlavičky flash (ESP8266) + nastavení velikosti flash proti bootloopům
-- Instalátor: binární upload knihoven (.mpy) přes arrayBuffer pro zachování velikosti
+- Pridany volby motivu a jazyka v menu (ukladani do localStorage).
+- Stabilizovano nacitani prekladu (I18N) a automaticke nacitani sdilenych projektu z URL.
+- Vylepsen toolbar ve Spravci souboru (responzivita a adaptivni tlacitka).
+- Vylepsen update Service Workeru + pridany startovni volby (force toolbox, lock processor, skryti File Manageru).
+- Instalator: opravy pro ESP8266 flash a binarni upload knihoven `.mpy`.
 
 [14.01.2026] 2.0.3
-- Přidán tmavý režim s přepínačem v menu a uložením do localStorage
-- Přebarvené celé UI (Blockly toolbox/workspace, menu, dialogy)
-- Tmavé téma pro ACE editor a nastavení terminálu
-- Načítací obrazovka s logem a animovaným spinnerem
-- Podpora tmavých variant obrázků (dark_*) a automatické přepínání
-- Stylování File Manageru pro světlý/tmavý režim a izolace jeho CSS
-- Aktualizace cache SW pro nové tmavé assety
+- Pridan tmavy rezim s prepinacem v menu (ulozeni do localStorage).
+- Upravene UI, ACE editor i terminal pro svetly/tmavy motiv.
+- Pridana nacitaci obrazovka s logem a spinnerem.
+- Podpora `dark_*` assetu a automaticke prepinani motivu.
+- Upravene styly File Manageru + aktualizovana SW cache pro nove assety.
 
 [23.11.2025] 2.0.2
 - Drobné opravy ve správci souborů a načítání jeho knihovny

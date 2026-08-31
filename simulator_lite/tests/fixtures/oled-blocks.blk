@@ -1,0 +1,35 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="program_start" id="oled-start" x="80" y="50">
+    <next>
+      <block type="oled_init_hw" id="oled-init">
+        <mutation display_type="AUTO"></mutation>
+        <field name="DISPLAY_TYPE">AUTO</field>
+        <field name="HW_I2C">TRUE</field>
+        <value name="SDA_PIN">
+          <shadow type="pinout" id="oled-sda"><field name="PIN">21</field></shadow>
+        </value>
+        <value name="SCL_PIN">
+          <shadow type="pinout" id="oled-scl"><field name="PIN">22</field></shadow>
+        </value>
+        <next>
+          <block type="fb_fill" id="oled-clear">
+            <field name="barva">0</field>
+            <next>
+              <block type="fb_txt" id="oled-text">
+                <value name="text"><shadow type="text" id="oled-text-value"><field name="TEXT">abc</field></shadow></value>
+                <value name="px"><shadow type="math_number" id="oled-x"><field name="NUM">0</field></shadow></value>
+                <value name="py"><shadow type="math_number" id="oled-y"><field name="NUM">0</field></shadow></value>
+                <value name="barva"><shadow type="math_number" id="oled-color"><field name="NUM">1</field></shadow></value>
+                <next><block type="oded_refresh" id="oled-show"></block></next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="program_loop" id="oled-loop" x="80" y="390"></block>
+  <!--ESPIDE_EXTENSIONS_BEGIN-->
+eyJ2ZXJzaW9uIjoxLCJwcm9jZXNzb3IiOiJTaW11bGF0b3IiLCJleHRlbnNpb25zIjpbXX0=
+<!--ESPIDE_EXTENSIONS_END-->
+</xml>

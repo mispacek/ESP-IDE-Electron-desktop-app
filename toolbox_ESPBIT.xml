@@ -175,7 +175,8 @@
                     <field name="NUM">255</field>
                 </shadow>
             </value>
-        </block>	
+        </block>
+        <block type="round_decimals"></block>	
 		
         <block type="math_single">
             <field name="OP">ROOT</field>
@@ -445,6 +446,14 @@
             </shadow>
           </value>
         </block>
+		
+		<block type="esp32_adc_volt">
+          <value name="pin">
+            <shadow type="adc_ESP32S3_pinout">
+              <field name="PIN">1</field>
+            </shadow>
+          </value>
+        </block>
         
         
         <block type="esp32S3_touch_pin_sens" disabled="false">
@@ -654,13 +663,16 @@
       
       
       <category name="Program"  colour="#00979d" data-i18n-name="toolbox.categories.program">
+        <block type="program_start"></block>
+        <block type="program_loop"></block>
         <!--
         <block type="get_ssid"></block> 
         <block type="get_ip"></block> 
         -->
       
         <block type="python_try_catch"></block> 
-        <block type="python_catch_err"></block> 
+        <block type="python_catch_err"></block>
+        <block type="program_section"></block> 
         
 
         <block type="exec_python">
@@ -682,6 +694,9 @@
       <category name="Display" colour="#c953e2" data-i18n-name="toolbox.categories.display">
           
           
+          <!-- ESP IDE Display Designer: editable 128x64 monochrome scene block. -->
+          <block type="espide_display_designer"></block>
+
           <block type="fb_fill">
           </block>
           
@@ -754,6 +769,7 @@
                 </shadow>
             </value>
           </block>
+
           
           <block type="fb_pixel">
             <value name="px">
@@ -773,6 +789,10 @@
             </value>
           </block>
           
+          
+          
+          <category name="Čáry a tvary" colour="#c953e2" data-i18n-name="toolbox.categories.lines_recangles">
+
           <block type="fb_line">
             <value name="px1">
                 <shadow type="math_number">
@@ -856,8 +876,299 @@
                 </shadow>
             </value>
           </block>
-          
-      </category>
+        </category>
+	  
+	  
+	  
+	 <category name="Grafy" colour="#c953e2" data-i18n-name="toolbox.categories.charts">
+		<label text="Data - pole" data-i18n-text="toolbox.labels.data_arrays"></label>
+		<block type="internal_oled_data_init"></block>
+		<block type="internal_oled_data_add">
+		  <value name="VAL">
+			<shadow type="math_number"><field name="NUM">50</field></shadow>
+		  </value>
+		  <value name="MAXLEN">
+			<shadow type="math_number"><field name="NUM">50</field></shadow>
+		  </value>
+		</block>
+		<block type="internal_oled_data_limit">
+		  <value name="MAXLEN">
+			<shadow type="math_number"><field name="NUM">50</field></shadow>
+		  </value>
+		</block>
+		<block type="internal_oled_data_clear"></block>
+		<block type="internal_oled_data_fill">
+		  <value name="COUNT">
+			<shadow type="math_number"><field name="NUM">20</field></shadow>
+		  </value>
+		  <value name="VAL">
+			<shadow type="math_number"><field name="NUM">30</field></shadow>
+		  </value>
+		</block>
+		<block type="internal_oled_data_set">
+		  <value name="IDX">
+			<shadow type="math_number"><field name="NUM">0</field></shadow>
+		  </value>
+		  <value name="VAL">
+			<shadow type="math_number"><field name="NUM">42</field></shadow>
+		  </value>
+		</block>
+		<block type="internal_oled_data_get">
+		  <value name="IDX">
+			<shadow type="math_number"><field name="NUM">0</field></shadow>
+		  </value>
+		</block>
+		<block type="internal_oled_data_len"></block>
+		<block type="internal_oled_data_last"></block>
+
+		<label text="Grafy" data-i18n-text="toolbox.labels.charts"></label>
+		<block type="internal_oled_draw_line_graph">
+		  <value name="DATA">
+			<block type="variables_get"><field name="VAR">data</field></block>
+		  </value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">128</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_bar_graph">
+		  <value name="DATA">
+			<block type="variables_get"><field name="VAR">data</field></block>
+		  </value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">128</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		  <value name="BW"><shadow type="math_number"><field name="NUM">3</field></shadow></value>
+		  <value name="BP"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
+		</block>
+
+		<label text="Ukazatele" data-i18n-text="toolbox.labels.gauges"></label>
+		<block type="internal_oled_draw_linear_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">50</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">48</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">120</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">16</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_needle_meter">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">65</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">128</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_thermometer">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">72</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">24</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_signal_strength">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">80</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">34</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">40</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">30</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_segmented_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">45</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">20</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">128</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">12</field></shadow></value>
+		  <value name="SEG"><shadow type="math_number"><field name="NUM">12</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_dot_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">70</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+		  <value name="W"><shadow type="math_number"><field name="NUM">128</field></shadow></value>
+		  <value name="H"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_radial_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">65</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">32</field></shadow></value>
+		  <value name="R"><shadow type="math_number"><field name="NUM">28</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_radial_dot_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">65</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">32</field></shadow></value>
+		  <value name="R"><shadow type="math_number"><field name="NUM">28</field></shadow></value>
+		  <value name="DR"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
+		  <value name="SEG"><shadow type="math_number"><field name="NUM">8</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_radial_segment_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">65</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">32</field></shadow></value>
+		  <value name="R"><shadow type="math_number"><field name="NUM">28</field></shadow></value>
+		  <value name="SEG"><shadow type="math_number"><field name="NUM">16</field></shadow></value>
+		</block>
+		<block type="internal_oled_draw_radial_line_gauge">
+		  <value name="VAL"><shadow type="math_number"><field name="NUM">65</field></shadow></value>
+		  <value name="X"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+		  <value name="Y"><shadow type="math_number"><field name="NUM">32</field></shadow></value>
+		  <value name="R"><shadow type="math_number"><field name="NUM">28</field></shadow></value>
+		  <value name="LINES"><shadow type="math_number"><field name="NUM">12</field></shadow></value>
+		</block>
+	</category>
+   
+    
+    
+    <category name="Animované oči" colour="#c953e2" data-i18n-name="toolbox.categories.eyes">
+        
+    <label text="Inicializace knihovny - před tímto blokem inicializujte displej." data-i18n-text="toolbox.labels.eyes_init_library"></label>
+    
+    <block type="internal_eyes_easy_init">
+    </block>
+    
+    <label text="Tento blok volejte co nejčastěji v nekonečné smyčce" data-i18n-text="toolbox.labels.eyes_refresh_loop"></label>
+    
+    <block type="internal_eyes_refresh">
+    </block>
+    
+    <block type="internal_eyes_dir">
+    </block>
+    
+    <block type="internal_eyes_look_xy">
+        <value name="x">
+			<shadow type="math_number">
+				<field name="NUM">0</field>
+			</shadow>
+		</value>
+        <value name="y">
+			<shadow type="math_number">
+				<field name="NUM">0</field>
+			</shadow>
+		</value>
+    </block>
+    
+    <block type="internal_eyes_mood">
+    </block>
+        
+    <block type="internal_eyes_mrkani">
+    </block>
+    
+    <block type="internal_eyes_pot">
+    </block>
+    
+    <block type="internal_eyes_idle">
+    </block>
+    
+    <block type="internal_eyes_smich">
+    </block>
+    
+    <block type="internal_eyes_zmatek">
+    </block>
+    
+    <block type="internal_eyes_blink_anim">
+    </block>
+    
+    <block type="internal_eyes_close">
+    </block>
+    
+    <block type="internal_eyes_open">
+    </block>
+    
+    <label text="Pokročilá Inicializace knihovny - umožňuje nastavit parametry očí" data-i18n-text="toolbox.labels.eyes_init_advanced"></label>
+    
+    <block type="internal_eyes_init">
+		<field name="fps">20</field>
+		<field name="blink">True</field>
+		<field name="idle">True</field>
+		<field name="curiosity">True</field>
+        <field name="cyclop">False</field>
+		<value name="sirka_disp">
+			<shadow type="math_number">
+				<field name="NUM">128</field>
+			</shadow>
+		</value>
+		<value name="vyska_disp">
+			<shadow type="math_number">
+				<field name="NUM">64</field>
+			</shadow>
+		</value>
+		<value name="sirka_L">
+			<shadow type="math_number">
+				<field name="NUM">36</field>
+			</shadow>
+		</value>
+		<value name="sirka_R">
+			<shadow type="math_number">
+				<field name="NUM">36</field>
+			</shadow>
+		</value>
+		<value name="vyska_L">
+			<shadow type="math_number">
+				<field name="NUM">36</field>
+			</shadow>
+		</value>
+		<value name="vyska_R">
+			<shadow type="math_number">
+				<field name="NUM">36</field>
+			</shadow>
+		</value>
+		<value name="zaobleni_L">
+			<shadow type="math_number">
+				<field name="NUM">8</field>
+			</shadow>
+		</value>
+		<value name="zaobleni_R">
+			<shadow type="math_number">
+				<field name="NUM">8</field>
+			</shadow>
+		</value>
+		<value name="vzdalenost_mezi">
+			<shadow type="math_number">
+				<field name="NUM">10</field>
+			</shadow>
+		</value>
+	</block>
+    
+    </category>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    </category>
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
       
       
       
@@ -873,7 +1184,8 @@
 					</shadow>
 				</value>
 			  </block>
-			  			  
+        
+
 			  <label text="Teploměr / vlhkoměr / tlakoměr BME280" data-i18n-text="toolbox.labels.bme280"></label>
               <block type="ESP_Bit_temp" disabled="false"></block>
               <block type="ESP_Bit_humidity" disabled="false"></block>
@@ -887,7 +1199,9 @@
               <block type="esp_bit_gyro_acc_angle" disabled="false"></block>
               <block type="esp_bit_gyro_zero" disabled="false"></block>
               <block type="esp_bit_gyro_calib" disabled="false"></block>
-              
+
+            
+            <category name="Pohony"  colour="#f6a017" data-i18n-name="toolbox.categories.motors">
               
               <label text="Driver DC motorů DRV8835" data-i18n-text="toolbox.labels.drv8835DcDriver"></label>
               <block type="ESP_Bit_dc_motor_speed" disabled="false">
@@ -964,7 +1278,7 @@
 			  <block type="omg_stepper_current_pos" disabled="false"></block>
 			  <block type="omg_stepper_target_pos" disabled="false"></block>
 			  <block type="omg_stepper_distance" disabled="false"></block>
-			  
+        </category>
 			  
 			  
       </category>
@@ -1377,21 +1691,18 @@
 			</value>
 		</block>
 		
-		<block type="net_ap_mode">
-			<field name="NAME">vytvořit Wi-Fi Acces Point</field>
-			<field name="NET_NETWORK_NAME">název sítě: </field>
-			<field name="NET_NETWORK_KEY">heslo: </field>
-				<value name="wifi_essid">
-					<shadow type="text">
-						<field name="TEXT">ESP Wi-Fi</field>
-					</shadow>
-				</value>
-				<value name="wifi_key">
-				<shadow type="text">
-					<field name="TEXT" data-i18n-text="toolbox.defaults.wifiApPassword">WifiHeslo</field>
-				</shadow>
-			</value>
-		</block>
+        <block type="net_ap_mode">
+          <value name="wifi_essid">
+            <shadow type="text">
+              <field name="TEXT">ESP32_AP</field>
+            </shadow>
+          </value>
+          <value name="wifi_key">
+            <shadow type="text">
+              <field name="TEXT">12345678</field>
+            </shadow>
+          </value>
+        </block>
       
       
       <label text="ESP Now" data-i18n-text="toolbox.labels.espNow"></label>

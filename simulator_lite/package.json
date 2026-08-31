@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/logic.test.mjs && node tests/fs-overlay.test.mjs && node tests/wasm-repl.test.mjs && node tests/rpc-stability.test.mjs"
+  }
+}

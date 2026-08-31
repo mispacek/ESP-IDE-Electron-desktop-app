@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "type": "servo",
+  "label": "Layered servo",
+  "canvas": {
+    "width": 400,
+    "height": 400
+  },
+  "layers": {
+    "body": {
+      "source": "body.png",
+      "zIndex": 1
+    },
+    "moving": {
+      "source": "moving.png",
+      "zIndex": 2
+    }
+  },
+  "motion": {
+    "type": "rotate",
+    "pivot": {
+      "x": 200,
+      "y": 200
+    },
+    "sourceAngle": 90,
+    "minimumAngle": 0,
+    "maximumAngle": 180,
+    "continuous": true,
+    "maximumRpm": 60
+  }
+}

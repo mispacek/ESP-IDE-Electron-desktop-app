@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "type": "oled-ssd1306",
+  "label": "Bitmap OLED 128x64",
+  "canvas": {
+    "width": 800,
+    "height": 800
+  },
+  "layers": {
+    "body": {
+      "source": "body.png",
+      "zIndex": 1
+    },
+    "framebuffer": {
+      "zIndex": 2,
+      "window": {
+        "x": 50,
+        "y": 168,
+        "width": 704,
+        "height": 352
+      },
+      "pixelFormat": "MONO_VLSB",
+      "width": 128,
+      "height": 64
+    }
+  }
+}

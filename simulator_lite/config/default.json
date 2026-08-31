@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 1,
+  "board": "Simulator",
+  "canvas": {
+    "width": 450,
+    "height": 760,
+    "backgroundColor": "transparent",
+    "backgroundSize": "cover"
+  },
+  "pinSharing": [],
+  "components": [
+    {
+      "id": "led-1",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 1",
+      "connections": {
+        "pin": 1
+      },
+      "appearance": {
+        "color": "#FF0000"
+      },
+      "layout": {
+        "x": 5,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 1
+      }
+    },
+    {
+      "id": "led-2",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 2",
+      "connections": {
+        "pin": 2
+      },
+      "appearance": {
+        "color": "#FFFF00"
+      },
+      "layout": {
+        "x": 60,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 1
+      }
+    },
+    {
+      "id": "led-3",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 3",
+      "connections": {
+        "pin": 3
+      },
+      "appearance": {
+        "color": "#00FF00"
+      },
+      "layout": {
+        "x": 115,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 1
+      }
+    },
+    {
+      "id": "button-1",
+      "type": "button",
+      "labelKey": "button",
+      "label": "Button GPIO 17",
+      "connections": {
+        "pin": 17
+      },
+      "appearance": {
+        "color": "#637083",
+        "activeLow": true,
+        "initial": 1
+      },
+      "layout": {
+        "x": 330,
+        "y": 255,
+        "width": 110,
+        "height": 80,
+        "zIndex": 2
+      }
+    },
+    {
+      "id": "adc-1",
+      "type": "analog-input",
+      "labelKey": "adc",
+      "label": "ADC GPIO 10",
+      "connections": {
+        "pin": 10
+      },
+      "appearance": {
+        "color": "#4d6fe8",
+        "initial": 32768
+      },
+      "layout": {
+        "x": 5,
+        "y": 85,
+        "width": 140,
+        "height": 75,
+        "zIndex": 3
+      }
+    },
+    {
+      "id": "servo-1",
+      "type": "servo",
+      "labelKey": "servo180",
+      "label": "Servo 180° GPIO 23",
+      "connections": {
+        "pwm": 23
+      },
+      "appearance": {
+        "mode": "180"
+      },
+      "layout": {
+        "x": 5,
+        "y": 515,
+        "width": 110,
+        "height": 125,
+        "zIndex": 4
+      }
+    },
+    {
+      "id": "servo-360-1",
+      "type": "servo",
+      "labelKey": "servo360",
+      "label": "Servo 360° GPIO 24",
+      "connections": {
+        "pwm": 24
+      },
+      "appearance": {
+        "mode": "360",
+        "maxRpm": 60
+      },
+      "layout": {
+        "x": 120,
+        "y": 515,
+        "width": 110,
+        "height": 125,
+        "zIndex": 8
+      }
+    },
+    {
+      "id": "motor-1",
+      "type": "dc-motor",
+      "labelKey": "motor",
+      "label": "DC motor",
+      "connections": {
+        "in1": 27,
+        "in2": 28
+      },
+      "appearance": {
+        "maxRpm": 120
+      },
+      "layout": {
+        "x": 340,
+        "y": 515,
+        "width": 100,
+        "height": 125,
+        "zIndex": 5
+      }
+    },
+    {
+      "id": "motor-2",
+      "type": "dc-motor",
+      "labelKey": "motor",
+      "label": "DC motor",
+      "connections": {
+        "in1": 25,
+        "in2": 26
+      },
+      "appearance": {
+        "maxRpm": 120
+      },
+      "layout": {
+        "x": 235,
+        "y": 515,
+        "width": 100,
+        "height": 125,
+        "zIndex": 5
+      }
+    },
+    {
+      "id": "encoder-1",
+      "type": "rotary-encoder",
+      "labelKey": "encoder",
+      "label": "Encoder A: 18 , B: 19 , SW: 20",
+      "connections": {
+        "aPin": 18,
+        "bPin": 19,
+        "buttonPin": 20
+      },
+      "appearance": {
+        "stepAngle": 18,
+        "animationSpeedMultiplier": 3
+      },
+      "layout": {
+        "x": 165,
+        "y": 165,
+        "width": 160,
+        "height": 170,
+        "zIndex": 6
+      }
+    },
+    {
+      "id": "neopixel-1",
+      "type": "neopixel",
+      "labelKey": "neopixel",
+      "label": "NeoPixel GPIO 29 / 8 LED",
+      "connections": {
+        "pin": 29
+      },
+      "appearance": {
+        "count": 8,
+        "bodyAsset": "body.png",
+        "assetSize": {
+          "width": 901,
+          "height": 177
+        },
+        "pixelDiameter": 75,
+        "pixelCenters": [
+          {
+            "x": 57,
+            "y": 120
+          },
+          {
+            "x": 165,
+            "y": 120
+          },
+          {
+            "x": 282,
+            "y": 120
+          },
+          {
+            "x": 392,
+            "y": 120
+          },
+          {
+            "x": 501,
+            "y": 120
+          },
+          {
+            "x": 615,
+            "y": 120
+          },
+          {
+            "x": 727,
+            "y": 120
+          },
+          {
+            "x": 840,
+            "y": 120
+          }
+        ]
+      },
+      "layout": {
+        "x": 5,
+        "y": 645,
+        "width": 435,
+        "height": 105,
+        "zIndex": 7
+      }
+    },
+    {
+      "id": "oled-1",
+      "type": "oled-ssd1306",
+      "labelKey": "oled",
+      "label": "OLED 128×64 - SDA21 / SCL22",
+      "connections": {
+        "scl": 22,
+        "sda": 21
+      },
+      "appearance": {
+        "busId": -1,
+        "busIds": [
+          -1,
+          0
+        ],
+        "address": 60,
+        "width": 128,
+        "height": 64,
+        "litColor": "#d9efff",
+        "bodyAsset": "body.png",
+        "assetSize": {
+          "width": 800,
+          "height": 800
+        },
+        "screenWindow": {
+          "x": 50,
+          "y": 168,
+          "width": 704,
+          "height": 352
+        }
+      },
+      "layout": {
+        "x": 5,
+        "y": 165,
+        "width": 155,
+        "height": 170,
+        "zIndex": 9
+      }
+    },
+    {
+      "id": "led-4",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 4",
+      "connections": {
+        "pin": 4
+      },
+      "appearance": {
+        "color": "#0839FD"
+      },
+      "layout": {
+        "x": 170,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 10
+      }
+    },
+    {
+      "id": "led-5",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 5",
+      "connections": {
+        "pin": 5
+      },
+      "appearance": {
+        "color": "#FF0000"
+      },
+      "layout": {
+        "x": 225,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 11
+      }
+    },
+    {
+      "id": "led-6",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 6",
+      "connections": {
+        "pin": 6
+      },
+      "appearance": {
+        "color": "#FF0000"
+      },
+      "layout": {
+        "x": 280,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 12
+      }
+    },
+    {
+      "id": "led-7",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 7",
+      "connections": {
+        "pin": 7
+      },
+      "appearance": {
+        "color": "#FF0000"
+      },
+      "layout": {
+        "x": 335,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 13
+      }
+    },
+    {
+      "id": "led-8",
+      "type": "led",
+      "labelKey": "led",
+      "label": "LED\nGPIO 8",
+      "connections": {
+        "pin": 8
+      },
+      "appearance": {
+        "color": "#FF0000"
+      },
+      "layout": {
+        "x": 390,
+        "y": 5,
+        "width": 50,
+        "height": 75,
+        "zIndex": 14
+      }
+    },
+    {
+      "id": "analog-input-2",
+      "type": "analog-input",
+      "labelKey": "adc",
+      "label": "ADC GPIO 11",
+      "connections": {
+        "pin": 11
+      },
+      "appearance": {
+        "color": "#4d6fe8",
+        "initial": 32768
+      },
+      "layout": {
+        "x": 153,
+        "y": 85,
+        "width": 139,
+        "height": 75,
+        "zIndex": 16
+      }
+    },
+    {
+      "id": "analog-input-3",
+      "type": "analog-input",
+      "labelKey": "adc",
+      "label": "ADC GPIO 12",
+      "connections": {
+        "pin": 12
+      },
+      "appearance": {
+        "color": "#4d6fe8",
+        "initial": 32768
+      },
+      "layout": {
+        "x": 300,
+        "y": 85,
+        "width": 140,
+        "height": 75,
+        "zIndex": 17
+      }
+    },
+    {
+      "id": "button-2",
+      "type": "button",
+      "labelKey": "button",
+      "label": "Button GPIO 16",
+      "connections": {
+        "pin": 16
+      },
+      "appearance": {
+        "color": "#637083",
+        "activeLow": true,
+        "initial": 1
+      },
+      "layout": {
+        "x": 330,
+        "y": 165,
+        "width": 110,
+        "height": 80,
+        "zIndex": 18
+      }
+    },
+    {
+      "id": "joystick-1",
+      "type": "joystick",
+      "labelKey": "joystick",
+      "label": "Joystick X: 13 , Y: 14 , SW: 15",
+      "connections": {
+        "xPin": 13,
+        "yPin": 14,
+        "buttonPin": 15
+      },
+      "appearance": {
+        "initialX": 32768,
+        "initialY": 32768,
+        "activeLow": true
+      },
+      "layout": {
+        "x": 5,
+        "y": 340,
+        "width": 215,
+        "height": 170,
+        "zIndex": 19
+      }
+    },
+    {
+      "id": "dht22-1",
+      "type": "dht22",
+      "labelKey": "dht22",
+      "label": "DHT22 GPIO 9",
+      "connections": {
+        "pin": 9
+      },
+      "appearance": {
+        "initialTemperature": 22,
+        "initialHumidity": 50
+      },
+      "layout": {
+        "x": 225,
+        "y": 340,
+        "width": 215,
+        "height": 170,
+        "zIndex": 20
+      }
+    }
+  ]
+}

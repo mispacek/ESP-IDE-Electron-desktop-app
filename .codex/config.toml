@@ -1,0 +1,5 @@
+[mcp_servers.espide]
+command = "node"
+args = ["tools/espide-mcp/src/server.mjs"]
+startup_timeout_sec = 15
+tool_timeout_sec = 30

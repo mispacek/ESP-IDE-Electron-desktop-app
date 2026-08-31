@@ -46,7 +46,7 @@ const NUS_TX_LIMIT = 20;  // conservative (often works up to 244, 128 is safe)
 const ADA_NUS_SERVICE = 'adaf0001-4369-7263-7569-74507974686e';
 const ADA_NUS_TX      = 'adaf0002-4369-7263-7569-74507974686e';
 const ADA_NUS_RX      = 'adaf0003-4369-7263-7569-74507974686e';
-const ADA_FT_SERVICE  = 0xfebb; // FileTransfer/Version service
+const ADA_FT_SERVICE  = '0000febb-0000-1000-8000-00805f9b34fb'; // FileTransfer/Version service
 const ADA_VER         = 'adaf0100-4669-6c65-5472-616e73666572';
 const ADA_NUS_TX_LIMIT= 20;
 
@@ -60,6 +60,38 @@ const CH9143_TX_LIMIT = 20;
 // ESP IDE joystick service
 const JOY_SERVICE = '23f10010-5f90-11ee-8c99-0242ac120002';
 const JOY_CHAR    = '23f10012-5f90-11ee-8c99-0242ac120002'; // 4x Int8: Lx,Ly,Rx,Ry
+
+const BLE_OPTIONAL_SERVICES = [NUS_SERVICE, ADA_NUS_SERVICE, ADA_FT_SERVICE, CH9143_SERVICE, JOY_SERVICE];
+const BLE_FILTERS_STRICT = [
+  { services: [NUS_SERVICE] },
+  { namePrefix: 'MPY-' },
+  { namePrefix: 'CIRCUITPY' },
+  { namePrefix: 'CH9143' }
+];
+
+function bleNormUuid(u) {
+  return String(u || '').toLowerCase();
+}
+
+function bleIsWriteChar(ch) {
+  const p = ch?.properties || {};
+  return !!(p.write || p.writeWithoutResponse);
+}
+
+function bleIsNotifyChar(ch) {
+  const p = ch?.properties || {};
+  return !!(p.notify || p.indicate);
+}
+
+function bleIsBluefyLike() {
+  try {
+    if (typeof navigator === 'undefined') return false;
+    const ua = String(navigator.userAgent || '');
+    return /Bluefy/i.test(ua) || (/iPad|iPhone|iPod/i.test(ua) && /AppleWebKit/i.test(ua));
+  } catch (_) {
+    return false;
+  }
+}
 
 
 // ---- MicroPythonBLE: API compatible with MicroPythonSerial ----
@@ -93,12 +125,29 @@ class MicroPythonBLE {
     this._abort = null;
     this._connecting = false;
     this._session = 0;
+    this._disconnectedByEvent = false;
+    this._encoder = null;
+    this._decoder = null;
+    this._ft_active = false;
+    this._ft_ack_seq = null;
+    this._ft_ack_ok = false;
+    this._ft_hello_buf = "";
+    this._ft_supported = null;
+    this._ft_debug = (typeof window !== 'undefined' && window.__espideBleDebug !== undefined)
+      ? !!window.__espideBleDebug
+      : true;
+    this._ft_payload_max = 20;
+    this._ft_dev_mtu = null;
+    this._ft_caps_ready = false;
+    this._ble_kind = null;
+    this._ble_safe_mode = bleIsBluefyLike();
   }
   
   
   _finalizeCleanup() {
+        try { this.device?.removeEventListener?.("gattserverdisconnected", this._onGattDisconnect); } catch(_) {}
         try { this.rx?.removeEventListener("characteristicvaluechanged", this._notifyHandler); } catch(_) {}
-        try { this.rx?.stopNotifications?.(); } catch(_) {}
+        try { this.rx?.stopNotifications?.().catch?.(()=>{}); } catch(_) {}
         try { if (this.device?.gatt?.connected) this.device.gatt.disconnect(); } catch(_) {}
         try { this._abort?.abort(); } catch(_) {}
         this._abort = null;
@@ -109,22 +158,33 @@ class MicroPythonBLE {
         this.rawResponseBuffer = "";
         this._writeBusy = Promise.resolve();
         this._session++;              // invalidate in-flight writes
+        this._ft_active = false;
+        this._ft_ack_seq = null;
+        this._ft_ack_ok = false;
+        this._ft_hello_buf = "";
+        this._ft_supported = null;
+        this._ft_payload_max = 20;
+        this._ft_dev_mtu = null;
+        this._ft_caps_ready = false;
+        this._ble_kind = null;
   }
 
   _ui(s) { try { this.onUiState(s); } catch(_) {} }
 
   _onGattDisconnect = () => {
     // if the link drops unexpectedly -> ERROR; if we initiated it -> DISCONNECTED
-    const state = this._expectingDisconnect ? STATE.DISCONNECTED : STATE.ERROR;
+    const expected = this._expectingDisconnect;
+    const state = expected ? STATE.DISCONNECTED : STATE.ERROR;
     this._ui(state);
     this._expectingDisconnect = false;
+    if (expected) this._disconnectedByEvent = true;
 
     // keep alias and UI consistent
     if (activeLink === 'ble') {
       activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
     }
 
-    this._teardown();
+    this._finalizeCleanup();
     this.terminal.writeln("**" + replT("repl.ble.disconnected") + "**");
   };
 
@@ -132,6 +192,91 @@ class MicroPythonBLE {
 
   get connected() {
     return !!(this.device && this.device.gatt && this.device.gatt.connected);
+  }
+
+  async _requestDeviceCompat() {
+    const modes = [
+      {
+        options: { filters: BLE_FILTERS_STRICT, optionalServices: BLE_OPTIONAL_SERVICES }
+      },
+      {
+        options: {
+          filters: [{ namePrefix: 'MPY-' }, { namePrefix: 'CIRCUITPY' }, { namePrefix: 'CH9143' }],
+          optionalServices: BLE_OPTIONAL_SERVICES
+        }
+      }
+    ];
+    if (this._ble_safe_mode) {
+      modes.push({ options: { acceptAllDevices: true, optionalServices: BLE_OPTIONAL_SERVICES } });
+      modes.push({ options: { acceptAllDevices: true, optionalServices: [NUS_SERVICE] } });
+    }
+
+    let lastErr = null;
+    for (const m of modes) {
+      try {
+        return await navigator.bluetooth.requestDevice(m.options);
+      } catch (e) {
+        lastErr = e;
+        const msg = String(e?.message || e || '');
+        if (/User cancelled|No device selected|chooser/i.test(msg)) throw e;
+      }
+    }
+    throw lastErr || new Error("BLE requestDevice failed");
+  }
+
+  async _resolveUartChars(service, kind) {
+    const chars = await service.getCharacteristics();
+    const byUuid = (u) => chars.find(c => bleNormUuid(c?.uuid) === bleNormUuid(u));
+
+    let tx = null;
+    let rx = null;
+    if (kind === 'NUS') {
+      tx = byUuid(NUS_TX);
+      rx = byUuid(NUS_RX);
+    } else if (kind === 'ADA') {
+      tx = byUuid(ADA_NUS_TX);
+      rx = byUuid(ADA_NUS_RX);
+    } else if (kind === 'CH9143') {
+      tx = byUuid(CH9143_TX);
+      rx = byUuid(CH9143_RX);
+    }
+
+    if (!bleIsWriteChar(tx)) tx = chars.find(bleIsWriteChar) || null;
+    if (!bleIsNotifyChar(rx)) rx = chars.find(bleIsNotifyChar) || null;
+    if (!tx || !rx) return null;
+    return { tx, rx };
+  }
+
+  async _resolveKnownUart(primaryServices) {
+    const bySvcUuid = new Map(primaryServices.map(s => [bleNormUuid(s.uuid), s]));
+    const known = [
+      { kind: 'NUS', serviceUuid: NUS_SERVICE, txLimit: NUS_TX_LIMIT },
+      { kind: 'ADA', serviceUuid: ADA_NUS_SERVICE, txLimit: ADA_NUS_TX_LIMIT },
+      { kind: 'CH9143', serviceUuid: CH9143_SERVICE, txLimit: CH9143_TX_LIMIT }
+    ];
+
+    for (const k of known) {
+      const svc = bySvcUuid.get(bleNormUuid(k.serviceUuid));
+      if (!svc) continue;
+      try {
+        const resolved = await this._resolveUartChars(svc, k.kind);
+        if (!resolved) continue;
+        this.service = svc;
+        this.tx = resolved.tx;
+        this.rx = resolved.rx;
+        this.tx_limit = k.txLimit;
+        this._ble_kind = k.kind;
+        if (k.kind === 'ADA') {
+          try {
+            const ft = await this.server.getPrimaryService(ADA_FT_SERVICE);
+            const v = await ft.getCharacteristic(ADA_VER);
+            await v.readValue();
+          } catch (_) {}
+        }
+        return true;
+      } catch (_) {}
+    }
+    return false;
   }
   
   
@@ -142,56 +287,72 @@ class MicroPythonBLE {
     if (this._connecting) throw new Error(replT("repl.ble.connectInProgress"));
     this._connecting = true;
     let ok = false;
+    const withTimeout = (p, ms, msg) => {
+      let t;
+      const timeout = new Promise((_, rej) => { t = setTimeout(() => rej(new Error(msg)), ms); });
+      return Promise.race([p, timeout]).finally(() => clearTimeout(t));
+    };
     try {
       this._abort = new AbortController();
 
-      this.device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [NUS_SERVICE] }, { namePrefix: 'MPY-' }, { namePrefix: 'CIRCUITPY' }, { namePrefix: 'CH9143' }],
-        optionalServices: [NUS_SERVICE, ADA_NUS_SERVICE, ADA_FT_SERVICE, CH9143_SERVICE, JOY_SERVICE]
-      });
+      this.device = await this._requestDeviceCompat();
 
-      this.device.addEventListener("gattserverdisconnected", this._onGattDisconnect, { signal: this._abort.signal });
-      this.server = await this.device.gatt.connect();
+      try {
+        this.device.addEventListener("gattserverdisconnected", this._onGattDisconnect, { signal: this._abort.signal });
+      } catch (_) {
+        this.device.addEventListener("gattserverdisconnected", this._onGattDisconnect);
+      }
+      this.server = await withTimeout(this.device.gatt.connect(), 8000, "GATT connect timeout");
 
       // Scan primary services and resolve NUS / ADA / CH9143
-        const primaryServices = await this.server.getPrimaryServices();
-        for (const svc of primaryServices) {
-          if (svc.uuid === NUS_SERVICE) {
-            this.service  = svc;
-            this.rx       = await svc.getCharacteristic(NUS_RX);
-            this.tx       = await svc.getCharacteristic(NUS_TX);
-            this.tx_limit = NUS_TX_LIMIT;
-            break;
-          }
-          if (svc.uuid === ADA_NUS_SERVICE) {
-            this.service  = svc;
-            this.rx       = await svc.getCharacteristic(ADA_NUS_RX);
-            this.tx       = await svc.getCharacteristic(ADA_NUS_TX);
-            this.tx_limit = ADA_NUS_TX_LIMIT;
-
-            // Optionally validate ADA FT service version (ignore if missing)
-            try {
-              const ft = await this.server.getPrimaryService(ADA_FT_SERVICE);
-              const v  = await ft.getCharacteristic(ADA_VER);
-              await v.readValue(); // jen pro validaci
-            } catch(_) {}
-            break;
-          }
-          if (svc.uuid === CH9143_SERVICE) {
-            this.service  = svc;
-            this.rx       = await svc.getCharacteristic(CH9143_RX);
-            this.tx       = await svc.getCharacteristic(CH9143_TX);
-            this.tx_limit = CH9143_TX_LIMIT;
-            break;
-          }
-        }
+      const primaryServices = await withTimeout(this.server.getPrimaryServices(), 8000, "GATT services timeout");
+      await this._resolveKnownUart(primaryServices);
 
       if (!this.service || !this.rx || !this.tx) {
         throw new Error(replT("repl.ble.uartMissing"));
       }
 
-      await this.rx.startNotifications();
-      this.rx.addEventListener("characteristicvaluechanged", this._notifyHandler);
+      {
+        const notifyCandidates = [];
+        if (this.rx) notifyCandidates.push(this.rx);
+        try {
+          const chars = await this.service.getCharacteristics();
+          for (const ch of chars) {
+            if (!bleIsNotifyChar(ch)) continue;
+            const exists = notifyCandidates.some(c => bleNormUuid(c?.uuid) === bleNormUuid(ch?.uuid));
+            if (!exists) notifyCandidates.push(ch);
+          }
+        } catch (_) {}
+
+        let notifyErr = null;
+        for (let i = 0; i < notifyCandidates.length; i++) {
+          this.rx = notifyCandidates[i];
+          const maxNotifyAttempts = this._ble_safe_mode ? 3 : 1;
+          for (let attempt = 1; attempt <= maxNotifyAttempts; attempt++) {
+            try {
+              await withTimeout(this.rx.startNotifications(), 8000, "GATT notify timeout");
+              this.rx.addEventListener("characteristicvaluechanged", this._notifyHandler);
+              notifyErr = null;
+              break;
+            } catch (e) {
+              notifyErr = e;
+              const msg = String(e?.message || e || "");
+              if (/already|in progress/i.test(msg)) {
+                this.rx.addEventListener("characteristicvaluechanged", this._notifyHandler);
+                notifyErr = null;
+                break;
+              }
+              const isRetryableBluefy = /rejected|invalid handle|operation|failed|timeout/i.test(msg);
+              if (!(this._ble_safe_mode && isRetryableBluefy && attempt < maxNotifyAttempts)) {
+                break;
+              }
+              await new Promise(r => setTimeout(r, 140));
+            }
+          }
+          if (!notifyErr) break;
+        }
+        if (notifyErr) throw notifyErr;
+      }
 
       // 4) Optionally attach the joystick characteristic
       try {
@@ -203,15 +364,37 @@ class MicroPythonBLE {
           console.debug('[BLE] JOY characteristic missing', e);
       }
 
+      await this._initFtCaps();
+      try {
+        const props = this.tx?.properties || {};
+        console.info(
+          `[BLE] connected kind=${this._ble_kind || 'unknown'} ` +
+          `tx_limit=${this.tx_limit || 20} ` +
+          `wnr=${!!props.writeWithoutResponse} write=${!!props.write} ` +
+          `ft_supported=${this._ft_supported} payload_max=${this._ft_payload_max} ` +
+          `dev_mtu=${this._ft_dev_mtu ?? 'n/a'}`
+        );
+      } catch (_) {}
       this.terminal.write('\x1b[32m' + replT("repl.ble.connected") + '\x1b[m');
+      
+      this.mute_terminal = true;
+      await this.sendData("\r\x03"); // Ctrl-C
+      await delay(100);
+      await this.sendData("\r\x03"); // Ctrl-C
+      await delay(20);
+      await this.sendData("\r\x03\r"); // Ctrl-C
+      await delay(100);
+      this.mute_terminal = false;
       await this.sendData("\x02"); // Ctrl-B
+      await delay(50);
 
       this._ui(STATE.CONNECTED);
       ok = true;
     } finally {
+      this.mute_terminal = false;
       this._connecting = false;
       if (!ok) {
-        // if something failed mid-connection, clean everything up
+        // if something failed mid-connection, clean everything up and show ERROR state (not DISCONNECTED, since we were never really connected)
         this._finalizeCleanup();
         this._ui(STATE.ERROR);
       } else {
@@ -225,6 +408,7 @@ class MicroPythonBLE {
   async disconnect() {
     try {
       this._expectingDisconnect = true;
+      this._disconnectedByEvent = false;
       if (this.rx) {
         try { await this.rx.stopNotifications(); } catch(_) {}
         this.rx.removeEventListener("characteristicvaluechanged", this._notifyHandler);
@@ -233,17 +417,22 @@ class MicroPythonBLE {
         await this.device.gatt.disconnect();
       }
     } finally {
-      this._finalizeCleanup();
-      this._abort?.abort();           // unregister all addEventListener handlers
-      this._abort = null;
-      this._teardown();
-      this.terminal.writeln("**" + replT("repl.ble.disconnected") + "**");
-      this._ui(STATE.DISCONNECTED);
+      if (!this._disconnectedByEvent) {
+        this._finalizeCleanup();
+        // keep alias and UI consistent
+        if (activeLink === 'ble') {
+          activeLink = (typeof isUsbConnected === 'function' && isUsbConnected()) ? 'usb' : 'none';
+        }
+        this.terminal.writeln("**" + replT("repl.ble.disconnected") + "**");
+        this._ui(STATE.DISCONNECTED);
+      }
       this._expectingDisconnect = false;
+      this._disconnectedByEvent = false;
     }
   }
 
   _teardown() {
+    this.device = null;
     this.server = null;
     this.service = null;
     this.rx = null;
@@ -251,16 +440,101 @@ class MicroPythonBLE {
     this.joy = null;
   }
 
+  async _initFtCaps() {
+    this._ft_supported = null;
+    this._ft_payload_max = 20;
+    this._ft_dev_mtu = null;
+    this._ft_caps_ready = false;
+
+    const deadline = Date.now() + 800;
+    while (Date.now() < deadline) {
+      if (this._ft_caps_ready) break;
+      await new Promise(r => setTimeout(r, 20));
+    }
+    if (!this._ft_caps_ready) {
+      this._ft_supported = false;
+      this._ft_payload_max = 20;
+      this._ft_caps_ready = true;
+      if (this._ft_debug) {
+        console.warn("[BLE] Config not received, fallback to MTU20 and legacy transfer.");
+      }
+      return;
+    }
+    if (this._ft_debug) {
+      console.info(`[BLE] Config received: payload_max=${this._ft_payload_max}, dev_mtu=${this._ft_dev_mtu ?? 'n/a'}`);
+    }
+  }
+
   _onNotify(ev) {
     const v = ev.target.value;
+    if (this._ft_active) {
+      // handle file-transfer ACK/NAK frames (binary)
+      for (let i = 0; i < v.byteLength; ) {
+        const b = v.getUint8(i);
+        if ((b === 0x06 || b === 0x15) && (i + 2) < v.byteLength) {
+          this._ft_ack_seq = v.getUint8(i + 1) | (v.getUint8(i + 2) << 8);
+          this._ft_ack_ok = (b === 0x06);
+          i += 3;
+          continue;
+        }
+        i += 1;
+      }
+      // During file transfer, suppress REPL output handling.
+      return;
+    }
     // decode to text
-    let s = "";
-    for (let i = 0; i < v.byteLength; i++) s += String.fromCharCode(v.getUint8(i));
-    if (this.inRawMode) this.rawResponseBuffer += s;
-    if (!this.mute_terminal) this.terminal.write(s);
+    if (!this._decoder) this._decoder = new TextDecoder();
+    const s = this._decoder.decode(v);
+
+    // Filter out BLE Config lines (can appear anywhere) without altering line endings.
+    let out = "";
+    let buf = (this._ft_hello_buf || "") + s;
+    let start = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const c = buf.charCodeAt(i);
+      if (c === 10 || c === 13) {
+        let end = i + 1;
+        if (c === 13 && i + 1 < buf.length && buf.charCodeAt(i + 1) === 10) {
+          end = i + 2;
+          i++;
+        }
+        const line = buf.slice(start, end);
+        if (line.indexOf("BLE Config") >= 0) {
+          const m = /BLE Config\s+mtu=(\d+)\s+chunk=(\d+)/.exec(line);
+          if (m) {
+            this._ft_dev_mtu = parseInt(m[1], 10);
+            this._ft_payload_max = parseInt(m[2], 10) || 20;
+            this._ft_supported = true;
+            this._ft_caps_ready = true;
+            if (this._ft_debug) {
+              console.debug(`[BLE] Config: dev_mtu=${this._ft_dev_mtu} payload_max=${this._ft_payload_max}`);
+            }
+          }
+        } else {
+          out += line;
+        }
+        start = end;
+      }
+    }
+    let tail = buf.slice(start);
+    if (tail) {
+      if ("BLE Config".startsWith(tail) || tail.indexOf("BLE Config") >= 0) {
+        this._ft_hello_buf = tail;
+      } else {
+        out += tail;
+        this._ft_hello_buf = "";
+      }
+    } else {
+      this._ft_hello_buf = "";
+    }
+
+    if (this.inRawMode) this.rawResponseBuffer += out;
+    const tailMuteUntil = Number(this.__fm_tail_mute_until || 0);
+    const tailMuted = tailMuteUntil > 0 && Date.now() < tailMuteUntil;
+    if (!this.mute_terminal && !tailMuted && out) this.terminal.write(out);
     
-    if (this.fm_buf_enabled) {
-      this.fm_in_buffer += s;
+    if (this.fm_buf_enabled && out) {
+      this.fm_in_buffer += out;
       if (this.fm_in_buffer.length > this.fm_buf_limit) {
         this.fm_in_buffer = this.fm_in_buffer.slice(-this.fm_buf_limit);
       }
@@ -296,30 +570,57 @@ class MicroPythonBLE {
       }
   }
 
-  async _writeChunked(text) {
+  async _writePacket(packet, opts = {}) {
+      const mySession = this._session;
+      this._writeBusy = this._writeBusy.then(async () => {
+        if (mySession !== this._session) throw new Error(replT("repl.ble.sessionEnded"));
+        const props = this.tx?.properties || {};
+        const canWnr =
+          !this._ble_safe_mode &&
+          !opts.forceWriteWithResponse &&
+          !!props.writeWithoutResponse &&
+          typeof this.tx.writeValueWithoutResponse === 'function';
+        if (canWnr) await this.tx.writeValueWithoutResponse(packet);
+        else await this.tx.writeValue(packet);
+      });
+      return this._writeBusy;
+  }
+
+  async _writeChunked(text, opts = {}) {
       const mySession = this._session;
       this._writeBusy = this._writeBusy.then(async () => {
         const mtu = this.tx_limit || 20;               // 20 for WebBT
-        const enc = new TextEncoder();
-        const bytes = enc.encode(text);
+        if (!this._encoder) this._encoder = new TextEncoder();
+        const bytes = this._toBytes(text);
         let i = 0;
         let window = 4;                                // number of blocks per micro-tick
+        let sameSliceRetries = 0;                      // prevent infinite loops on persistent BLE errors
+        const maxSameSliceRetries = 30;
+        const props = this.tx?.properties || {};
+        const canWnr =
+          !this._ble_safe_mode &&
+          !opts.forceWriteWithResponse &&
+          !!props.writeWithoutResponse &&
+          typeof this.tx.writeValueWithoutResponse === 'function';
         while (i < bytes.length) {
           if (mySession !== this._session) throw new Error(replT("repl.ble.sessionEnded"));
           let ok = 0;
           for (; ok < window && i < bytes.length; ok++) {
-            const slice = bytes.slice(i, i + mtu);
+            const slice = bytes.subarray(i, i + mtu);
             //console.log(slice);
             try {
-              if (this.tx.writeValueWithoutResponse)
+              if (canWnr)
                 await this.tx.writeValueWithoutResponse(slice);
               else
                 await this.tx.writeValue(slice);
               i += mtu;
+              sameSliceRetries = 0;
             } catch (e) {
               // Back off when the stack reports "operation in progress"
+              sameSliceRetries++;
+              if (sameSliceRetries > maxSameSliceRetries) throw e;
               window = Math.max(1, Math.floor(window / 2));
-              await new Promise(r => setTimeout(r, 8));
+              await new Promise(r => setTimeout(r, Math.min(50, 8 + sameSliceRetries)));
               break; // stop inner loop, retry
             }
           }
@@ -331,14 +632,47 @@ class MicroPythonBLE {
       return this._writeBusy;
     }
 
+  _toBytes(x) {
+      if (x instanceof Uint8Array) return x;
+      if (x instanceof ArrayBuffer) return new Uint8Array(x);
+      if (ArrayBuffer.isView(x)) return new Uint8Array(x.buffer, x.byteOffset, x.byteLength);
+      if (!this._encoder) this._encoder = new TextEncoder();
+      return this._encoder.encode(typeof x === 'string' ? x : String(x ?? ''));
+  }
+
+  async _ft_waitAck(expectedSeq, timeoutMs) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (this._ft_ack_seq !== null) {
+        const seq = this._ft_ack_seq;
+        const ok = this._ft_ack_ok;
+        this._ft_ack_seq = null;
+        this._ft_ack_ok = false;
+        if (expectedSeq === null || expectedSeq === undefined || seq === expectedSeq) {
+          return { seq, ok };
+        }
+      }
+      await new Promise(r => setTimeout(r, 5));
+    }
+    return null;
+  }
+
   // --- High-level API matches Serial (mirrors sendData/sendCommand) ---
 
   async enterRawREPL() {
     try {
-      await this.sendData("\x03"); // Ctrl-C
-      await new Promise(r => setTimeout(r, 100));
+      await this.sendData("\r\x03"); // Ctrl-C
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await this.sendData("\r\x03"); // Ctrl-C
+      await new Promise(resolve => setTimeout(resolve, 40));
+      await this.sendData("\r\n"); // ensure we're on a new line
+      await new Promise(resolve => setTimeout(resolve, 40));
+      await this.sendData("\r\x02"); // Ctrl-B to exit raw REPL
+      await new Promise(resolve => setTimeout(resolve, 40));
+
       this.inRawMode = true;
-      await this.sendData("\x01"); // Ctrl-A
+      this.rawResponseBuffer = "";
+      await this.sendData("\r\x01"); // Ctrl-A
       const start = Date.now();
       while (Date.now() - start < 2000) {
         if (this.rawResponseBuffer.includes("raw REPL")) break;
@@ -356,7 +690,7 @@ class MicroPythonBLE {
 
   async exitRawREPL() {
     try {
-      await this.sendData("\x02"); // Ctrl-B
+      await this.sendData("\r\x02"); // Ctrl-B
       this.inRawMode = false;
     } catch (e) {
       console.error(e);
@@ -367,7 +701,7 @@ class MicroPythonBLE {
   async execRawCommand(command) {
     this.rawResponseBuffer = "";
     await this.sendCommand(command + "\r");
-    await this.sendData("\x04"); // EOT
+    await this.sendData("\r\x04"); // EOT
     // wait for "OK\x04" just like Serial
     const result = await new Promise((resolve, reject) => {
       const start = Date.now();
@@ -387,21 +721,265 @@ class MicroPythonBLE {
     return result;
   }
 
-  // Helper splitter (shared pattern with Serial)
-  splitIntoChunks(content, chunkSize) {
-    const chunks = [];
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.substring(i, i + chunkSize));
-    }
-    return chunks;
+  async _sendFileBinary(filename, content, init=false) {
+      const bar = document.getElementById("myProgress");
+      if (bar) { bar.style.transition = "none"; bar.style.opacity = 1; bar.style.width = "0%"; }
+      const prevMute = this.mute_terminal;
+      const prevFm = this.fm_buf_enabled;
+      let cancelFrame = null;
+      let statusFrame = null;
+      const ctrlC = new Uint8Array([0x03]);
+      const ctrlB = new Uint8Array([0x02]);
+      let hadError = false;
+      const writePacket = async (packet, opts = {}, timeoutMs = 2500) => {
+        let t = null;
+        const timeout = new Promise((_, rej) => {
+          t = setTimeout(() => rej(new Error("BLE write timeout")), timeoutMs);
+        });
+        try {
+          return await Promise.race([this._writePacket(packet, opts), timeout]);
+        } finally {
+          if (t) clearTimeout(t);
+        }
+      };
+      try {
+        if (!this.tx) throw new Error(replT("repl.ble.notConnected"));
+
+        cancelFrame = new Uint8Array([0xFA, 0xCE, 0xB0, 0x0C, 0xFE, 0x00, 0x00, 0x00]);
+        statusFrame = new Uint8Array([0xFA, 0xCE, 0xB0, 0x0C, 0xFD, 0x00, 0x00, 0x00]);
+
+        // Stop user code before binary transfer.
+        await this.sendData("\r\x03"); // Ctrl-C
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await this.sendData("\r\x03"); // Ctrl-C
+        await new Promise(resolve => setTimeout(resolve, 40));
+        await this.sendData("\r\x02"); // Ctrl-B to exit raw REPL
+        await new Promise(resolve => setTimeout(resolve, 40));
+
+        const bytes = this._toBytes(content);
+        if (bytes.length > 0xFFFFFF) throw new Error("File too large for 24-bit length");
+
+        if (!this._encoder) this._encoder = new TextEncoder();
+        const nameBytes = this._encoder.encode(filename || "data.bin");
+        if (nameBytes.length > 48) throw new Error("Filename too long (max 48 bytes)");
+        const sink = (typeof window !== 'undefined' && window.__espideBleSink) ? true : false;
+
+        // Build header: MAGIC(4) + NAME_LEN(1) + FILE_LEN(3) + NAME
+        const header = new Uint8Array(8 + nameBytes.length);
+        header[0] = 0xFA; header[1] = 0xCE; header[2] = 0xB0; header[3] = 0x0C;
+        const nameLen = nameBytes.length & 0x7F;
+        header[4] = sink ? (nameLen | 0x80) : nameLen;
+        header[5] = bytes.length & 0xFF;
+        header[6] = (bytes.length >> 8) & 0xFF;
+        header[7] = (bytes.length >> 16) & 0xFF;
+        header.set(nameBytes, 8);
+
+        // File-transfer state
+        this.mute_terminal = true;
+        this.fm_buf_enabled = false;
+        this._ft_active = true;
+        this._ft_ack_seq = null;
+        this._ft_ack_ok = false;
+
+        const payloadMaxRaw = this._ft_payload_max || 20;
+        const payloadMax = this._ble_safe_mode
+          ? Math.max(20, Math.min(payloadMaxRaw, this.tx_limit || 20))
+          : Math.max(20, payloadMaxRaw);
+        const maxData = Math.min(255, Math.max(1, payloadMax - 4));
+        const pkt = new Uint8Array(maxData + 4);
+        const props = this.tx?.properties || {};
+        const canWnr = (!this._ble_safe_mode) && !!props.writeWithoutResponse && typeof this.tx.writeValueWithoutResponse === 'function';
+
+        // Send header+name (chunked) and wait for header ACK (seq=0xFFFF).
+        let headerRetries = 0;
+        while (true) {
+          for (let i = 0; i < header.length; i += payloadMax) {
+            await writePacket(header.subarray(i, i + payloadMax), { forceWriteWithResponse: true });
+          }
+          const ack = await this._ft_waitAck(0xFFFF, 500);
+          if (ack && ack.ok) break;
+          headerRetries++;
+          if (headerRetries >= 6) throw new Error("Header ACK timeout");
+        }
+
+        // Data packets: [SEQ_LO][SEQ_HI][LEN][DATA...][CRC]
+        let seq = 0;
+        let offset = 0;
+        let retries = 0;
+        const maxRetries = 30;
+        const win = this._ble_safe_mode ? 2 : 4;
+        const gapMs = this._ble_safe_mode ? 6 : 10;
+        let transferCompleteByStatus = false;
+        let lastAcked = -1;
+        let ackSum = 0;
+        let ackMin = 1e9;
+        let ackMax = 0;
+        let ackCount = 0;
+        while (offset < bytes.length) {
+          let sent = 0;
+          let lastSeqSent = seq - 1;
+          let tSend = 0;
+          for (; sent < win && offset < bytes.length; sent++) {
+            const dataLen = Math.min(maxData, bytes.length - offset);
+            pkt[0] = seq & 0xFF;
+            pkt[1] = (seq >> 8) & 0xFF;
+            pkt[2] = dataLen & 0xFF;
+            pkt.set(bytes.subarray(offset, offset + dataLen), 3);
+            let crc = (pkt[0] + pkt[1] + pkt[2]) & 0xFF;
+            for (let i = 0; i < dataLen; i++) crc = (crc + pkt[3 + i]) & 0xFF;
+            pkt[3 + dataLen] = crc;
+            tSend = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            const nearEnd = (bytes.length - (offset + dataLen)) <= (maxData * 2);
+            const forceWriteWithResponse = this._ble_safe_mode || !canWnr || nearEnd;
+            // Bluefy/iOS can defer reading BufferSource; use immutable packet copy.
+            const outPkt = this._ble_safe_mode
+              ? new Uint8Array(pkt.subarray(0, 4 + dataLen))
+              : pkt.subarray(0, 4 + dataLen);
+            await writePacket(outPkt, { forceWriteWithResponse });
+            lastSeqSent = seq;
+            seq = (seq + 1) & 0xFFFF;
+            offset += dataLen;
+            if (gapMs > 0) await new Promise(r => setTimeout(r, gapMs));
+          }
+
+          const sentAllNow = offset >= bytes.length;
+          const shouldExpectAck = sentAllNow || ((lastSeqSent & 0x03) === 3);
+          if (!shouldExpectAck) {
+            retries = 0;
+            if (bar) {
+              const percent = bytes.length ? Math.min(Math.floor((offset / bytes.length) * 100), 100) : 100;
+              this.terminal.write("\r" + replT("repl.common.transferProgress", { percent }) + "   ");
+              bar.style.transition = "width 0.1s ease";
+              bar.style.width = percent + "%";
+            }
+            continue;
+          }
+
+          const ack = await this._ft_waitAck(null, sentAllNow ? 2200 : 800);
+          const tAck = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+          const dt = tAck - tSend;
+          if (dt >= 0) {
+            ackSum += dt;
+            ackCount++;
+            if (dt < ackMin) ackMin = dt;
+            if (dt > ackMax) ackMax = dt;
+          }
+          if (!ack) {
+            retries++;
+            if (this._ft_debug) {
+              console.warn(`[BLE-FT] retry (no-ack) #${retries} resume_seq=${(lastAcked + 1) & 0xFFFF}`);
+            }
+            if (retries > maxRetries) throw new Error("Too many retries");
+            if (statusFrame) {
+              try { await writePacket(statusFrame, { forceWriteWithResponse: true }); } catch (_) {}
+              const st = await this._ft_waitAck(null, sentAllNow ? 1200 : 600);
+              if (st && st.ok) {
+                const stSeq = st.seq & 0xFFFF;
+                const nextSeq = seq & 0xFFFF;
+                if (sentAllNow && (stSeq === nextSeq || stSeq === 0)) {
+                  transferCompleteByStatus = true;
+                  retries = 0;
+                  break;
+                }
+                seq = st.seq & 0xFFFF;
+                offset = seq * maxData;
+                if (offset > bytes.length) offset = bytes.length;
+                lastAcked = st.seq;
+                retries = 0;
+                continue;
+              }
+            }
+            seq = (lastAcked + 1) & 0xFFFF;
+            offset = seq * maxData;
+            if (offset > bytes.length) offset = bytes.length;
+            continue;
+          }
+          if (ack.ok) {
+            if (ack.seq > lastAcked) lastAcked = ack.seq;
+            retries = 0;
+            if (ack.seq < lastSeqSent) {
+              seq = (ack.seq + 1) & 0xFFFF;
+              offset = seq * maxData;
+              if (offset > bytes.length) offset = bytes.length;
+            }
+          } else {
+            retries++;
+            if (this._ft_debug) {
+              console.warn(`[BLE-FT] retry (nak) #${retries} seq=${ack.seq & 0xFFFF}`);
+            }
+            if (retries > maxRetries) throw new Error("Too many retries");
+            if (statusFrame && (retries >= 3)) {
+              try { await writePacket(statusFrame, { forceWriteWithResponse: true }); } catch (_) {}
+              const st = await this._ft_waitAck(null, 700);
+              if (st && st.ok) {
+                const stSeq = st.seq & 0xFFFF;
+                seq = stSeq;
+                offset = seq * maxData;
+                if (offset > bytes.length) offset = bytes.length;
+                lastAcked = (seq - 1) & 0xFFFF;
+                retries = 0;
+                continue;
+              }
+            }
+            seq = ack.seq & 0xFFFF;
+            offset = seq * maxData;
+            if (offset > bytes.length) offset = bytes.length;
+          }
+
+          if (bar) {
+            const percent = bytes.length ? Math.min(Math.floor((offset / bytes.length) * 100), 100) : 100;
+            this.terminal.write("\r" + replT("repl.common.transferProgress", { percent }) + "   ");
+            bar.style.transition = "width 0.1s ease";
+            bar.style.width = percent + "%";
+          }
+        }
+
+        if (transferCompleteByStatus && bar) {
+          bar.style.transition = "width 0.1s ease";
+          bar.style.width = "100%";
+        }
+        if (bar) setTimeout(() => { bar.style.opacity = 0; bar.style.width = "0%"; }, 500);
+        this.terminal.writeln("");
+        if (this._ft_debug && ackCount > 0) {
+          const avg = ackSum / ackCount;
+          console.info(`[BLE-FT] ack_avg_ms=${avg.toFixed(1)} ack_min_ms=${ackMin.toFixed(1)} ack_max_ms=${ackMax.toFixed(1)} count=${ackCount} sink=${sink}`);
+        }
+      } catch (e) {
+        console.error(e);
+        hadError = true;
+        if (cancelFrame) {
+          try {
+            for (let i = 0; i < 3; i++) {
+              await writePacket(cancelFrame, { forceWriteWithResponse: true });
+              await new Promise(r => setTimeout(r, 60));
+            }
+          } catch (_) {}
+        }
+        try {
+          await writePacket(ctrlC, { forceWriteWithResponse: true });
+          await new Promise(r => setTimeout(r, 80));
+          await writePacket(ctrlB, { forceWriteWithResponse: true });
+        } catch (_) {}
+        this.terminal.writeln("**" + replT("repl.ble.sendFileError", { error: e.message }) + "**");
+        throw e;
+      } finally {
+        this.mute_terminal = prevMute;
+        this.fm_buf_enabled = prevFm;
+        if (hadError) {
+          await new Promise(r => setTimeout(r, 200));
+        }
+        this._ft_active = false;
+        this._ft_ack_seq = null;
+        this._ft_ack_ok = false;
+      }
   }
 
-
-  // sendFile matches Serial: uses execRawCommand, sendData, exitRawREPL, etc.
-  async sendFile(filename, content, init=false) {
+  async _sendFileLegacy(filename, content, init=false) {
       try {
         const bar = document.getElementById("myProgress");
         if (bar) { bar.style.transition = "none"; bar.style.opacity = 1; bar.style.width = "0%"; }
+        const pyEsc = (s) => String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        const safeFilename = pyEsc(filename);
 
         // Enter raw REPL and prepare the write
         await this.enterRawREPL();
@@ -411,28 +989,23 @@ class MicroPythonBLE {
         // Create a folder if needed
         if (filename.includes("/")) {
           const folder = filename.substring(0, filename.lastIndexOf("/"));
+          const safeFolder = pyEsc(folder);
           await this.sendData(`try:\r`);
-          await this.sendData(` os.stat("${folder}")\r`);
+          await this.sendData(` os.stat("${safeFolder}")\r`);
           await this.sendData(`except OSError:\r`);
-          await this.execRawCommand(` os.mkdir("${folder}")\r`);
+          await this.execRawCommand(` os.mkdir("${safeFolder}")\r`);
         }
 
-        await this.execRawCommand(`f=open("${filename}","wb")`);
+        await this.execRawCommand(`f=open("${safeFilename}","wb")`);
 
         // --- Key change: robust base64 encoding from bytes ---
-        const toBytes = (x) => {
-          if (x instanceof Uint8Array) return x;
-          if (x instanceof ArrayBuffer) return new Uint8Array(x);
-          if (typeof x === 'string') return new TextEncoder().encode(x);
-          return new TextEncoder().encode(String(x ?? ''));
-        };
         const u8ToB64 = (u8) => {
           let s = ''; const CH = 0x8000;
           for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
           return btoa(s);
         };
 
-        const bytes = toBytes(content);
+        const bytes = this._toBytes(content);
         const base64 = u8ToB64(bytes);
 
         // Send base64 chunks
@@ -456,7 +1029,15 @@ class MicroPythonBLE {
       } catch (e) {
         console.error(e);
         this.terminal.writeln("**" + replT("repl.ble.sendFileError", { error: e.message }) + "**");
+        throw e;
       }
+  }
+
+  async sendFile(filename, content, init=false) {
+      if (this._ft_supported === null) await this._initFtCaps();
+      if (this._ft_supported) return this._sendFileBinary(filename, content, init);
+      this._ft_active = false;
+      return this._sendFileLegacy(filename, content, init);
   }
 
   

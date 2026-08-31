@@ -72,20 +72,27 @@ class MicroPythonSerial {
       // Get reader/writer directly from the port (no pipeTo)
       this.reader = this.port.readable.getReader();
       this.writer = this.port.writable.getWriter();
+
+      this.mute_terminal = true;
       
       this.keepReading = true;
       this.readLoop();
 
       this.terminal.write('\x1b[32m' + replT("repl.usb.connected") + '\x1b[m');
       //await mpSerial.sendData('\r\n');
-      //await this.sendData("\x03"); // Ctrl-C
-      //await delay(50);
+      await this.sendData("\r\x03"); // Ctrl-C
+      await delay(100);
+      await this.sendData("\r\x03"); // Ctrl-C
+      await delay(20);
+      await this.sendData("\r\x03\r"); // Ctrl-C
+      await delay(100);
+      this.mute_terminal = false;
       await this.sendData("\x02"); // Ctrl-B
       await delay(50);
       
     } catch (error) {
       console.error("Connect error:", error);
-      
+      this.mute_terminal = false;
       
       if (error.message.indexOf('No port selected by the user') > -1) {
         this.terminal.writeln("**" + replT("repl.usb.noPortSelected") + "**");
@@ -96,7 +103,7 @@ class MicroPythonSerial {
         this.terminal.writeln("**" + replT("repl.usb.connectError", { error: error.message }) + "**");
       }
       
-      
+      this.mute_terminal = false;
       this.reader = null;
       this.writer = null;
       this.disconnect();
@@ -207,10 +214,17 @@ class MicroPythonSerial {
 
   async enterRawREPL() {
     try {
-      await this.sendData("\x03"); // Ctrl-C
+      await this.sendData("\r\x03"); // Ctrl-C
       await new Promise(resolve => setTimeout(resolve, 100));
+      await this.sendData("\r\x03"); // Ctrl-C
+      await new Promise(resolve => setTimeout(resolve, 20));
+      await this.sendData("\r\n"); // ensure we're on a new line
+      await new Promise(resolve => setTimeout(resolve, 20));
+      await this.sendData("\r\x02"); // Ctrl-B to exit raw REPL
+      await new Promise(resolve => setTimeout(resolve, 20));
+
       this.inRawMode = true;
-      await this.sendData("\x01"); // Ctrl-A
+      await this.sendData("\r\x01"); // Ctrl-A
       let startTime = Date.now();
       while (Date.now() - startTime < 2000) {
         if (this.rawResponseBuffer.includes("raw REPL")) break;
@@ -228,7 +242,7 @@ class MicroPythonSerial {
 
   async exitRawREPL() {
     try {
-      await this.sendData("\x02"); // Ctrl-B
+      await this.sendData("\r\x02"); // Ctrl-B
       this.inRawMode = false;
       //this.terminal.writeln("**Exited raw REPL mode.**");
     } catch (error) {
@@ -241,7 +255,7 @@ class MicroPythonSerial {
       this.rawResponseBuffer = "";
 
       await this.sendCommand(command + "\r");
-      await this.sendData("\x04"); // signal end of command
+      await this.sendData("\r\x04"); // signal end of command
 
       let response = await new Promise((resolve, reject) => {
         const startTime = Date.now();
@@ -310,20 +324,23 @@ async sendFile(filename, content, init = false) {
         await this.sendData("import gc\r");
         await this.sendData("import utime\r");
         
-        await this.sendData("def run_code():\r");
-        await this.sendData(" try:\r");
-        await this.sendData("  gc.collect()\r");
-        await this.sendData("  exec(open(\"idecode\").read())\r");
-        await this.sendData(" except KeyboardInterrupt:\r");
-        await this.sendData("  print('" + replT("repl.common.programStopped") + "')\r");
-        await this.sendData("  gc.collect()\r");
-        await this.sendData("  stop_code()\r");
+        await this.sendData("try:\r");
+        await this.sendData(" run_code\r");
+        await this.sendData("except NameError:\r");
+        await this.sendData(" def run_code():\r");
+        await this.sendData("  try:\r");
+        await this.sendData("   gc.collect()\r");
+        await this.sendData("   exec(open(\"idecode\").read())\r");
+        await this.sendData("  except KeyboardInterrupt:\r");
+        await this.sendData("   print('" + replT("repl.common.programStopped") + "')\r");
+        await this.sendData("   gc.collect()\r");
+        await this.sendData("   stop_code()\r");
         
-        await this.sendData("def stop_code():\r");
-        await this.sendData(" try:\r");
-        await this.sendData("  on_exit()\r");
-        await this.sendData(" except:\r");
-        await this.execRawCommand("  utime.sleep_ms(0)\r");
+        await this.sendData(" def stop_code():\r");
+        await this.sendData("  try:\r");
+        await this.sendData("   on_exit()\r");
+        await this.sendData("  except:\r");
+        await this.execRawCommand("   utime.sleep_ms(0)\r");
         await delay(50);
     }
     
@@ -380,6 +397,7 @@ async sendFile(filename, content, init = false) {
   } catch (error) {
     console.error("File send error:", error);
     this.terminal.writeln("**" + replT("repl.usb.sendFileError", { error: error.message }) + "**");
+    throw error;
   }
 }
 

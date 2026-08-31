@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vývoj doplňků ESP IDE"
+  short_description: "Tvorba a ověřování Blockly doplňků"
+  default_prompt: "Použij $develop-espide-addons k vytvoření nebo ověření doplňku ESP IDE."

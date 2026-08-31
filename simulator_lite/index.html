@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP IDE Simulator Lite</title>
+  <link rel="stylesheet" href="simulator.css">
+</head>
+<body>
+  <main id="simulator-root" aria-label="ESP IDE Simulator Lite"></main>
+  <script type="module">
+    const appUrl = new URL('./app.js', location.href);
+    const version = new URLSearchParams(location.search).get('v');
+    if (version) appUrl.searchParams.set('v', version);
+    import(appUrl.href);
+  </script>
+</body>
+</html>

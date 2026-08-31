@@ -1,0 +1,1705 @@
+/*
+ * ESP IDE Display Designer shell.
+ * The canvas keeps the selected display resolution as its backing store and
+ * is enlarged only with CSS, preserving exact monochrome pixel coordinates.
+ */
+
+.espide-display-designer-overlay {
+  --dd-primary-bg: #3f51b5;
+  --dd-primary-hover-bg: #485abd;
+  --dd-primary-text: #ffffff;
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  /*
+   * A plain translucent layer is intentionally used instead of
+   * backdrop-filter. Blurring the entire Blockly workspace is needlessly
+   * expensive on tablets and lower-powered mobile devices.
+   */
+  background: rgba(31, 35, 40, 0.48);
+}
+
+html.theme-dark .espide-display-designer-overlay {
+  --dd-primary-bg: #5f5f5f;
+  --dd-primary-hover-bg: #696969;
+  --dd-primary-text: #ffffff;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.espide-display-designer-overlay[hidden] {
+  display: none;
+}
+
+.espide-display-designer-dialog {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(1280px, calc(100vw - 32px));
+  height: min(860px, calc(100vh - 32px));
+  overflow: hidden;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px var(--ui-shadow, rgba(0, 0, 0, 0.4));
+  font-family: Arial, sans-serif;
+}
+
+.espide-display-designer-overlay.is-maximized {
+  padding: 0;
+}
+
+.espide-display-designer-overlay.is-maximized .espide-display-designer-dialog {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/*
+ * Full-screen mode belongs to the drawing surface. Keep the property panel in
+ * its own fixed column, while allowing adaptive displays to use the remaining
+ * width instead of retaining the normal 1280px dialog cap.
+ */
+.espide-display-designer-overlay.is-maximized .espide-display-designer-main {
+  justify-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.espide-display-designer-header,
+.espide-display-designer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ui-border-soft, #d0d7de);
+}
+
+.espide-display-designer-header h2,
+.espide-display-designer-header p {
+  margin: 0;
+}
+
+.espide-display-designer-header-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.espide-display-designer-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.espide-display-designer-resolution {
+  position: relative;
+  flex: 0 0 auto;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 12px;
+}
+
+.espide-display-designer-resolution-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px 9px;
+  color: var(--ui-text-muted, #4b5563);
+  background: var(--ui-bg-subtle, #f3f4f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.espide-display-designer-resolution-toggle:hover,
+.espide-display-designer-resolution-toggle[aria-expanded="true"] {
+  color: var(--ui-text, #1f2328);
+  background: var(--button-hover, #e5e5e5);
+  border-color: var(--ui-border, #a8a8a8);
+}
+
+.espide-display-designer-resolution-toggle:focus-visible {
+  outline: 2px solid var(--ui-accent, #3f51b5);
+  outline-offset: 2px;
+}
+
+.espide-display-designer-resolution-icon {
+  box-sizing: border-box;
+  width: 13px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+
+.espide-display-designer-resolution-chevron {
+  margin-top: -3px;
+  font-size: 13px;
+  transition: transform 120ms ease;
+}
+
+.espide-display-designer-resolution-toggle[aria-expanded="true"]
+    .espide-display-designer-resolution-chevron {
+  transform: rotate(180deg) translateY(-2px);
+}
+
+.espide-display-designer-resolution-popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  left: 0;
+  box-sizing: border-box;
+  width: min(286px, calc(100vw - 36px));
+  padding: 12px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-panel, #ffffff);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+.espide-display-designer-resolution-popover[hidden],
+.espide-display-designer-resolution button[hidden] {
+  display: none;
+}
+
+.espide-display-designer-resolution-target {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 9px;
+  color: var(--ui-text-muted, #4b5563);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.espide-display-designer-resolution-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 7px;
+}
+
+.espide-display-designer-resolution-fields > span {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  justify-content: center;
+  min-height: 34px;
+  color: var(--ui-text-muted, #4b5563);
+}
+
+.espide-display-designer-resolution label {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.espide-display-designer-resolution input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  margin: 0;
+  padding: 5px 8px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 5px;
+}
+
+.espide-display-designer-resolution-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.espide-display-designer-resolution-actions button {
+  min-height: 32px;
+  padding: 5px 10px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.espide-display-designer-resolution-actions .espide-display-designer-resolution-apply {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-header p {
+  color: var(--ui-text-muted, #4b5563);
+}
+
+.espide-display-designer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.espide-display-designer-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  color: var(--ui-text, #1f2328);
+  background: transparent;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.espide-display-designer-header-actions button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.espide-display-designer-history {
+  font-size: 22px;
+}
+
+.espide-display-designer-size {
+  font-size: 22px;
+}
+
+.espide-display-designer-close {
+  font-size: 30px;
+}
+
+.espide-display-designer-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.espide-display-designer-preview-panel {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) 52px;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Service-only bridge to the operating system's image picker. The explicit
+ * rule prevents broad application input styles from overriding HTML hidden. */
+.espide-display-designer-bitmap-file-input {
+  display: none !important;
+}
+
+.espide-display-designer-font-picker[hidden],
+.espide-display-designer-font-options[hidden],
+.espide-display-designer-bitmap-importer[hidden],
+.espide-display-designer-text-fields[hidden],
+.espide-display-designer-filled[hidden] {
+  display: none;
+}
+
+/*
+ * The text tool opens a compact in-designer picker. It is intentionally not a
+ * second full-screen editor: the common path is text + preview + Add, while
+ * importing and pixel editing remain one explicit advanced action away.
+ */
+.espide-display-designer-font-picker {
+  position: absolute;
+  z-index: 10;
+  top: 52px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(700px, calc(100% - 20px));
+  max-height: calc(100% - 52px);
+  padding: 16px;
+  overflow: hidden;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px var(--ui-shadow, rgba(0, 0, 0, 0.42));
+  transform: translateX(-50%);
+}
+
+/* When expanded, the picker is bounded by the preview panel. Only the catalog
+ * list scrolls; the text field, current choice and action buttons stay put. */
+.espide-display-designer-font-picker.is-options-open {
+  bottom: 0;
+  max-height: none;
+}
+
+.espide-display-designer-font-picker > header,
+.espide-display-designer-font-picker > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.espide-display-designer-font-picker h3,
+.espide-display-designer-font-picker p {
+  margin: 0;
+}
+
+.espide-display-designer-font-picker header p {
+  margin-top: 3px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-font-picker button {
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-font-picker button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-font-picker-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 27px;
+}
+
+.espide-display-designer-text-value,
+.espide-display-designer-font-select-label {
+  display: block;
+  margin-top: 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.espide-display-designer-font-select {
+  min-height: 0;
+}
+
+.espide-display-designer-font-picker.is-options-open .espide-display-designer-font-select {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.espide-display-designer-text-value input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px 10px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 6px;
+}
+
+.espide-display-designer-font-select > button {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
+  text-align: left;
+}
+
+.espide-display-designer-font-select img,
+.espide-display-designer-font-options img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 1;
+  background: #000;
+  border: 1px solid #4f5d75;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+.espide-display-designer-font-select strong,
+.espide-display-designer-font-select small,
+.espide-display-designer-font-options strong,
+.espide-display-designer-font-options small {
+  display: block;
+}
+
+.espide-display-designer-font-select small,
+.espide-display-designer-font-options small {
+  margin-top: 3px;
+  color: var(--ui-text-muted, #4b5563);
+}
+
+.espide-display-designer-font-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  max-height: min(330px, 38vh);
+  margin-top: 7px;
+  padding: 7px;
+  overflow: auto;
+  background: var(--ui-bg-panel, #f6f6f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 7px;
+}
+
+.espide-display-designer-font-picker.is-options-open .espide-display-designer-font-options {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.espide-display-designer-font-options button {
+  display: grid;
+  grid-template-columns: minmax(100px, 160px) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px;
+  text-align: left;
+}
+
+.espide-display-designer-font-options button.is-selected {
+  border-color: var(--ui-accent, #3f51b5);
+  box-shadow: inset 0 0 0 1px var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-font-status {
+  min-height: 18px;
+  margin-top: 7px !important;
+  color: var(--ui-accent, #3f51b5);
+  font-size: 13px;
+}
+
+.espide-display-designer-font-status.is-error {
+  color: #c62828;
+}
+
+.espide-display-designer-font-picker > footer {
+  flex: 0 0 auto;
+  margin-top: 10px;
+}
+
+.espide-display-designer-font-picker > footer button {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
+.espide-display-designer-font-picker .espide-display-designer-add-text {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+/* Bitmap conversion is a compact task panel inside the designer. Only the
+ * decoded 128x64-or-smaller result is kept; the original image is released as
+ * soon as the panel closes. */
+.espide-display-designer-bitmap-importer {
+  position: absolute;
+  z-index: 11;
+  top: 52px;
+  left: 50%;
+  box-sizing: border-box;
+  width: min(700px, calc(100% - 20px));
+  max-height: calc(100% - 52px);
+  padding: 16px;
+  overflow: auto;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px var(--ui-shadow, rgba(0, 0, 0, 0.42));
+  transform: translateX(-50%);
+}
+
+.espide-display-designer-bitmap-importer > header,
+.espide-display-designer-bitmap-importer > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.espide-display-designer-bitmap-importer h3,
+.espide-display-designer-bitmap-importer p {
+  margin: 0;
+}
+
+.espide-display-designer-bitmap-importer header p,
+.espide-display-designer-bitmap-preview-wrap p {
+  margin-top: 4px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-bitmap-importer button {
+  min-height: 38px;
+  padding: 8px 12px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-bitmap-importer button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-bitmap-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 27px;
+}
+
+.espide-display-designer-bitmap-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(190px, 0.8fr);
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.espide-display-designer-bitmap-preview-wrap canvas {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  background: #000;
+  border: 1px solid #4f5d75;
+  image-rendering: pixelated;
+}
+
+.espide-display-designer-bitmap-controls {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.espide-display-designer-bitmap-size {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.espide-display-designer-bitmap-controls label > span,
+.espide-display-designer-bitmap-threshold > span {
+  display: inline-block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.espide-display-designer-bitmap-size input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 6px;
+}
+
+.espide-display-designer-bitmap-threshold output {
+  float: right;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-bitmap-threshold input {
+  display: block;
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-bitmap-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.espide-display-designer-bitmap-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-bitmap-check span {
+  margin: 0 !important;
+}
+
+.espide-display-designer-bitmap-importer > footer {
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.espide-display-designer-bitmap-importer .espide-display-designer-add-bitmap {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: min(960px, 100%);
+  margin: 0 auto;
+}
+
+.espide-display-designer-toolbar button,
+.espide-display-designer-drawing-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 7px 12px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-brush-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  margin-left: 4px;
+  padding: 0 2px 0 4px;
+  color: var(--ui-text-muted, #4b5563);
+  background: transparent;
+  border: 0;
+}
+
+.espide-display-designer-brush-size select {
+  box-sizing: border-box;
+  min-width: 66px;
+  height: 28px;
+  margin: 0;
+  padding: 2px 5px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 5px;
+}
+
+.espide-display-designer-brush-size select option {
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+}
+
+.espide-display-designer-toolbar button:hover,
+.espide-display-designer-drawing-controls button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-toolbar button.is-active,
+.espide-display-designer-drawing-controls button.is-active {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-toolbar button > span:first-child,
+.espide-display-designer-drawing-controls button > span:first-child {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/*
+ * Brush and eraser artwork is shipped with ESP IDE and used as a CSS mask.
+ * currentColor therefore follows light/dark and active-button states without
+ * separate downloaded icon variants.
+ */
+.espide-display-designer-tool-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.espide-display-designer-tool-icon.is-brush {
+  -webkit-mask-image: url("../../media/display_designer_brush.svg");
+  mask-image: url("../../media/display_designer_brush.svg");
+}
+
+.espide-display-designer-tool-icon.is-eraser {
+  -webkit-mask-image: url("../../media/display_designer_eraser.svg");
+  mask-image: url("../../media/display_designer_eraser.svg");
+}
+
+.espide-display-designer-drawing-controls {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 4px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-panel, #f6f6f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 8px;
+}
+
+.espide-display-designer-drawing-controls[hidden] {
+  display: none;
+}
+
+.espide-display-designer-brush-color,
+.espide-display-designer-layer-color-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-layer-color-controls {
+  box-sizing: border-box;
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 4px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-panel, #f6f6f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 8px;
+}
+
+.espide-display-designer-layer-color-controls[hidden] {
+  display: none;
+}
+
+.espide-display-designer-context-controls {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 52px;
+  padding-top: 4px;
+  overflow: hidden;
+}
+
+.espide-display-designer-context-controls .espide-display-designer-drawing-controls button {
+  min-height: 32px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.espide-display-designer-brush-color > div,
+.espide-display-designer-layer-color-controls > div {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 6px;
+}
+
+.espide-display-designer-brush-color button,
+.espide-display-designer-layer-color-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 3px 7px;
+  color: var(--button-text, #1f2328);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.espide-display-designer-brush-color button.is-active,
+.espide-display-designer-layer-color-controls button.is-active {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-color-swatch {
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--ui-border-strong, #6b7280);
+  border-radius: 3px;
+}
+
+.espide-display-designer-color-swatch.is-white {
+  background: #fff;
+}
+
+.espide-display-designer-color-swatch.is-black {
+  background: #000;
+}
+
+.espide-display-designer-screen {
+  position: relative;
+  box-sizing: content-box;
+  width: min(960px, 100%);
+  aspect-ratio: 2 / 1;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: #000;
+  border: 2px solid #707b96;
+  box-shadow: 0 0 0 8px #0b0d13, 0 12px 34px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+  user-select: none;
+}
+
+.espide-display-designer-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+}
+
+.espide-display-designer-screen[data-tool="rect"],
+.espide-display-designer-screen[data-tool="line"],
+.espide-display-designer-screen[data-tool="ellipse"],
+.espide-display-designer-screen[data-tool="brush"],
+.espide-display-designer-screen[data-tool="eraser"] {
+  cursor: crosshair;
+}
+
+.espide-display-designer-screen[data-tool="select"] {
+  cursor: move;
+}
+
+.espide-display-designer-screen[data-cursor="nwse"] {
+  cursor: nwse-resize;
+}
+
+.espide-display-designer-screen[data-cursor="nesw"] {
+  cursor: nesw-resize;
+}
+
+.espide-display-designer-screen[data-cursor="line"] {
+  cursor: crosshair;
+}
+
+.espide-display-designer-screen canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.espide-display-designer-scene-canvas {
+  z-index: 1;
+}
+
+.espide-display-designer-grid-canvas {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.espide-display-designer-selection-canvas {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.espide-display-designer-empty {
+  align-self: center;
+  margin: 8px auto 0;
+  color: var(--ui-text-muted, #4b5563);
+  text-align: center;
+}
+
+.espide-display-designer-properties {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--ui-bg-panel, #f6f6f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 10px;
+}
+
+.espide-display-designer-properties section + section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ui-border-soft, #d0d7de);
+}
+
+/*
+ * Reserve the same property area whether an object is selected or not. The
+ * layers therefore never jump when selection changes.
+ */
+.espide-display-designer-object-panel {
+  /*
+   * Colour lives below the display, so the sidebar only reserves room for
+   * coordinates and object-specific fields. The recovered height belongs to
+   * the layer list and no nested property scrollbar is needed.
+   */
+  flex: 0 0 338px;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.espide-display-designer-layers-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 124px;
+  overflow: hidden;
+}
+
+.espide-display-designer-layers-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.espide-display-designer-layers-heading h3 {
+  min-width: 0;
+  margin: 0;
+}
+
+.espide-display-designer-layer-order {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 3px;
+}
+
+.espide-display-designer-layer-order button {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.espide-display-designer-layer-order button:hover:not(:disabled) {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-layer-order button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.espide-display-designer-properties h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.espide-display-designer-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--ui-text, #1f2328);
+  font-weight: 600;
+}
+
+.espide-display-designer-properties input:not([type="checkbox"]) {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+  padding: 9px 10px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-input, #fafafa);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 6px;
+}
+
+.espide-display-designer-scene-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin: 7px 0 0;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 12px;
+}
+
+.espide-display-designer-scene-summary span + span::before {
+  margin-right: 12px;
+  content: "·";
+}
+
+.espide-display-designer-no-selection,
+.espide-display-designer-no-layers {
+  margin: 0;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 14px;
+}
+
+.espide-display-designer-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+
+.espide-display-designer-layer-label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-layer-label[hidden] {
+  display: none;
+}
+
+.espide-display-designer-layer-label input {
+  margin: 0;
+  padding: 5px 7px !important;
+}
+
+.espide-display-designer-coordinate-grid label {
+  min-width: 0;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-coordinate-grid input {
+  margin: 2px 0 0;
+  padding: 5px 7px !important;
+}
+
+.espide-display-designer-shape-options {
+  margin-top: 7px;
+}
+
+.espide-display-designer-shape-options label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-shape-options label[hidden] {
+  display: none;
+}
+
+.espide-display-designer-shape-options input,
+.espide-display-designer-shape-options select {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 5px 7px !important;
+}
+
+.espide-display-designer-filled {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-filled input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-text-fields {
+  margin-top: 7px;
+}
+
+.espide-display-designer-text-fields label,
+.espide-display-designer-current-font {
+  display: block;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+}
+
+.espide-display-designer-text-fields input {
+  margin: 2px 0 0;
+  padding: 5px 7px !important;
+}
+
+.espide-display-designer-text-fields .espide-display-designer-text-inverted {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+  color: var(--ui-text, #1f2328);
+  cursor: pointer;
+}
+
+.espide-display-designer-text-inverted input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0 !important;
+  accent-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-current-font {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.espide-display-designer-current-font strong {
+  overflow: hidden;
+  color: var(--ui-text, #1f2328);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.espide-display-designer-text-fields button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 8px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.espide-display-designer-dynamic-fields {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 7px 0 0;
+  padding: 4px 7px 6px;
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 7px;
+}
+
+.espide-display-designer-dynamic-fields legend {
+  padding: 0 4px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.espide-display-designer-dynamic-fields > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+}
+
+.espide-display-designer-dynamic-fields label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ui-text, #1f2328);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* The author-level flex rule would otherwise override the native [hidden]. */
+.espide-display-designer-dynamic-fields label[hidden] {
+  display: none;
+}
+
+.espide-display-designer-dynamic-fields input {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-arrange-fields {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 7px 0 0;
+  padding: 5px 7px 7px;
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 7px;
+}
+
+.espide-display-designer-arrange-fields[hidden] {
+  display: none;
+}
+
+.espide-display-designer-arrange-fields legend {
+  padding: 0 4px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.espide-display-designer-arrange-fields > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.espide-display-designer-arrange-fields button {
+  min-width: 0;
+  height: 29px;
+  padding: 0;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.espide-display-designer-arrange-fields button:hover:not(:disabled) {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-arrange-fields button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.espide-display-designer-object-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.espide-display-designer-object-actions button {
+  min-width: 0;
+  overflow: hidden;
+  padding: 6px 8px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 6px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.espide-display-designer-object-actions button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-layer-list {
+  display: grid;
+  align-content: start;
+  flex: 1 1 auto;
+  gap: 4px;
+  grid-auto-rows: min-content;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.espide-display-designer-layer-list li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  border-radius: 6px;
+}
+
+.espide-display-designer-layer-visibility {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--ui-accent, #3f51b5);
+  cursor: pointer;
+}
+
+.espide-display-designer-layer-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 6px 9px;
+  overflow: hidden;
+  color: var(--button-text, #1f2328);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.espide-display-designer-layer-name:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-layer-name.is-selected {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-layer-remove {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.espide-display-designer-layer-remove::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  content: "";
+  background-color: currentColor;
+  -webkit-mask: url("../../media/display_designer_trash.svg") center / contain no-repeat;
+  mask: url("../../media/display_designer_trash.svg") center / contain no-repeat;
+}
+
+.espide-display-designer-layer-remove:hover {
+  color: #fff;
+  background: #b3261e;
+  border-color: #b3261e;
+}
+
+.espide-display-designer-layer-list li.is-hidden .espide-display-designer-layer-name {
+  opacity: 0.58;
+}
+
+.espide-display-designer-footer {
+  justify-content: space-between;
+  border-top: 1px solid var(--ui-border-soft, #d0d7de);
+  border-bottom: 0;
+}
+
+.espide-display-designer-footer-actions,
+.espide-display-designer-live-preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.espide-display-designer-footer button {
+  padding: 9px 18px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-footer button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.espide-display-designer-live-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.espide-display-designer-live-preview.is-active {
+  color: var(--dd-primary-text);
+  background: var(--dd-primary-bg);
+  border-color: var(--dd-primary-bg);
+}
+
+.espide-display-designer-live-preview.is-active:hover {
+  color: var(--dd-primary-text);
+  background: var(--dd-primary-hover-bg);
+  border-color: var(--dd-primary-hover-bg);
+}
+
+.espide-display-designer-live-preview-status {
+  overflow: hidden;
+  max-width: 430px;
+  color: var(--ui-text-muted, #4b5563);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.espide-display-designer-live-preview-status.is-error {
+  color: var(--ui-danger, #b3261e);
+}
+
+html.theme-dark .espide-display-designer-live-preview-status.is-error {
+  color: #ff8a82;
+}
+
+.espide-display-designer-header-actions button:hover,
+.espide-display-designer-footer button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-footer .espide-display-designer-save {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-display-designer-footer .espide-display-designer-save:hover {
+  color: var(--dd-primary-text);
+  background: var(--dd-primary-hover-bg);
+  border-color: var(--dd-primary-hover-bg);
+  filter: none;
+}
+
+/*
+ * Primary actions override the generic button hover rule explicitly. Without
+ * this, hovering Add/Save replaced the accent background with the ordinary
+ * button hover color while retaining its contrast text.
+ */
+.espide-display-designer-font-picker .espide-display-designer-add-text,
+.espide-display-designer-bitmap-importer .espide-display-designer-add-bitmap,
+.espide-display-designer-footer .espide-display-designer-save {
+  color: var(--dd-primary-text);
+  background: var(--dd-primary-bg);
+  border-color: var(--dd-primary-bg);
+}
+
+.espide-display-designer-font-picker .espide-display-designer-add-text:hover,
+.espide-display-designer-bitmap-importer .espide-display-designer-add-bitmap:hover,
+.espide-display-designer-footer .espide-display-designer-save:hover {
+  color: var(--dd-primary-text);
+  background: var(--dd-primary-hover-bg);
+  border-color: var(--dd-primary-hover-bg);
+}
+
+.espide-display-designer-unsaved-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.54);
+}
+
+.espide-display-designer-unsaved-overlay[hidden] {
+  display: none;
+}
+
+.espide-display-designer-unsaved-dialog {
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  padding: 20px;
+  color: var(--ui-text, #1f2328);
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px var(--ui-shadow, rgba(0, 0, 0, 0.4));
+}
+
+.espide-display-designer-unsaved-dialog h3,
+.espide-display-designer-unsaved-dialog p {
+  margin: 0;
+}
+
+.espide-display-designer-unsaved-dialog p {
+  margin-top: 9px;
+  color: var(--ui-text-muted, #4b5563);
+  line-height: 1.45;
+}
+
+.espide-display-designer-unsaved-dialog footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.espide-display-designer-unsaved-dialog button {
+  min-height: 38px;
+  padding: 8px 13px;
+  color: var(--button-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.espide-display-designer-unsaved-dialog button:hover {
+  background: var(--button-hover, #e5e5e5);
+}
+
+.espide-display-designer-unsaved-dialog .espide-display-designer-discard {
+  color: #ffffff;
+  background: #b3261e;
+  border-color: #b3261e;
+}
+
+.espide-display-designer-unsaved-dialog .espide-display-designer-discard:hover {
+  color: #ffffff;
+  background: #a5211a;
+  border-color: #a5211a;
+}
+
+@media (max-width: 820px) {
+  .espide-display-designer-overlay {
+    padding: 8px;
+  }
+
+  .espide-display-designer-main {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .espide-display-designer-preview-panel {
+    grid-template-rows: auto minmax(0, 1fr) 96px;
+    height: 420px;
+    height: clamp(360px, 70vh, 620px);
+    height: clamp(360px, 70dvh, 620px);
+    min-height: 360px;
+  }
+
+  .espide-display-designer-context-controls {
+    height: 96px;
+  }
+
+  .espide-display-designer-drawing-controls {
+    justify-content: center;
+  }
+
+  .espide-display-designer-header {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .espide-display-designer-header h2 {
+    overflow: hidden;
+    font-size: 17px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .espide-display-designer-header-meta {
+    margin-top: 3px;
+  }
+
+  .espide-display-designer-header-meta > p {
+    display: none;
+  }
+
+  .espide-display-designer-resolution-toggle {
+    min-height: 26px;
+    padding: 2px 8px;
+  }
+
+  .espide-display-designer-header-actions {
+    gap: 0;
+  }
+
+  .espide-display-designer-header-actions button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .espide-display-designer-overlay.is-maximized .espide-display-designer-main {
+    width: 100%;
+  }
+
+  .espide-display-designer-properties {
+    height: auto;
+    min-height: 560px;
+    margin-top: 12px;
+  }
+
+  .espide-display-designer-font-picker {
+    position: fixed;
+    top: 8px;
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  .espide-display-designer-bitmap-importer {
+    position: fixed;
+    top: 8px;
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  .espide-display-designer-bitmap-content {
+    grid-template-columns: 1fr;
+  }
+
+  .espide-display-designer-font-picker.is-options-open {
+    bottom: 8px;
+  }
+
+  .espide-display-designer-font-options {
+    grid-template-columns: 1fr;
+    max-height: 42dvh;
+  }
+
+  .espide-display-designer-footer {
+    flex-wrap: wrap;
+  }
+
+  .espide-display-designer-live-preview-status {
+    max-width: 42vw;
+  }
+}

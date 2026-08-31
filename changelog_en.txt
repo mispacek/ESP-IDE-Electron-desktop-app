@@ -1,21 +1,340 @@
+[22.08.2026] 2.0.211
+- The Simulator target now follows Generic in the list; Generic is used by default when no saved target exists.
+
+[22.08.2026] 2.0.210
+- Simulator Lite: LEDs are smaller and aligned higher in their cards; the label displays LED and GPIO on separate lines.
+
+[22.08.2026] 2.0.209
+- Simulator Lite: All component cards now use the same surface colour in both light and dark themes.
+- Simulator Lite: The scene is transparent by default and its configuration supports an optional bitmap background with auto, contain, and cover modes.
+
+[22.08.2026] 2.0.208
+- Simulator Lite: The panel is now a real resizable right dock, so it no longer covers text tabs or the terminal; it can be hidden or detached into a movable window.
+- Simulator Lite: The header is compact, factory FS reset is in the overflow menu, and the whole panel including its iframe follows the ESP IDE light and dark themes.
+- Simulator Lite: Only the Worker and RPC runtime are renewed before program upload; the iframe, scene, and loaded assets remain in place. A full reload is used only as emergency recovery.
+- Simulator Lite: Factory files are reused from a versioned cache between restarts, and the OLED canvas is aligned with the 800×800 bitmap geometry again.
+- Simulator Lite: NeoPixel now uses a background with eight precisely positioned LEDs, the encoder has a more compact control layout, and the scene surface is transparent.
+- Simulator Lite: Servo mode can be switched at runtime, LED colour changed by clicking, and DC motor labels show GPIO pins on a separate line.
+
+[20.08.2026] 2.0.170
+- Added support for the ESP32-S3 Robotic Board, including a dedicated toolbox, enabled Bluetooth, and custom digital and analog pinout blocks.
+- Integrated MPU6500 gyroscope and accelerometer blocks with Madgwick filter and Python code generators into core Blockly.
+- Added Czech, English, and German translations for the new blocks and toolbox labels.
+
+[16.08.2026] 2.0.159
+- The English versions of the five examples updated on August 15, 2026 were rebuilt from their Czech sources, with the new comments, text, and variable names translated.
+
+[14.08.2026] 2.0.158
+- The Display Designer brush, eraser, and trash icons are now preloaded into the application's offline cache.
+
+[14.08.2026] 2.0.157
+- The Examples item in the new menu now uses its own new icon, which is also included in the application's offline cache.
+
+[14.08.2026] 2.0.156
+- All 12 example projects are now also available in English under examples/en.
+- The English projects include translated comments, text output, variable names, and procedure names, while preserving the wiring, pins, and logic of their Czech originals.
+
+[14.08.2026] 2.0.155
+- The Examples menu now loads bundled .blk projects directly from the server instead of using the former share codes.
+- The catalog contains Basic, Sensors, and Displays and keeps translated labels and relative project paths together in one maintainable place.
+- Czech uses examples/cs with an English fallback; English, German, and future languages use examples/en.
+- A downloaded file is validated before it is opened, leaving the current project unchanged on failure. Online mode fetches the current server copy, while previously opened examples remain available from the PWA cache when offline.
+- The chevrons beside Examples and its submenu categories are now vertically centered.
+
+[04.08.2026] 2.0.152
+- Text blocks for character and substring extraction, searching, case conversion and whitespace trimming now safely convert numeric input to text.
+- The length and empty-value blocks now accept numbers while preserving their existing behaviour for strings, lists and other collections.
+- The regular and small-font OLED text blocks now accept number blocks; generated MicroPython converts their values to text automatically.
+- The distributed Blockly blocks and Python generator were rebuilt.
+
+[30.07.2026] 2.0.151
+- Settings now include automatic Blockly project backup to /backup.blk.gz with Never, USB only and Always modes.
+- The Project menu can open the latest device backup and shows a clear error when the backup is missing or damaged.
+- The Project dropdown now uses the available screen height, so it fits without a scrollbar on a typical display.
+- Newly saved and shared Blockly projects now contain only the add-ons they actually use; incomplete projects are not saved when a dependency is missing.
+- A missing dependency module during a partial update no longer stops the toolbox from loading; project export remains safely blocked until the update is complete.
+- Toolbox category icons are now restored correctly even when translations load more slowly from the web server.
+
+[28.07.2026] 2.0.148
+- The “Draw OLED design” block now has a new default-on “Refresh display” checkbox.
+- When enabled, it appends `display.show()` after the static background and every dynamic layer. Disabling it still allows additional blocks to draw into the framebuffer before refreshing separately.
+- Czech, English and German translations were added, and the distributed Blockly blocks and Python generator were rebuilt.
+
+[28.07.2026] 2.0.147
+- The selected layer's white/black colour control moved from the crowded right sidebar into a contextual bar below the display.
+- A drawing shows colour only once in its brush toolbar; the general layer colour is hidden for drawings and while a drawing tool is active.
+- Every new rectangle, ellipse, line, text and bitmap now starts white regardless of a previously selected layer or brush colour.
+- The recovered sidebar space has been returned to the layer list.
+
+[28.07.2026] 2.0.146
+- Rectangles, ellipses, lines, text and bitmaps now share one white/black colour control; old inverted text is migrated to black automatically.
+- A drawing uses separate white and black 1-bit masks, allowing white pixels, black pixels and a truly transparent eraser in one layer. Existing drawings remain compatible.
+- The generator draws simple black shapes directly with colour 0. Black rasterized objects and dynamic drawings use transparent blits, and a second mask is emitted only when black pixels actually exist.
+- Opening the graphic editor now deselects its source Blockly block and moves focus into the dialog, preventing Delete from accidentally removing the block behind the editor.
+
+[28.07.2026] 2.0.145
+- A drawing now gets a selection outline around its actual painted pixels and can be grabbed by that outline, dragged with the mouse, or moved by editing X/Y.
+- Moving a drawing only changes its layer offset; the packed 128×64 bitmap is not resampled, and subsequent brush strokes correctly use its local coordinates.
+
+[27.07.2026] 2.0.144
+- Bluetooth live preview now uses a separate conservative profile: 48-byte framebuffer blocks, transport pieces no longer than 20 characters, 90ms intra-command gaps, 140ms inter-command gaps, and substantially longer timeouts.
+- Initialization Python is no longer sent or compiled as one large block. It is split into several smaller raw-REPL commands, and every command is transmitted in bounded pieces on all connection types.
+- USB retains fast 128-byte framebuffer blocks while also receiving light splitting of long initialization commands for lower-memory processors.
+
+[27.07.2026] 2.0.143
+- Changing layer visibility now schedules an immediate live-preview update.
+- Once per second, an active preview compares a freshly rasterized scene with the last acknowledged frame. It sends nothing when unchanged and reuses the same sequential queue when changed, preventing concurrent REPL transfers.
+
+[27.07.2026] 2.0.142
+- Live preview now updates when selected objects are moved with arrow keys, including key repeat and the 5 px `Shift` step.
+- Typing directly into a text layer also schedules a connected-display refresh, while the shared debounce continues protecting the REPL from flooding.
+
+[27.07.2026] 2.0.141
+- The OLED Display Designer now provides live preview on a connected ESP over the existing USB, BLE, or WebREPL connection without modifying REPL drivers.
+- Helper functions are installed in RAM through raw REPL; the framebuffer is then transferred as safe printable Base64 commands in 128-byte blocks and rendered only by a separate `show()` call.
+- The first preview sends the complete framebuffer, while later updates send changed blocks only. Debouncing, a sequential queue, and inter-command delays avoid flooding slower boards.
+- Added clear errors for a disconnected board, missing framebuffer, missing `display.show()`, framebuffer-size mismatch, rejected data, and device timeout.
+
+[25.07.2026] 2.0.140
+- The subtle pencil icon in the OLED Display Designer block was replaced with a prominent localized “Open graphic editor” CTA button on its own block row.
+
+[25.07.2026] 2.0.139
+- Fixed dynamic inverted text on monochrome framebuffers: the library now inverts the mask directly inside its reusable buffer and renders black pixels with transparency key 1.
+- The fix uses neither a palette nor another framebuffer, and repeated identical characters reuse the already inverted mask.
+- The text-property panel receives more vertical space at the expense of a smaller layer-list area, keeping the new checkbox inside its box.
+
+[25.07.2026] 2.0.138
+- Every layer-list row now has its own local trash icon. Deleting one layer requires confirmation and remains reversible through Undo.
+- Text layers support inverted colours for rendering black glyphs over a light background, including dynamic text and coordinates.
+- Inverted dynamic text reuses the original one-bit font mask without creating a font copy or another glyph framebuffer.
+
+[25.07.2026] 2.0.137
+- Lines in the OLED Display Designer can use a 1, 2, 3, or 5 px width; the preview, static framebuffer, and generated code share the same deterministic pixels.
+- Rectangles support a corner radius from 0 px up to half of the shorter side for both outline and filled variants.
+- One-pixel lines and square-corner rectangles continue using the fast MicroPython `line()`, `rect()`, and `fill_rect()` functions. Thick lines and dynamic rounded rectangles are rasterized in advance and rendered as aligned transparent bitmaps.
+
+[25.07.2026] 2.0.136
+- Added an integrated OLED Display Designer Blockly block for creating monochrome 128×64 px scenes; the complete editable scene is stored directly in the block mutation and remains part of the project.
+- The designer supports rectangles, lines, ellipses, text, imported bitmaps, and freehand drawing with multiple brush and eraser sizes.
+- Objects can be selected individually or as a group, moved with the pointer or arrow keys, resized from their corners, duplicated, copied and pasted with `Ctrl+C`/`Ctrl+V`, aligned, and evenly distributed.
+- Layers can be named, hidden, duplicated, deleted, and reordered with arrow buttons; dynamic layers automatically remain above the static background.
+- Added local Undo/Redo history, an unsaved-changes warning on close, and shortcut capture so the Blockly block behind the dialog is not copied or deleted together with a selected object.
+- The designer follows both light and dark themes, uses higher-contrast active buttons, and provides a compact responsive layout, an enlarged mode, and stable property and layer panels without unwanted dialog movement or nested scrollbars.
+- The pixel grid now uses a dedicated canvas and integer physical scaling, keeping every pixel cell equally sized and every line sharp at different DPI scales; the brush and eraser cursor shows the exact affected area.
+- The Bitmap button opens the native PNG, JPEG, BMP, or WebP file picker directly. Import controls include resizing, black threshold, inversion, dithering, and a choice between opaque black pixels and transparent background pixels.
+- The Text tool provides integrated bitmap fonts with pre-rendered `ABCabc123` previews, the 5×8 default font, and direct text editing; user-imported fonts are appended to the end of the list.
+- Added an advanced monospace font editor with pixel editing for all 96 glyphs, text preview, cell resizing, global X/Y glyph shifting, MFNT import/export, and generation from fonts available on the system.
+- The font editor imports bitmap BDF, PSF1/PSF2, PSFU, and gzip variants including Unicode tables; a separate tool can also convert bitmap OTB strikes to MFNT without rasterization.
+- MFNT v1 exports now use the processor-friendly `MONO_VLSB` layout with height aligned to complete eight-pixel pages. Every preview and renderer follows the mandatory 1 px spacing between characters.
+- Added the `/lib/espide_monofont.py` firmware library; generated code uses the standard `from espide_monofont import MonoFont` import, caches font instances, and safely replaces unsupported characters with spaces without seeking beyond the font file.
+- Static layers are precomputed in the browser into one framebuffer by default. Dynamic text, X/Y coordinates, and visibility can optionally become Blockly mutation inputs and are rendered above the static background.
+- Added an optional project-wide mode that stores all non-empty static scenes in one raw `/gfx/scene.dat` file; the file and required custom fonts are uploaded before Run, and scenes load through a fast `seek()` and `readinto()` path.
+- Empty and dynamic-only scenes no longer embed or upload 1024 zero bytes and simply clear the existing framebuffer. Generated code uses shorter identifiers and emits one-use coordinates directly inside drawing calls.
+- Unified byte alignment for all local framebuffers and added correct handling of negative coordinates and objects extending beyond the display; clipping happens only during final rendering and off-screen parts remain editable.
+- The curated collection now contains 33 distinct integrated fonts with local previews; redundant 8×8, 8×16, 16×32, and 28×64 fonts were also removed from the offline cache.
+- Improved application startup: the initial Blockly locale loads before block registration, eliminating dozens of false `No message string for %{BKY_...}` warnings and their expensive stack traces.
+
+[21.07.2026] 2.0.72
+- Added German localization for the interface, Blockly blocks, and image editor.
+- The language selector now safely handles Czech, English, and German; rapid changes are applied in the correct order.
+- Bilingual add-ons without German text use their English translation in German mode instead of the Czech default text.
+- German language assets are included in the offline cache and custom Blockly dialogs follow the active locale.
+- The German interface was reviewed against a native-speaker translation; labels, status messages, and technical terminology are more natural and use a consistent informal address.
+- The loading screen now uses the selected language during an offline-version update, before the main language pack has loaded.
+- Fixed German `x`/`y` coordinate labels in display and chart blocks: the incorrect `j` is now `y`, and both axes consistently use lowercase letters.
+
+[17.07.2026] 2.0.66
+- The application, versioned assets, and offline cache now use the single `APP_VERSION` value in `index.html`; the Service Worker reads it from its registration URL.
+- Precache downloads at most eight files in parallel, has a fixed timeout, and activates a new version only after every offline asset is stored.
+- A complete cache for the same version is reused without downloading it again, and static assets are no longer needlessly revalidated in the background.
+- Updates stay behind the loading screen, while failures and timeouts continue with the previous active version without a delayed takeover of the open page.
+- Fixed hard reloads where the correct Service Worker is active but the current document has no `navigator.serviceWorker.controller`.
+- `index.html` and `sw.js` are always revalidated by the server; Service Worker CacheStorage and offline startup remain available.
+
+[13.07.2026] 2.0.65
+- Reduced category and project-name typography in the Examples side panel.
+
+[13.07.2026] 2.0.64
+- Added Examples to the new Project menu between automatic startup and opening a project from PC.
+- Examples are shown in a side tree with four learning categories and load existing six-character share codes.
+- The example catalog is kept separately in `js/examples_catalog.js` and supports menu translations and both themes.
+
+[13.07.2026] 2.0.63
+- The MCP browser bridge is disabled by default, so opening ESP IDE normally no longer attempts to connect to `ws://127.0.0.1:8765`.
+- The AI bridge can be enabled explicitly with the `?espide_mcp=1` parameter or `ESPIDE_AI_MCP_BRIDGE.enable()`.
+- Removed endless WebSocket reconnection attempts when the MCP server is stopped or unavailable.
+- Bumped the application and Service Worker cache version so the fixed bridge replaces the older cached version.
+
+[13.07.2026] 2.0.62
+- Extracted the Blockly automation helper from `index.html` into the versioned `js/espide_ai_api.js` API while preserving backward compatibility.
+- Added tools for reading IDE state, listing and describing blocks, inspecting the Blockly workspace, generated code, terminal output, settings, and add-on metadata.
+- Added events for workspace, connection, language, toolbox, and terminal changes.
+- Added transactional `apply_workspace_patch` with `dryRun` preview, revision checks, validation, automatic rollback, and Undo support.
+- Added a local MCP server and loopback browser bridge for controlling ESP IDE from Codex without an OpenAI API key in the web application.
+- Added project Codex rules, an add-on development workflow, automated `.newblk` tests, and direct CZ/EN text support for blocks and toolbox entries.
+
+[01.06.2026] 2.0.61
+- SPI OLED display initialization now uses the MISO pin required by MicroPython when creating `SoftSPI`.
+- Updated SPI OLED block labels and pin diagnostic messages.
+- Bumped the application and Service Worker cache version so `sw.js`, Blockly JavaScript files, and translations refresh correctly.
+
+[31.05.2026] 2.0.60
+- Local JS and CSS files loaded by `index.html` are now versioned consistently from the application version.
+- Fixed `js/new_menu.js` and `css/new_menu.css` loading, which still used the old `2026-05-29` query version and could keep the old menu on some devices.
+
+[30.05.2026] 2.0.59
+- Language JSON files `i18n/*.json` and Blockly translation files `js/{lang}.js` are now loaded with a version query based on the current ESP IDE version.
+- The service worker now respects query parameters for static files, so changing `?v=` reliably forces a fresh version to load.
+- Added `js/en.js` to the offline cache.
+
+[30.05.2026] 2.0.58
+- When automatic starter blocks are enabled, ESP IDE now asks whether to add them to the current project as well.
+- The prompt is shown only when the Blockly workspace has neither `program_start` nor `program_loop`; inserting the blocks does not replace the existing program.
+
+[30.05.2026] 2.0.57
+- Moved `program_start` and `program_loop` to the top of the Program section in all toolboxes.
+
+[30.05.2026] 2.0.56
+- Fixed generation order for the starter program blocks.
+- Code that runs once is now generated before the infinite loop even when the loop block is placed higher on the workspace.
+
+[30.05.2026] 2.0.55
+- On a clean editor start, the empty Blockly workspace now automatically receives starter blocks for code that runs once and an infinite loop.
+- Automatic insertion is skipped when loading a complete program from a link or opening an existing project.
+- Added a Settings option to enable or disable starter program blocks. The setting is stored in `localStorage` and defaults to enabled.
+- Added CZ/EN text and prepared caching for the `item_auto_start_blocks.png` icon.
+
+[29.05.2026] 2.0.54
+- Added program blocks for a `setup()` / `loop()` style flow: code that runs once and an infinite loop.
+- The infinite loop block generates `import utime` and calls `utime.sleep_ms(0)` on every iteration so interrupts and background tasks can be handled.
+- Added CZ/EN translations and made the blocks available in the Program category for all toolboxes.
+
+[29.05.2026] 2.0.53
+- Save dialogs now remember the last project name used.
+- After saving or loading a file, the name is propagated to both the PC save dialog and the ESP save dialog.
+- Text file names are stored in project dialogs without their extension, preventing doubled extensions when later saving a Blockly project.
+
+[26.05.2026] 2.0.52
+- Add-ons with `toolbox_mode: addon_only` no longer replace the toolbox automatically without confirmation.
+- Loading such an add-on now shows a dialog where the user can choose whether to replace the whole toolbox or only add the add-on blocks to the standard toolbox.
+- The user's choice is stored with the add-on and respected during later toolbox refreshes, project loads, and catalog installs.
+- Added CZ/EN dialog text for the add-on toolbox mode decision.
+
+[19.05.2026] 2.0.51
+- Servo library now provides much more precise position control using newer PWM write functions.
+- Updated related toolboxes, cache, and translations for the current beta build.
+
+[19.05.2026] 2.0.50
+- Added blocks for saving and loading variable values to an INI file.
+- New `pvstore.py` library keeps data types and reports errors to the console.
+
+[19.05.2026] 2.0.49
+- OLED blocks can now select the display type: automatic, SSD1306, SSD1309, or SH1106.
+- Added SPI OLED driver variant and improved SH1106 offset support.
+
+[19.05.2026] 2.0.48
+- Bluetooth connection was adjusted for better compatibility with Apple devices.
+- Improved BLE error reporting and transfer stability.
+
+[19.05.2026] 2.0.47
+- Added WebSocket driver for the ESP IDE desktop application.
+- Updated desktop connection flow without depending on WebSerial/WebBluetooth.
+
+[18.04.2026] 2.0.22
+- Stabilized add-on installation in Electron via `postMessage` transport.
+- Add-on catalog in Electron now opens with `transport=postmessage`.
+- Web installation via `localStorage` remains unchanged.
+- Backward compatibility kept for older IDE versions (`espide.install.done` fallback).
+
+[18.04.2026] 2.0.21
+- Fixed Service Worker update flow to prevent unexpected UI restarts.
+- On SW version mismatch, loading stays visible until update finishes and reload happens before normal UI is shown.
+- Added SW version check via `GET_VERSION` message.
+- Offline/PWA: added `toolbox_ESPBIT.xml`; manifest now uses relative `start_url`/`scope` and icon paths.
+
+[17.04.2026] 2.0.20
+- Improved BLE diagnostics on iOS/Bluefy: numeric errors (for example `2`) are mapped to readable messages with CZ/EN i18n.
+- Unified asset cache-busting `?v=` parameters in main HTML.
+- SW registration now uses relative `sw.js` and URL-derived scope (removed hardcoded beta path).
+- Fixed `filemanager.html` paths and added missing files to SW precache.
+
+[29.03.2026] 2.0.14
+- Added compressed Blockly save to ESP (`.blk.gz` in `/BLK/`).
+- Added `save_esp_dialog`; text mode save behavior remains unchanged (no compression).
+- File Manager can open compressed Blockly files (`.blk.gz` and `.xml.gz`).
+- Improved overlay performance (removed `backdrop-filter`).
+- SW: bumped cache version and added `js/pako.min.js` to precache.
+
+[29.03.2026] 2.0.13
+- Introduced new top menu system (`css/new_menu.css`, `js/new_menu.js`, `media/new_menu/`).
+- Added 3 menu layouts (`layout1`, `layout2`, `original`) with legacy `more_menu` compatibility.
+- Stabilized `modeSwitch`, fixed quick-panel conflicts, and improved topbar responsiveness.
+- Reworked Device/Settings menu behavior (USB/BLE state rows, theme selector, `autoRunOnBootDefault`, toolbox icons).
+- Updated i18n labels, unified visual readability, and optimized `syncState()` (50 ms throttle).
+- SW: added new menu assets to precache.
+
+[21.03.2026] 2.0.12
+- Stabilized USB REPL initialization after connect.
+- Improved RAW REPL enter sequence/timing; unified USB and BLE behavior.
+- Added new C-shaped `program_section` block (label + enable/disable section toggle).
+
+[19.03.2026] 2.0.11
+- Fixed offscreen workspace screenshot crop (no extra left empty area).
+- Improved bounding-box + padding crop calculation.
+- Other screenshot modes remain unchanged.
+
+[11.03.2026] 2.0.10
+- Stabilized full-workspace screenshots at larger Blockly zoom values.
+- Offscreen capture now renders at stable scale 1.0 and increases resolution via render scale.
+- Preserved top-level block coordinates (no unintended reflow).
+- Removed temporary screenshot debug tooling.
+
+[11.03.2026] 2.0.9
+- Blockly PNG screenshots now use transparent background by default.
+- Added optional white background (`whiteBackground: true` / `background: "white"`).
+- Fixed background rendering in both `visible` and `offscreen` modes.
+- Offscreen full-workspace screenshots respect current Blockly zoom.
+- `Ctrl+Shift+S` now exports transparent screenshot by default.
+
+[24.02.2026] 2.0.8
+- Added universal toolbox `toolbox_Generic.xml` for generic MicroPython boards.
+- Added processor toolboxes for ESP32C6 and RP2350.
+- Added ESP32 ADC voltage blocks in mV and V.
+
+[22.02.2026] 2.0.7
+- USB init no longer overwrites existing `run_code()` / `stop_code()` in `boot.py`.
+- Extended `idecode` diagnostics (exception type, traceback, hints, better `MemoryError` handling).
+- Added Blockly screenshot features (visible/offscreen, PNG export, toolbox batch capture).
+- Added CZ/EN i18n texts for screenshot features.
+- Restored `index.html` encoding to UTF-8 without BOM.
+
+[20.02.2026] 2.0.6
+- Added binary BLE upload protocol (MAGIC/SEQ/LEN/CRC8) with window ACK.
+- Implemented transfer recovery (retry, NAK resync, expected SEQ status) plus CANCEL control frame.
+- Upload now stops running code first (Ctrl+C); added BLE Config negotiation (MTU/chunk).
+- Added fallback to legacy REPL upload when capability/config is unavailable.
+- Hardened BLE connect flow (GATT step timeouts + strict cleanup on error).
+
+[16.02.2026] 2.0.5
+- Added Bluetooth Settings dialog in menu (with CZ/EN texts).
+- Device name validation: 3-8 chars, basic ASCII.
+- Read/write BLE name in `/cfg/ble_name.cfg`; disabling Bluetooth removes config.
+- Fixed dialog close behavior and reduced REPL collisions during read/save.
+- Stabilized Service Worker update behavior.
+
 [25.01.2026] 2.0.4
-- Theme toggle (light/dark) and language selection in menu, saved to localStorage
-- I18N packs and Blockly locale loading stabilized for UI/toolbox translations
-- Share links: auto-load project by URL code after IDE init
-- File Manager toolbar made responsive with single-row layout and adaptive buttons
-- Service worker update flow improved (versioned registration, auto-activate, reload)
-- Optional startup flags: force toolbox + lock processor dropdown; hide File Manager icon
-- Installer: ESP8266 flash header params + flashSize support to prevent bootloops
-- Installer: binary library upload (.mpy) via arrayBuffer to keep correct size
+- Added theme and language options in menu (saved to localStorage).
+- Stabilized I18N loading and auto-load of shared projects from URL.
+- Improved File Manager toolbar responsiveness and adaptive controls.
+- Improved Service Worker update flow and added startup options (force toolbox, lock processor, hide File Manager icon).
+- Installer updates: ESP8266 flash fixes and binary `.mpy` upload support.
 
 [14.01.2026] 2.0.3
-- Added dark mode with switch in menu and saving to localStorage
-- Recolored entire UI (Blockly toolbox/workspace, menu, dialogs)
-- Dark theme for ACE editor and terminal settings
-- Loading screen with logo and animated spinner
-- Support for dark image variants (dark_*) and automatic switching
-- Styling of File Manager for light/dark mode and isolation of its CSS
-- Update cache SW for new dark assets
+- Added dark mode with menu switch (saved to localStorage).
+- Updated UI, ACE editor, and terminal styling for light/dark themes.
+- Added loading screen with logo and spinner.
+- Added support for `dark_*` assets and automatic theme switching.
+- Updated File Manager styling and Service Worker cache for new dark assets.
 
 [23.11.2025] 2.0.2
 - Minor fixes in file manager and loading its library

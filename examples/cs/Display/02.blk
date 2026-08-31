@@ -1,0 +1,14 @@
+<xml xmlns="https://developers.google.com/blockly/xml"><block type="program_start" id="Cqt@zFOT(K7q{EnUg:ok" x="75" y="45"><next><block type="oled_init" id="Wqrh$Mz$#Vp}E6Ui/##W"><mutation xmlns="http://www.w3.org/1999/xhtml" display_type="AUTO"></mutation><field name="DISPLAY_TYPE">AUTO</field><comment pinned="false" h="92" w="471">Inicializace displeje se provede vždy při startu programu.
+Display je připojen pomocí I2C nebo SPI sběrnice.
+
+V našem příkladu na piny SDA 21 a SCL 22</comment><value name="SDA_PIN"><shadow type="math_number" id="p2)VJIwUbFB@WIo_pk^6"><field name="NUM">21</field></shadow></value><value name="SCL_PIN"><shadow type="math_number" id=")2@}7=RRMKo@qsbi0r,*"><field name="NUM">22</field></shadow></value></block></next></block><block type="program_loop" id="4PQsU`GR8b|)n}hcm8o*" x="74" y="224"><statement name="DO"><block type="fb_fill" id="oH^M^$|Bc6e3Ajw4SlQN"><field name="barva">0</field><comment pinned="false" h="61" w="384">Před kreslením na display je nutné vymazat jeho obsah, abychom si nepřekreslovali předchozí data.</comment><next><block type="fb_txt" id="5mt,=WZ%]7~D).fUabpy"><comment pinned="false" h="145" w="498">Blok pro vypsání textu na display.
+
+Vstupní parametry jsou text, který chceme zobrazit a pozice.
+
+0,0 je levý horní roh
+X = Vodorovná osa
+Y = Svislá osa</comment><value name="text"><shadow type="text" id="B[E$SpGdzXFuw!ah1$F:"><field name="TEXT">abc</field></shadow><block type="text_join" id="Wy1AAHBz%0D@6!s5H^o@" inline="true"><mutation items="2"></mutation><value name="ADD0"><block type="text" id="6s?t6LB`keZya,8sW{M["><field name="TEXT">Up:</field></block></value><value name="ADD1"><block type="utime.vars" id="vv`?AxmLY,7],M5XHWZ*"><field name="VARS">time</field></block></value></block></value><value name="px"><shadow type="math_number" id="CQ0kW)wXNpZXHyLBcLAN"><field name="NUM">0</field></shadow></value><value name="py"><shadow type="math_number" id="X|cpe?j0xQP4zLfbz|D|"><field name="NUM">0</field></shadow></value><value name="barva"><shadow type="math_number" id="X)p|C)A^@X}KmveHXHy@"><field name="NUM">1</field></shadow></value><next><block type="oded_refresh" id="Fyo@QOFO^{-^;:Ps2U^3"><comment pinned="false" h="85" w="393">Veškeré kreslení probíhá v paměti RAM procesoru, když máme nakreslený celý obraz, musíme ho tímto blokem přenést z RAM procesoru do RAM displeje.</comment></block></next></block></next></block></statement></block>
+  <!--ESPIDE_EXTENSIONS_BEGIN-->
+eyJ2ZXJzaW9uIjoxLCJwcm9jZXNzb3IiOiJTaW11bGF0b3IiLCJleHRlbnNpb25zIjpbXX0=
+<!--ESPIDE_EXTENSIONS_END-->
+</xml>

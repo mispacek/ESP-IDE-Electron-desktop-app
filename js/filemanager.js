@@ -224,7 +224,7 @@ function setMyProgressVisible(on){
       myProgressSaved = {
         position: bar.style.position, zIndex: bar.style.zIndex,
         top: bar.style.top, left: bar.style.left, right: bar.style.right,
-        filter: bar.style.filter, backdropFilter: bar.style.backdropFilter,
+        filter: bar.style.filter,
         pointerEvents: bar.style.pointerEvents, width: bar.style.width,
         opacity: bar.style.opacity, transform: bar.style.transform,
       };
@@ -236,7 +236,6 @@ function setMyProgressVisible(on){
     bar.style.zIndex = '2147483647';
     bar.style.pointerEvents = 'none';
     bar.style.filter = 'none';
-    bar.style.backdropFilter = 'none';
     bar.style.opacity = '1';
     bar.style.transform = 'none';
     if (!bar.style.width) bar.style.width = '0%';
@@ -519,6 +518,8 @@ async function doDownload(path){
       flushRx();
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
+      await dev.sendData("\x03"); await delay(40);
+      await dev.sendData("\r\x02"); await delay(40);
 
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_down(${pyStr(path)}, ${chunk}, ${pause})`);
@@ -587,25 +588,39 @@ async function doDownload(path){
 
 // GZIP decompression in the browser
 async function gunzipBytes(u8){
-  if (!('DecompressionStream' in window)) throw new Error(fmT('fileManager.errors.gzipUnsupported'));
-  const ds = new DecompressionStream('gzip');
-  const ab = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
-  const resp = new Response(new Blob([ab]).stream().pipeThrough(ds));
-  return new Uint8Array(await resp.arrayBuffer());
+  if (window.pako && typeof window.pako.ungzip === 'function') {
+    return window.pako.ungzip(u8);
+  }
+  if ('DecompressionStream' in window) {
+    const ds = new DecompressionStream('gzip');
+    const ab = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
+    const resp = new Response(new Blob([ab]).stream().pipeThrough(ds));
+    return new Uint8Array(await resp.arrayBuffer());
+  }
+  throw new Error(fmT('fileManager.errors.gzipUnsupported'));
+}
+
+function stopStatusTimer(){
+  if (__statusTimer) {
+    clearInterval(__statusTimer);
+    __statusTimer = null;
+  }
+  statusRunning = false;
 }
 
 
 // ====== DOWNLOAD to memory via fm_down (Base64 rows) ======
 // Same logic as doDownload(), but returns bytes + metadata instead of saving to PC.
 // Returns: { name, size, bytes: Uint8Array }
-async function doDownloadToMemory(path){
+async function doDownloadToMemory(path, options = {}){
   const dev = active(); if (!dev) throw new Error(fmT('fileManager.errors.notConnected'));
   uploadingBatch = true; statusRunning = true;
 
+  const showProgress = options.showProgress !== false;
   // Progress bar reused for visuals only
   const nameGuess = (path.split('/').pop() || 'download.bin');
-  showDownloadDialog(nameGuess);                 // same UI as doDownload()
-  const bar = qs('myProgress');
+  if (showProgress) showDownloadDialog(nameGuess); // same UI as doDownload()
+  const bar = showProgress ? qs('myProgress') : null;
   const setProg = (pct)=>{ if (bar) bar.style.width = Math.max(0, Math.min(100, pct|0)) + '%'; };
 
   // Profile by link - identical to doDownload()
@@ -642,6 +657,8 @@ async function doDownloadToMemory(path){
       flushRx();
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
+      await dev.sendData("\x03"); await delay(40);
+      await dev.sendData("\r\x02"); await delay(40);
 
       await dev.sendCommand(`import fm_rpc as F`);
       await dev.sendCommand(`F.fm_down(${pyStr(path)}, ${chunk}, ${pause})`);
@@ -699,17 +716,21 @@ async function doDownloadToMemory(path){
       for (const p of parts){ out.set(p, off); off += p.length; }
 
       // Hide progress overlay (same behavior as after download completes)
-      try { closeDownloadDialog && closeDownloadDialog(); } catch(_){}
-      finishDownloadDialog()
+      if (showProgress) {
+        try { closeDownloadDialog && closeDownloadDialog(); } catch(_){}
+        finishDownloadDialog();
+      }
       return { name: baseName, size: expectSize, bytes: out };
     } finally {
       endCapture(dev);            // restore terminal
       uploadingBatch = false;     // allow status polling
       statusRunning = false;
-      finishDownloadDialog()
+      if (showProgress) finishDownloadDialog();
     }
   });
 }
+
+window.__espideFM_downloadToMemory = doDownloadToMemory;
 
 
 
@@ -761,6 +782,8 @@ async function fetchDirPaged(path){
       fmPull(dev);
       await dev.sendData("\x03"); await delay(120);
       await dev.sendData("\r\n"); await delay(40);
+      await dev.sendData("\x03"); await delay(40);
+      await dev.sendData("\r\x02"); await delay(40);
 
       acc();
       __fmAcc = "";
@@ -1161,6 +1184,7 @@ function fmDecodePct(value){
 }
 
 function beginCapture(dev){
+  dev.__fm_tail_mute_until = 0;
   dev.__fm_save = { mute: !!dev.mute_terminal };
   dev.mute_terminal = true;
   __fmAcc = ""; // clean accumulator for new command
@@ -1168,6 +1192,13 @@ function beginCapture(dev){
 function endCapture(dev){
   const s = dev.__fm_save || {};
   dev.mute_terminal = !!s.mute;
+  // Bluefy/iOS can deliver delayed BLE notifications after command completion.
+  // Keep terminal visually muted for a short tail period to suppress late frames.
+  if (!s.mute && getActiveLink && getActiveLink() === 'ble') {
+    dev.__fm_tail_mute_until = Date.now() + 1200;
+  } else {
+    dev.__fm_tail_mute_until = 0;
+  }
   dev.__fm_save = null;
 }
 
@@ -1200,8 +1231,10 @@ async function mpEvalJson(expr){
     const dev = active(); if (!dev) throw new Error('no transport');
     beginCapture(dev);
     try{
-      await dev.sendData("\x03"); await delay(120);
+      await dev.sendData("\x03"); await delay(150);
       await dev.sendData("\r\n"); await delay(40);
+      await dev.sendData("\x03"); await delay(40);
+      await dev.sendData("\r\x02"); await delay(40);
       await dev.sendCommand("import ujson as json");
       await dev.sendCommand("print('<<FM>>'+json.dumps(" + expr + ")+'<<END>>')");
       const t0 = Date.now(), limit = 25000; let pinged = false;
@@ -1223,7 +1256,9 @@ async function mpExecOk(lines){
     beginCapture(dev);
     try{
       await dev.sendData("\x03"); await delay(150);
-      await dev.sendData("\r\n"); await delay(30);
+      await dev.sendData("\r\n"); await delay(40);
+      await dev.sendData("\x03"); await delay(40);
+      await dev.sendData("\r\x02"); await delay(40);
       
       if (getActiveLink && getActiveLink() === 'ble') {
         await delay(60);
@@ -1249,7 +1284,7 @@ async function open_block_editor(filename){
     const { bytes } = await doDownloadToMemory(filename);   // respects the REPL lock and chunking
     let xmlText;
 
-    if (/\.xml\.gz$/i.test(filename)){
+    if (/\.(xml|blk)\.gz$/i.test(filename)){
       const gunz = await gunzipBytes(bytes);
       xmlText = new TextDecoder('utf-8').decode(gunz);
     } else {
@@ -1305,7 +1340,10 @@ function fmForceCleanup(){
   } catch(e) {
     console.warn('fmForceCleanup mute reset failed', e);
   }
+  try { stopStatusTimer(); } catch(_) {}
 }
 
 // expose from index.html
 window.fmForceCleanup = fmForceCleanup;
+window.fmStopStatusTimer = stopStatusTimer;
+window.withReplLock = withReplLock;

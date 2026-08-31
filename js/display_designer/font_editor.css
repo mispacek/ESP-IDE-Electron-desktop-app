@@ -1,0 +1,244 @@
+/* MFNT font editor. It reuses ESP IDE theme variables and contains no blur. */
+.espide-font-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  color: var(--ui-text, #1f2328);
+  background: rgba(15, 18, 22, 0.72);
+  font-family: Arial, sans-serif;
+}
+
+.espide-font-editor-overlay[hidden] { display: none; }
+/* Generic input styling below must never override the native hidden attribute. */
+.espide-font-editor-overlay [hidden] { display: none !important; }
+
+.espide-font-editor-dialog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(1540px, calc(100vw - 24px));
+  height: min(960px, calc(100vh - 24px));
+  overflow: hidden;
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border, #a8a8a8);
+  border-radius: 10px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45);
+}
+
+.espide-font-editor-header,
+.espide-font-editor-footer,
+.espide-font-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--ui-border-soft, #d0d7de);
+}
+
+.espide-font-editor-header { justify-content: space-between; }
+.espide-font-editor-header h2,
+.espide-font-editor-header p { margin: 0; }
+.espide-font-editor-header p { margin-top: 3px; color: var(--ui-text-muted, #59636e); }
+.espide-font-editor-close { border: 0 !important; background: transparent !important; font-size: 30px; }
+.espide-font-editor-footer { justify-content: flex-end; border-top: 1px solid var(--ui-border-soft, #d0d7de); border-bottom: 0; }
+.espide-font-editor-toolbar { flex-wrap: wrap; }
+.espide-font-editor-toolbar select { min-width: 220px; }
+
+.espide-font-editor-overlay button,
+.espide-font-editor-overlay select,
+.espide-font-editor-overlay input {
+  box-sizing: border-box;
+  min-height: 36px;
+  padding: 6px 10px;
+  color: var(--ui-text, #1f2328);
+  background: var(--button-bg, #f6f6f6);
+  border: 1px solid var(--button-border, #a8a8a8);
+  border-radius: 6px;
+}
+
+.espide-font-editor-overlay button { cursor: pointer; }
+.espide-font-editor-overlay button:hover { background: var(--button-hover, #e5e5e5); }
+.espide-font-editor-save { color: var(--ui-accent-contrast, #fff) !important; background: var(--ui-accent, #3f51b5) !important; }
+
+.espide-font-editor-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(400px, 1.35fr) minmax(340px, 0.95fr);
+  gap: 18px;
+  min-height: 0;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.espide-font-editor-main h3 { margin: 0 0 10px; }
+.espide-font-editor-glyph-panel { display: flex; flex-direction: column; min-height: 0; }
+.espide-font-editor-glyphs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(42px, 1fr));
+  gap: 5px;
+  min-height: 0;
+  padding: 2px;
+  overflow: auto;
+}
+
+.espide-font-editor-glyphs button {
+  display: grid;
+  place-items: center;
+  min-height: 62px;
+  padding: 4px;
+}
+
+.espide-font-editor-glyphs button.is-selected {
+  color: var(--ui-accent-contrast, #fff);
+  background: var(--ui-accent, #3f51b5);
+  border-color: var(--ui-accent, #3f51b5);
+}
+
+.espide-font-editor-glyphs canvas {
+  width: 34px;
+  height: 32px;
+  object-fit: contain;
+  background: #000;
+  image-rendering: pixelated;
+}
+
+.espide-font-editor-glyphs span { font-size: 11px; }
+.espide-font-editor-pixel-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 8px 16px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.espide-font-editor-glyph-title { margin-bottom: 8px; font-weight: bold; }
+.espide-font-editor-pixel-stage {
+  position: relative;
+  flex: 0 0 auto;
+  width: 320px;
+  height: 320px;
+  max-width: none;
+  background: #000;
+  border: 2px solid #707b96;
+  touch-action: none;
+}
+
+.espide-font-editor-pixel-stage canvas,
+.espide-font-editor-pixel-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.espide-font-editor-pixel-grid {
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(90, 160, 230, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 160, 230, 0.35) 1px, transparent 1px);
+}
+
+.espide-font-editor-glyph-actions { display: flex; gap: 8px; margin: 10px 0; }
+.espide-font-editor-sample-label { width: min(100%, 520px); }
+.espide-font-editor-sample-label span { display: block; margin-bottom: 4px; }
+.espide-font-editor-sample-label input { width: 100%; }
+.espide-font-editor-sample {
+  width: min(100%, 520px);
+  aspect-ratio: 2 / 1;
+  margin-top: 7px;
+  background: #000;
+  border: 1px solid #707b96;
+  image-rendering: pixelated;
+}
+
+.espide-font-editor-settings {
+  min-width: 0;
+  padding: 16px;
+  overflow: auto;
+  background: var(--ui-bg-panel, #f6f6f6);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 9px;
+}
+
+.espide-font-editor-settings label { display: block; min-width: 0; margin-bottom: 12px; }
+.espide-font-editor-settings label > span { display: block; margin-bottom: 5px; line-height: 1.25; }
+.espide-font-editor-settings input,
+.espide-font-editor-settings select { width: 100%; }
+.espide-font-editor-presets {
+  margin: -2px 0 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--ui-border-soft, #d0d7de);
+}
+.espide-font-editor-presets h3 { margin: 0 0 10px; font-size: 16px; }
+.espide-font-editor-presets button { width: 100%; }
+.espide-font-editor-size-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.espide-font-editor-shift-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.espide-font-editor-shift-hint {
+  margin: -5px 0 8px;
+  color: var(--ui-text-muted, #59636e);
+  font-size: 12px;
+  line-height: 1.3;
+}
+.espide-font-editor-settings [data-action="shift-glyphs"] { width: 100%; }
+.espide-font-editor-format-note {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 5px 9px;
+  color: var(--ui-text-muted, #59636e);
+  background: var(--ui-bg-elevated, #fff);
+  border: 1px solid var(--ui-border-soft, #d0d7de);
+  border-radius: 999px;
+  font: 12px/1.2 monospace;
+}
+.espide-font-editor-generator {
+  margin: 16px 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--ui-border-soft, #d0d7de);
+}
+.espide-font-editor-generator summary {
+  padding: 7px 0;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  user-select: none;
+}
+.espide-font-editor-generator[open] summary { margin-bottom: 9px; }
+.espide-font-editor-generator-body > button { width: 100%; margin-bottom: 10px; }
+.espide-font-editor-generator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+.espide-font-editor-generator-grid label { min-width: 0; }
+.espide-font-editor-generate {
+  color: var(--ui-accent-contrast, #fff) !important;
+  background: var(--ui-accent, #3f51b5) !important;
+}
+.espide-font-editor-generate:disabled { cursor: wait; opacity: 0.65; }
+.espide-font-editor-help,
+.espide-font-editor-size { color: var(--ui-text-muted, #59636e); }
+.espide-font-editor-status { overflow-wrap: anywhere; color: var(--ui-accent, #3f51b5); }
+.espide-font-editor-status.is-error { color: #c62828; }
+
+@media (max-width: 1120px) {
+  .espide-font-editor-dialog { height: calc(100vh - 16px); height: calc(100dvh - 16px); }
+  .espide-font-editor-main { grid-template-columns: minmax(250px, 0.8fr) minmax(320px, 1.2fr); overflow: auto; }
+  .espide-font-editor-settings { grid-column: 1 / -1; overflow: visible; }
+}
+
+@media (max-width: 680px) {
+  .espide-font-editor-overlay { padding: 0; }
+  .espide-font-editor-dialog { width: 100vw; height: 100vh; height: 100dvh; border: 0; border-radius: 0; }
+  .espide-font-editor-main { display: block; overflow: auto; }
+  .espide-font-editor-glyphs { grid-template-columns: repeat(5, 1fr); max-height: 260px; margin-bottom: 18px; }
+  .espide-font-editor-pixel-stage { max-width: none; max-height: none; }
+  .espide-font-editor-settings { margin-top: 18px; }
+}

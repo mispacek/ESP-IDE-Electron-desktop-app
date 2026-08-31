@@ -1,0 +1,18 @@
+<IfModule mod_headers.c>
+  # Simulator Lite needs SharedArrayBuffer while MicroPython is executing a
+  # blocking user loop. COEP credentialless keeps ordinary cross-origin assets
+  # usable without credentials while enabling cross-origin isolation together
+  # with COOP. The embedded simulator adds its own stricter same-origin policy.
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Embedder-Policy "credentialless"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+
+  # HTML nese jedinou APP_VERSION a sw.js z ni odvozuje cache. Tyto dva
+  # soubory se proto musi pri online startu vzdy revalidovat. CacheStorage
+  # Service Workeru tim neni dotcena a offline fallback zustava funkcni.
+  <FilesMatch "^(index\.html|sw\.js)$">
+    Header always set Cache-Control "no-cache, max-age=0, must-revalidate"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </FilesMatch>
+</IfModule>

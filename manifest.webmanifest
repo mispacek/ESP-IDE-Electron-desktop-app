@@ -1,9 +1,9 @@
 {
   "name": "ESP IDE",
   "short_name": "ESP IDE",
-  "description": "ESP IDE s offline podporou",
-  "start_url": "/esp_ide_v2/",
-  "scope": "/esp_ide_v2/",
+  "description": "ESP IDE - MicroPython web IDE with offline support",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": [
     "standalone",
@@ -15,12 +15,12 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/esp_ide_v2/media/icon-192.png",
+      "src": "media/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/esp_ide_v2/media/icon-512.png",
+      "src": "media/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

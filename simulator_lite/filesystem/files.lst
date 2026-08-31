@@ -1,0 +1,26 @@
+# ── soubor;kam se uloží v MCU ──
+boot.py;/
+main.py;/
+ble_repl_bletime.mpy;/lib/
+bletime.py;/lib/
+ble_flag.py;/lib/
+fm_rpc.py;/lib/
+BlynkLib.py;/lib/
+dcmotorlib.py;/lib/
+joy_lib.py;/lib/
+max7219.py;/lib/
+minifont.py;/lib/
+mpu6050.py;/lib/
+oled.py;/lib/
+oled_spi.py;/lib/
+pcf8574.py;/lib/
+pcf8575.py;/lib/
+rtttl.py;/lib/
+servo.py;/lib/
+st7567.py;/lib/
+tcs34725.mpy;/lib/
+vl53l0x.mpy;/lib/
+eyes_optimized.mpy;/lib/
+oled_charts.mpy;/lib/
+pvstore.py;/lib/
+espide_monofont.py;/lib/

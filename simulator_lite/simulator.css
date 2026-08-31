@@ -1,0 +1,37 @@
+html, body { min-height: 100%; }
+html {
+  background: var(--ui-bg, #f6f6f6);
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --ui-bg: #202124;
+  --ui-bg-panel: #202124;
+  --ui-bg-elevated: #292a2d;
+  --ui-bg-input: #38393b;
+  --ui-bg-soft: #38393b;
+  --ui-border: #4d4d4d;
+  --ui-border-soft: #46474d;
+  --ui-text: #e3e3e3;
+  --ui-text-muted: #9aa4af;
+  --ui-accent: #5f5f5f;
+  --ui-accent-contrast: #ffffff;
+  --ui-hover: #46474d;
+  --button-bg: #292a2d;
+  --button-border: #4c4d4f;
+  --button-hover: #38393b;
+  --button-text: #e3e3e3;
+}
+body {
+  margin: 0;
+  padding: 12px;
+  overflow-x: hidden;
+  background: var(--ui-bg, #f6f6f6);
+  color: var(--ui-text, #1f2328);
+}
+html[data-embed="true"],
+html[data-embed="true"] body {
+  background: transparent;
+}
+html[data-embed="true"] body { padding: 0; }
+#simulator-root { width: min(1500px, 100%); margin: 0 auto; }
