@@ -15,7 +15,7 @@ const { normalizeLanguage: normalizePickerLanguage } = require('./electron/picke
 let mainWin;   // hlavní okno
 let splash;    // splash screen
 
-const SPLASH_MIN = 1350;          // ms – změň podle potřeby
+const SPLASH_MIN = 1500;          // ms – změň podle potřeby
 let splashStart;                  // čas, kdy jsme splash otevřeli
 let legacyStorageValues = null;
 let legacyMigrationPending = false;
