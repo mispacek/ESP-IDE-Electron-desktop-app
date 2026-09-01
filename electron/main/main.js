@@ -1,5 +1,5 @@
 // --- kousek na začátku main.js ---
-const { app, BrowserWindow, dialog, ipcMain, session } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, session, shell } = require('electron');
 const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -12,6 +12,7 @@ const {
 } = require('./local-server');
 const { normalizeLanguage: normalizePickerLanguage } = require('../ui/pickers/picker-i18n');
 const { createRuntimePaths } = require('./runtime-paths');
+const { installNavigationPolicy, installTrustedEmbedPolicy } = require('./external-content');
 
 let mainWin;   // hlavní okno
 let splash;    // splash screen
@@ -109,19 +110,14 @@ function createWindow () {
   });
   mainWin.setMenu(null);
 
-  const isAppUrl = (url) => {
-    try { return new URL(url).origin === APP_ORIGIN; } catch (_) { return false; }
-  };
-  mainWin.webContents.on('will-navigate', (event, url) => {
-    if (!isAppUrl(url)) event.preventDefault();
-  });
-  mainWin.webContents.setWindowOpenHandler(({ url }) => (isAppUrl(url) ? { action: 'allow' } : { action: 'deny' }));
+  installNavigationPolicy(mainWin.webContents, APP_ORIGIN, (url) => shell.openExternal(url));
 
   // ▼ WebSerial API – zapnout v Chromium engine
   app.commandLine.appendSwitch('enable-experimental-web-platform-features');
   app.commandLine.appendSwitch('enable-blink-features', 'Serial');
 
   const ses = mainWin.webContents.session;
+  installTrustedEmbedPolicy(ses, () => mainWin && !mainWin.isDestroyed() ? mainWin.webContents.id : -1);
 
   // ▼ Povolit Serial oprávnění pro file:// + vlastní picker
   ses.setPermissionCheckHandler((_wc, permission) => permission === 'serial');

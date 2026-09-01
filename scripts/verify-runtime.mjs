@@ -13,6 +13,7 @@ const wrapperFiles = [
   'electron/main/local-server.js',
   'electron/main/protocol-handler.js',
   'electron/main/http-proxy.js',
+  'electron/main/external-content.js',
   'electron/main/runtime-paths.js',
   'electron/migration/index.html',
   'electron/preload/main-preload.js',
