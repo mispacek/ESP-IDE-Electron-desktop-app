@@ -40,7 +40,7 @@ html.theme-dark {
   background: var(--topbar-bg);
   border-bottom: 1px solid var(--ui-border-soft);
   font-family: var(--ui-font-family, Geneva, Arial, "Segoe UI", sans-serif);
-  font-size: 18px;
+  font-size: 17px;
   color: var(--nm-text-color);
   box-sizing: border-box;
 }
@@ -196,7 +196,7 @@ body.nm-active #new_topbar {
 
 .nm-menu-btn .nm-menu-label {
   white-space: nowrap;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .nm-menu-btn::after {
@@ -252,7 +252,7 @@ body.nm-active #new_topbar {
   background: var(--ui-bg-elevated);
   color: var(--nm-text-color);
   font-family: Geneva, sans-serif;
-  font-size: 18px;
+  font-size: 17px;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
   z-index: 1050;
   opacity: 0;
@@ -296,7 +296,7 @@ body.nm-active #new_topbar {
   gap: 10px;
   padding: 5px 8px;
   text-align: left;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 button.nm-item,
@@ -364,7 +364,7 @@ button.nm-item-check:focus-visible {
   border-radius: 8px;
   cursor: pointer;
   list-style: none;
-  font-size: 18px;
+  font-size: 17px;
 
 }
 
@@ -406,26 +406,26 @@ button.nm-item-check:focus-visible {
 .nm-example-link {
   min-height: 34px;
   padding-left: 10px;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .nm-example-empty {
   padding: 7px 10px;
   color: var(--nm-text-color);
-  font-size: 18px;
+  font-size: 17px;
   opacity: 0.65;
 }
 
 .nm-item-muted {
   color: var(--nm-text-color);
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .nm-item-select .nm-select-label {
   flex: 1 1 auto;
   min-width: 0;
   color: var(--nm-text-color);
-  font-size: 18px;
+  font-size: 17px;
   margin-right: 8px;
 }
 
@@ -443,7 +443,7 @@ button.nm-item-check:focus-visible {
   background: var(--ui-bg-input);
   color: var(--nm-text-color);
   font-family: var(--ui-font-family, Geneva, Arial, "Segoe UI", sans-serif);
-  font-size: 18px;
+  font-size: 17px;
 }
 
 #nm-dd-language-sel {
