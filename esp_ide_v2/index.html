@@ -40,7 +40,7 @@
     // Jedine misto, kde se rucne meni verze aplikace. Service worker ji
     // prevezme z vlastni registracni URL (?v=...), takze se nemuze rozjet
     // verze HTML, assetu a nazvu offline cache.
-    const APP_VERSION = "2026-09-01-v2.0.231";
+    const APP_VERSION = "2026-09-01-v2.1.0_beta";
     // The install wait mirrors sw.js precache; startup keeps five seconds for activation.
     const SW_INSTALL_TIMEOUT_MS = 45000;
     const SW_STARTUP_TIMEOUT_MS = 50000;
@@ -1467,6 +1467,7 @@
       blocklyLanguageReady = setBlocklyLanguage(normalized);
       document.documentElement.lang = normalized;
       applyTranslations();
+      applyThemedAssets(currentTheme);
       loadChangelog(normalized);
       try { if (typeof updateSaveButtonLabel === "function") updateSaveButtonLabel(); } catch (_) {}
       try { if (typeof renderTabs === "function") renderTabs(); } catch (_) {}
@@ -1578,7 +1579,10 @@
     function applyThemedAssets(theme) {
       const resolved = normalizeTheme(theme);
       document.querySelectorAll('[data-theme-src]').forEach((img) => {
-        const base = img.getAttribute('data-theme-src');
+        const localizedBase = currentLanguage === 'cs'
+          ? null
+          : img.getAttribute('data-non-cs-src');
+        const base = localizedBase || img.getAttribute('data-theme-src');
         if (!base) return;
         img.setAttribute('src', resolved === THEME_DARK ? getDarkAsset(base) : base);
       });
@@ -9047,7 +9051,7 @@
 
   <div id="modeSwitch" class="segmented" style="position:absolute; top:4px; left:930px; z-index:999;">
       <input type="radio" name="mode" id="modeBlocks" checked>
-      <label for="modeBlocks" title="Block programming" data-i18n-title="mode.blocksTitle"><img data-theme-src="media/blockly_switch2.png" src="media/blockly_switch2.png" alt="Blocks" data-i18n-alt="mode.blocksAlt" width="67" height="22"></label>
+      <label for="modeBlocks" title="Block programming" data-i18n-title="mode.blocksTitle"><img data-theme-src="media/blockly_switch2.png" data-non-cs-src="media/blockly_switch2_en.png" src="media/blockly_switch2.png" alt="Blocks" data-i18n-alt="mode.blocksAlt" width="67" height="22"></label>
       <input type="radio" name="mode" id="modeText">
       <label for="modeText" title="Text programming" data-i18n-title="mode.textTitle"><img data-theme-src="media/code_switch2.png" src="media/code_switch2.png" alt="Code" data-i18n-alt="mode.textAlt" width="67" height="22"></label>
   </div>

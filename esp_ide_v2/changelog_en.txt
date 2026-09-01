@@ -1,3 +1,10 @@
+[01.09.2026] 2.1.0_beta
+- Added a Games category to the Examples menu with Dodge 3 Lanes, Flappy Bird, Pong, Arkanoid, and Space Invaders.
+- All five games are available in both Czech and complete English versions while preserving their logic, wiring, bitmaps, and comments.
+- Added an English version of the corrected rotary-encoder LED brightness example, including translated comments, variables, and its Display Designer scene.
+- The Blockly/Python switch keeps the Czech artwork in Czech; English, German, and other languages use the new English artwork in both light and dark themes.
+- Both English switch images are included in the application's offline cache.
+
 [22.08.2026] 2.0.211
 - The Simulator target now follows Generic in the list; Generic is used by default when no saved target exists.
 

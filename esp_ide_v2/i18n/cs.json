@@ -410,7 +410,8 @@
     "categories": {
       "basic": "Základy",
       "sensor": "Senzory",
-      "display": "Displeje"
+      "display": "Displeje",
+      "games": "Hry"
     },
     "items": {
       "basic01": "Ahoj desko, blikání LED",
@@ -424,7 +425,12 @@
       "sensor04": "USB joystick s ESP32-S3 a RPi Pico",
       "sensor05": "Nastavení úhlu servomotoru potenciometrem",
       "display01": "Neopixel duha",
-      "display02": "Zobrazení textu na OLED 128×64"
+      "display02": "Zobrazení textu na OLED 128×64",
+      "game01": "Dodge 3 Lanes",
+      "game02": "Flappy Bird",
+      "game03": "Pong",
+      "game04": "Arkanoid",
+      "game05": "Space Invaders"
     },
     "comingSoon": "Příklady se připravují",
     "loading": "Načítám příklad…",

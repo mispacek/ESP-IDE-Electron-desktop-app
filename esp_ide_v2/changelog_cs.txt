@@ -1,3 +1,10 @@
+[01.09.2026] 2.1.0_beta
+- Do nabídky Příklady byla přidána kategorie Hry s projekty Dodge 3 Lanes, Flappy Bird, Pong, Arkanoid a Space Invaders.
+- Všech pět her je dostupných v české i kompletní anglické verzi se zachovanou logikou, zapojením, bitmapami a komentáři.
+- Opravený příklad regulace jasu LED rotačním enkodérem byl doplněn také v angličtině včetně přeložených komentářů, proměnných a scény Display Designeru.
+- Obrázek přepínače Blockly/Python zachovává českou grafiku v češtině; angličtina, němčina a ostatní jazyky používají novou anglickou grafiku ve světlém i tmavém motivu.
+- Obě anglické varianty obrázku přepínače jsou součástí offline cache aplikace.
+
 [22.08.2026] 2.0.211
 - Target Simulator je v seznamu hned za Generic; při prvním spuštění bez uložené volby se jako výchozí target použije Generic.
 

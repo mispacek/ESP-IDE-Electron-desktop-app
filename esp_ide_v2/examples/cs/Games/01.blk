@@ -1,0 +1,567 @@
+<xml xmlns="https://developers.google.com/blockly/xml" xmlns:html="http://www.w3.org/1999/xhtml">
+  <variables>
+    <variable id="v_joy_x">joy_x</variable>
+    <variable id="v_player_lane">player_lane</variable>
+    <variable id="v_obstacle_lane">obstacle_lane</variable>
+    <variable id="v_obstacle_y">obstacle_y</variable>
+    <variable id="v_score">score</variable>
+  </variables>
+  <block type="program_start" id="dodge_start" x="50" y="40">
+    <comment pinned="false" h="105" w="520">PROGRAM START proběhne pouze jednou. Připravíme hardware a několik málo proměnných. Celá hra používá jen číslo pruhu místo složitých X souřadnic.</comment>
+    <next>
+      <block type="oled_init" id="dodge_oled">
+        <comment pinned="false" h="105" w="520">Inicializace OLED displeje 128×64. V každém průchodu smyčkou nejprve vytvoříme celý nový obraz ve framebufferu a teprve potom ho jedním příkazem zobrazíme.</comment>
+        <html:mutation display_type="AUTO" />
+        <field name="DISPLAY_TYPE">AUTO</field>
+        <value name="SDA_PIN">
+          <shadow type="math_number" id="n0001">
+            <field name="NUM">21</field>
+          </shadow>
+        </value>
+        <value name="SCL_PIN">
+          <shadow type="math_number" id="n0002">
+            <field name="NUM">22</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="joystick_init" id="dodge_joystick">
+            <comment pinned="false" h="105" w="520">Inicializace joysticku č. 1. Pro tuto hru používáme pouze osu X. Levá, střední a pravá poloha joysticku přímo vybírají jeden ze tří jízdních pruhů.</comment>
+            <field name="joy_name">1</field>
+            <field name="rot">270</field>
+            <value name="vrx">
+              <shadow type="math_number" id="n0003">
+                <field name="NUM">13</field>
+              </shadow>
+            </value>
+            <value name="vry">
+              <shadow type="math_number" id="n0004">
+                <field name="NUM">14</field>
+              </shadow>
+            </value>
+            <value name="sw">
+              <shadow type="math_number" id="n0005">
+                <field name="NUM">15</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="b0007">
+                <comment pinned="false" h="105" w="520">Hráč začíná uprostřed. Pruhy číslujeme 0 = levý, 1 = prostřední, 2 = pravý. Díky tomu se pozice auta dá snadno vypočítat.</comment>
+                <field name="VAR" id="v_player_lane">player_lane</field>
+                <value name="VALUE">
+                  <shadow type="math_number" id="n0006">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="variables_set" id="b0011">
+                    <comment pinned="false" h="105" w="520">První protijedoucí auto umístíme náhodně do jednoho ze tří pruhů.</comment>
+                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                    <value name="VALUE">
+                      <block type="math_random_int" id="b0008">
+                        <value name="FROM">
+                          <shadow type="math_number" id="n0009">
+                            <field name="NUM">0</field>
+                          </shadow>
+                        </value>
+                        <value name="TO">
+                          <shadow type="math_number" id="n0010">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="b0013">
+                        <comment pinned="false" h="105" w="520">Svislá poloha překážky. Překážka začíná nahoře a v každém snímku se posune o 2 pixely dolů.</comment>
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="n0012">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="b0015">
+                            <comment pinned="false" h="105" w="520">Skóre počítá auta, kterým jsme úspěšně uhnuli. Při nárazu se skóre vynuluje a hra okamžitě pokračuje.</comment>
+                            <field name="VAR" id="v_score">score</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="n0014">
+                                <field name="NUM">0</field>
+                              </shadow>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="program_loop" id="dodge_loop" x="650" y="40">
+    <comment pinned="false" h="105" w="520">PROGRAM LOOP je celá herní smyčka: přečteme joystick, určíme pruh hráče, posuneme překážku, vyhodnotíme průjezd nebo náraz a vše vykreslíme.</comment>
+    <statement name="DO">
+      <block type="variables_set" id="b0016">
+        <comment pinned="false" h="105" w="520">Do proměnné joy_x uložíme aktuální výchylku páčky. Tím oddělíme čtení vstupu od další matematické logiky.</comment>
+        <field name="VAR" id="v_joy_x">joy_x</field>
+        <value name="VALUE">
+          <block type="get_joy_axis_ble" id="dodge_joy_x">
+            <comment pinned="false" h="105" w="520">Osa X joysticku vrací přibližně hodnoty −100 až +100. Níže ji převedeme na číslo pruhu 0, 1 nebo 2.</comment>
+            <field name="joy_name">1</field>
+            <field name="axis">X</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="b0023">
+            <comment pinned="false" h="105" w="520">Číslo pruhu hráče přímo závisí na poloze joysticku: vlevo = 0, střed = 1, vpravo = 2.</comment>
+            <field name="VAR" id="v_player_lane">player_lane</field>
+            <value name="VALUE">
+              <block type="math_round" id="b0022">
+                <comment pinned="false" h="105" w="520">Zaokrouhlením získáme pouze tři hodnoty: 0, 1 nebo 2. Jediný matematický výraz tak nahrazuje několik podmínek.</comment>
+                <field name="OP">ROUND</field>
+                <value name="NUM">
+                  <block type="math_arithmetic" id="b0021">
+                    <comment pinned="false" h="105" w="520">Dělením 100 dostaneme přibližně rozsah 0…2.</comment>
+                    <field name="OP">DIVIDE</field>
+                    <value name="A">
+                      <block type="math_arithmetic" id="b0019">
+                        <comment pinned="false" h="105" w="520">Posunutím rozsahu o +100 změníme −100…100 na 0…200.</comment>
+                        <field name="OP">ADD</field>
+                        <value name="A">
+                          <block type="variables_get" id="b0017">
+                            <field name="VAR" id="v_joy_x">joy_x</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <shadow type="math_number" id="n0018">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="n0020">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="b0027">
+                <comment pinned="false" h="105" w="520">Posun protijedoucího auta směrem dolů.</comment>
+                <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="b0026">
+                    <comment pinned="false" h="105" w="520">Každý herní snímek přičteme 2 pixely. Toto je nejjednodušší forma rovnoměrného pohybu: nová poloha = stará poloha + rychlost.</comment>
+                    <field name="OP">ADD</field>
+                    <value name="A">
+                      <block type="variables_get" id="b0024">
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="n0025">
+                        <field name="NUM">2</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_if" id="b0041">
+                    <comment pinned="false" h="105" w="520">Úspěšný průjezd: překážku recyklujeme místo vytváření nového objektu. To šetří bloky i paměť.</comment>
+                    <value name="IF0">
+                      <block type="logic_compare" id="b0030">
+                        <comment pinned="false" h="105" w="520">Jakmile horní hrana auta překročí spodní okraj, překážka byla úspěšně objetá.</comment>
+                        <field name="OP">GT</field>
+                        <value name="A">
+                          <block type="variables_get" id="b0028">
+                            <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <shadow type="math_number" id="n0029">
+                            <field name="NUM">62</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="variables_set" id="b0032">
+                        <comment pinned="false" h="105" w="520">Vrátíme další auto zpět nad začátek vozovky.</comment>
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="n0031">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="b0036">
+                            <comment pinned="false" h="105" w="520">Pro další auto náhodně vybereme jeden ze tří pruhů.</comment>
+                            <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                            <value name="VALUE">
+                              <block type="math_random_int" id="b0033">
+                                <value name="FROM">
+                                  <shadow type="math_number" id="n0034">
+                                    <field name="NUM">0</field>
+                                  </shadow>
+                                </value>
+                                <value name="TO">
+                                  <shadow type="math_number" id="n0035">
+                                    <field name="NUM">2</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="b0040">
+                                <comment pinned="false" h="105" w="520">Za bezpečně projeté auto přidáme jeden bod.</comment>
+                                <field name="VAR" id="v_score">score</field>
+                                <value name="VALUE">
+                                  <block type="math_arithmetic" id="b0039">
+                                    <field name="OP">ADD</field>
+                                    <value name="A">
+                                      <block type="variables_get" id="b0037">
+                                        <field name="VAR" id="v_score">score</field>
+                                      </block>
+                                    </value>
+                                    <value name="B">
+                                      <shadow type="math_number" id="n0038">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <next>
+                      <block type="controls_if" id="b0057">
+                        <comment pinned="false" h="105" w="520">Detekce nárazu je schválně velmi jednoduchá: protože auta vždy přesně leží v jednom ze tří pruhů, nemusíme počítat obecnou kolizi obdélníků.</comment>
+                        <value name="IF0">
+                          <block type="logic_operation" id="b0048">
+                            <comment pinned="false" h="105" w="520">Kolize vyžaduje dvě věci současně: překážka musí být dostatečně nízko A musí být ve stejném pruhu.</comment>
+                            <field name="OP">AND</field>
+                            <value name="A">
+                              <block type="logic_compare" id="b0044">
+                                <comment pinned="false" h="105" w="520">Od Y=48 se osmipixelové protijedoucí auto začne překrývat s hráčem umístěným dole.</comment>
+                                <field name="OP">GT</field>
+                                <value name="A">
+                                  <block type="variables_get" id="b0042">
+                                    <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <shadow type="math_number" id="n0043">
+                                    <field name="NUM">46</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="logic_compare" id="b0047">
+                                <comment pinned="false" h="105" w="520">Ke srážce může dojít pouze tehdy, když jsou obě auta ve stejném pruhu.</comment>
+                                <field name="OP">EQ</field>
+                                <value name="A">
+                                  <block type="variables_get" id="b0045">
+                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <block type="variables_get" id="b0046">
+                                    <field name="VAR" id="v_player_lane">player_lane</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="variables_set" id="b0050">
+                            <comment pinned="false" h="105" w="520">Náraz ukončí aktuální sérii a skóre se vrátí na nulu.</comment>
+                            <field name="VAR" id="v_score">score</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="n0049">
+                                <field name="NUM">0</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="b0052">
+                                <comment pinned="false" h="105" w="520">Po nárazu začneme okamžitě s novým autem shora.</comment>
+                                <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                <value name="VALUE">
+                                  <shadow type="math_number" id="n0051">
+                                    <field name="NUM">2</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="variables_set" id="b0056">
+                                    <comment pinned="false" h="105" w="520">Nový pokus začne s náhodně zvoleným pruhem překážky.</comment>
+                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                    <value name="VALUE">
+                                      <block type="math_random_int" id="b0053">
+                                        <value name="FROM">
+                                          <shadow type="math_number" id="n0054">
+                                            <field name="NUM">0</field>
+                                          </shadow>
+                                        </value>
+                                        <value name="TO">
+                                          <shadow type="math_number" id="n0055">
+                                            <field name="NUM">2</field>
+                                          </shadow>
+                                        </value>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="fb_fill" id="b0058">
+                            <comment pinned="false" h="105" w="520">Na začátku kreslení smažeme předchozí snímek. Všechny další grafické bloky kreslí do čistého framebufferu.</comment>
+                            <field name="barva">0</field>
+                            <next>
+                              <block type="fb_rect_fill" id="b0059">
+                                <comment pinned="false" h="105" w="520">První čára odděluje levý a prostřední pruh. Pro výukovou jednoduchost je vozovka tvořená jen dvěma tenkými svislými čarami.</comment>
+                                <value name="px">
+                                  <shadow type="math_number" id="n0060">
+                                    <field name="NUM">42</field>
+                                  </shadow>
+                                </value>
+                                <value name="py">
+                                  <shadow type="math_number" id="n0061">
+                                    <field name="NUM">0</field>
+                                  </shadow>
+                                </value>
+                                <value name="sirka">
+                                  <shadow type="math_number" id="n0062">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <value name="vyska">
+                                  <shadow type="math_number" id="n0063">
+                                    <field name="NUM">64</field>
+                                  </shadow>
+                                </value>
+                                <value name="col">
+                                  <shadow type="math_number" id="n0064">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="fb_rect_fill" id="b0065">
+                                    <comment pinned="false" h="105" w="520">Druhá čára odděluje prostřední a pravý pruh. Tři pruhy mají přibližně stejnou šířku 42 px.</comment>
+                                    <value name="px">
+                                      <shadow type="math_number" id="n0066">
+                                        <field name="NUM">84</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="py">
+                                      <shadow type="math_number" id="n0067">
+                                        <field name="NUM">0</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="sirka">
+                                      <shadow type="math_number" id="n0068">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="vyska">
+                                      <shadow type="math_number" id="n0069">
+                                        <field name="NUM">64</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="col">
+                                      <shadow type="math_number" id="n0070">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="fb_draw_pic" id="b0077">
+                                        <comment pinned="false" h="105" w="520">BITMAPA PROTIJEDOUCÍHO AUTA 11×8 px. Obrázek je uložen přímo v projektu jako bytearray, takže hra nepotřebuje žádný externí soubor.
+
+  #######
+ #########
+##  ###  ##
+###########
+###########
+ ##     ##
+ ##     ##
+  #     #</comment>
+                                        <field name="name">DODGE_ENEMY</field>
+                                        <field name="alpha">-1</field>
+                                        <value name="px">
+                                          <block type="math_arithmetic" id="b0075">
+                                            <comment pinned="false" h="105" w="520">Číslo pruhu převedeme na X souřadnici: x = pruh × 42 + 15. Stejný vzorec používáme pro obě auta.</comment>
+                                            <field name="OP">ADD</field>
+                                            <value name="A">
+                                              <block type="math_arithmetic" id="b0073">
+                                                <field name="OP">MULTIPLY</field>
+                                                <value name="A">
+                                                  <block type="variables_get" id="b0071">
+                                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                                  </block>
+                                                </value>
+                                                <value name="B">
+                                                  <shadow type="math_number" id="n0072">
+                                                    <field name="NUM">42</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </value>
+                                            <value name="B">
+                                              <shadow type="math_number" id="n0074">
+                                                <field name="NUM">15</field>
+                                              </shadow>
+                                            </value>
+                                          </block>
+                                        </value>
+                                        <value name="py">
+                                          <block type="variables_get" id="b0076">
+                                            <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                          </block>
+                                        </value>
+                                        <value name="data">
+                                          <shadow type="text" id="t0078">
+                                            <field name="TEXT">bytearray(b'\x1c\x7e\xfb\x1b\x1f\x1f\x1f\x1b\xfb\x7e\x1c'), 11, 8</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="fb_draw_pic" id="b0084">
+                                            <comment pinned="false" h="105" w="520">BITMAPA HRÁČOVA AUTA 11×8 px. Auto je vždy u spodního okraje a mění pouze pruh. Bitmapa se kreslí až po překážce, takže při případném překrytí je hráč nahoře.
+
+   #####
+  #######
+  ## # ##
+ #########
+### ### ###
+###########
+ ##     ##
+ ##     ##</comment>
+                                            <field name="name">DODGE_PLAYER</field>
+                                            <field name="alpha">-1</field>
+                                            <value name="px">
+                                              <block type="math_arithmetic" id="b0083">
+                                                <comment pinned="false" h="105" w="520">Stejný převod pruhu na pixely použijeme pro hráčovo auto.</comment>
+                                                <field name="OP">ADD</field>
+                                                <value name="A">
+                                                  <block type="math_arithmetic" id="b0081">
+                                                    <field name="OP">MULTIPLY</field>
+                                                    <value name="A">
+                                                      <block type="variables_get" id="b0079">
+                                                        <field name="VAR" id="v_player_lane">player_lane</field>
+                                                      </block>
+                                                    </value>
+                                                    <value name="B">
+                                                      <shadow type="math_number" id="n0080">
+                                                        <field name="NUM">42</field>
+                                                      </shadow>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                                <value name="B">
+                                                  <shadow type="math_number" id="n0082">
+                                                    <field name="NUM">15</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </value>
+                                            <value name="py">
+                                              <shadow type="math_number" id="n0085">
+                                                <field name="NUM">54</field>
+                                              </shadow>
+                                            </value>
+                                            <value name="data">
+                                              <shadow type="text" id="t0086">
+                                                <field name="TEXT">bytearray(b'\x30\xf8\xfe\x2f\x3b\x3f\x3b\x2f\xfe\xf8\x30'), 11, 8</field>
+                                              </shadow>
+                                            </value>
+                                            <next>
+                                              <block type="fb_rect_fill" id="b0092">
+                                                <comment pinned="false" h="105" w="520">Jednopixelový pruh nahoře je minimalistický ukazatel skóre. Čím delší série bez nárazu, tím delší čára.</comment>
+                                                <value name="px">
+                                                  <shadow type="math_number" id="n0093">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="py">
+                                                  <shadow type="math_number" id="n0094">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="sirka">
+                                                  <block type="math_arithmetic" id="b0091">
+                                                    <field name="OP">ADD</field>
+                                                    <value name="A">
+                                                      <block type="math_modulo" id="b0089">
+                                                        <comment pinned="false" h="105" w="520">Modulo udrží grafický ukazatel skóre v šířce displeje i při velmi dlouhé hře.</comment>
+                                                        <value name="DIVIDEND">
+                                                          <block type="variables_get" id="b0087">
+                                                            <field name="VAR" id="v_score">score</field>
+                                                          </block>
+                                                        </value>
+                                                        <value name="DIVISOR">
+                                                          <shadow type="math_number" id="n0088">
+                                                            <field name="NUM">126</field>
+                                                          </shadow>
+                                                        </value>
+                                                      </block>
+                                                    </value>
+                                                    <value name="B">
+                                                      <shadow type="math_number" id="n0090">
+                                                        <field name="NUM">1</field>
+                                                      </shadow>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                                <value name="vyska">
+                                                  <shadow type="math_number" id="n0095">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="col">
+                                                  <shadow type="math_number" id="n0096">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <next>
+                                                  <block type="oded_refresh" id="dodge_refresh">
+                                                    <comment pinned="false" h="105" w="520">Hotový framebuffer odešleme na OLED. Refresh je poslední krok herního snímku, takže displej nebliká během postupného kreslení objektů.</comment>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <!--ESPIDE_EXTENSIONS_BEGIN-->
+eyJ2ZXJzaW9uIjoxLCJwcm9jZXNzb3IiOiJTaW11bGF0b3IiLCJleHRlbnNpb25zIjpbXX0=
+<!--ESPIDE_EXTENSIONS_END-->
+</xml>

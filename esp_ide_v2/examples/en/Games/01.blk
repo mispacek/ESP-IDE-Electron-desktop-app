@@ -1,0 +1,567 @@
+<xml xmlns="https://developers.google.com/blockly/xml" xmlns:html="http://www.w3.org/1999/xhtml">
+  <variables>
+    <variable id="v_joy_x">joy_x</variable>
+    <variable id="v_player_lane">player_lane</variable>
+    <variable id="v_obstacle_lane">obstacle_lane</variable>
+    <variable id="v_obstacle_y">obstacle_y</variable>
+    <variable id="v_score">score</variable>
+  </variables>
+  <block type="program_start" id="dodge_start" x="50" y="40">
+    <comment pinned="false" h="105" w="520">PROGRAM START runs only once. We prepare the hardware and a few variables. The whole game uses only a lane number instead of complex X coordinates.</comment>
+    <next>
+      <block type="oled_init" id="dodge_oled">
+        <comment pinned="false" h="105" w="520">Initialize the 128×64 OLED display. On each loop pass, we first create a complete new image in the framebuffer and only then display it with a single command.</comment>
+        <html:mutation display_type="AUTO" />
+        <field name="DISPLAY_TYPE">AUTO</field>
+        <value name="SDA_PIN">
+          <shadow type="math_number" id="n0001">
+            <field name="NUM">21</field>
+          </shadow>
+        </value>
+        <value name="SCL_PIN">
+          <shadow type="math_number" id="n0002">
+            <field name="NUM">22</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="joystick_init" id="dodge_joystick">
+            <comment pinned="false" h="105" w="520">Initialize joystick 1. This game uses only the X axis. The left, center, and right joystick positions directly select one of the three lanes.</comment>
+            <field name="joy_name">1</field>
+            <field name="rot">270</field>
+            <value name="vrx">
+              <shadow type="math_number" id="n0003">
+                <field name="NUM">13</field>
+              </shadow>
+            </value>
+            <value name="vry">
+              <shadow type="math_number" id="n0004">
+                <field name="NUM">14</field>
+              </shadow>
+            </value>
+            <value name="sw">
+              <shadow type="math_number" id="n0005">
+                <field name="NUM">15</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="b0007">
+                <comment pinned="false" h="105" w="520">The player starts in the center. We number the lanes 0 = left, 1 = center, 2 = right. This makes the car position easy to calculate.</comment>
+                <field name="VAR" id="v_player_lane">player_lane</field>
+                <value name="VALUE">
+                  <shadow type="math_number" id="n0006">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="variables_set" id="b0011">
+                    <comment pinned="false" h="105" w="520">We place the first oncoming car randomly in one of the three lanes.</comment>
+                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                    <value name="VALUE">
+                      <block type="math_random_int" id="b0008">
+                        <value name="FROM">
+                          <shadow type="math_number" id="n0009">
+                            <field name="NUM">0</field>
+                          </shadow>
+                        </value>
+                        <value name="TO">
+                          <shadow type="math_number" id="n0010">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="b0013">
+                        <comment pinned="false" h="105" w="520">The obstacle vertical position. The obstacle starts at the top and moves down by 2 pixels on each frame.</comment>
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="n0012">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="b0015">
+                            <comment pinned="false" h="105" w="520">The score counts the cars we successfully avoid. On a crash, the score is reset and the game continues immediately.</comment>
+                            <field name="VAR" id="v_score">score</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="n0014">
+                                <field name="NUM">0</field>
+                              </shadow>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="program_loop" id="dodge_loop" x="650" y="40">
+    <comment pinned="false" h="105" w="520">PROGRAM LOOP is the entire game loop: read the joystick, determine the player lane, move the obstacle, detect a pass or crash, and draw everything.</comment>
+    <statement name="DO">
+      <block type="variables_set" id="b0016">
+        <comment pinned="false" h="105" w="520">We store the current stick deflection in joy_x. This separates input reading from the following mathematical logic.</comment>
+        <field name="VAR" id="v_joy_x">joy_x</field>
+        <value name="VALUE">
+          <block type="get_joy_axis_ble" id="dodge_joy_x">
+            <comment pinned="false" h="105" w="520">The joystick X axis returns values of approximately −100 to +100. Below, we convert it to lane number 0, 1, or 2.</comment>
+            <field name="joy_name">1</field>
+            <field name="axis">X</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="b0023">
+            <comment pinned="false" h="105" w="520">The player lane number depends directly on the joystick position: left = 0, center = 1, right = 2.</comment>
+            <field name="VAR" id="v_player_lane">player_lane</field>
+            <value name="VALUE">
+              <block type="math_round" id="b0022">
+                <comment pinned="false" h="105" w="520">Rounding gives us only three values: 0, 1, or 2. A single mathematical expression therefore replaces several conditions.</comment>
+                <field name="OP">ROUND</field>
+                <value name="NUM">
+                  <block type="math_arithmetic" id="b0021">
+                    <comment pinned="false" h="105" w="520">Dividing by 100 gives us an approximate range of 0…2.</comment>
+                    <field name="OP">DIVIDE</field>
+                    <value name="A">
+                      <block type="math_arithmetic" id="b0019">
+                        <comment pinned="false" h="105" w="520">Adding +100 shifts −100…100 to 0…200.</comment>
+                        <field name="OP">ADD</field>
+                        <value name="A">
+                          <block type="variables_get" id="b0017">
+                            <field name="VAR" id="v_joy_x">joy_x</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <shadow type="math_number" id="n0018">
+                            <field name="NUM">100</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="n0020">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="b0027">
+                <comment pinned="false" h="105" w="520">Move the oncoming car downward.</comment>
+                <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="b0026">
+                    <comment pinned="false" h="105" w="520">We add 2 pixels on every game frame. This is the simplest form of uniform motion: new position = old position + velocity.</comment>
+                    <field name="OP">ADD</field>
+                    <value name="A">
+                      <block type="variables_get" id="b0024">
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="n0025">
+                        <field name="NUM">2</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_if" id="b0041">
+                    <comment pinned="false" h="105" w="520">Successful pass: we recycle the obstacle instead of creating a new object. This saves blocks and memory.</comment>
+                    <value name="IF0">
+                      <block type="logic_compare" id="b0030">
+                        <comment pinned="false" h="105" w="520">Once the top edge of the car crosses the bottom edge, the obstacle has been successfully avoided.</comment>
+                        <field name="OP">GT</field>
+                        <value name="A">
+                          <block type="variables_get" id="b0028">
+                            <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <shadow type="math_number" id="n0029">
+                            <field name="NUM">62</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="variables_set" id="b0032">
+                        <comment pinned="false" h="105" w="520">We move the next car back above the start of the road.</comment>
+                        <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="n0031">
+                            <field name="NUM">2</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="b0036">
+                            <comment pinned="false" h="105" w="520">We randomly choose one of the three lanes for the next car.</comment>
+                            <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                            <value name="VALUE">
+                              <block type="math_random_int" id="b0033">
+                                <value name="FROM">
+                                  <shadow type="math_number" id="n0034">
+                                    <field name="NUM">0</field>
+                                  </shadow>
+                                </value>
+                                <value name="TO">
+                                  <shadow type="math_number" id="n0035">
+                                    <field name="NUM">2</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="b0040">
+                                <comment pinned="false" h="105" w="520">We add one point for each car passed safely.</comment>
+                                <field name="VAR" id="v_score">score</field>
+                                <value name="VALUE">
+                                  <block type="math_arithmetic" id="b0039">
+                                    <field name="OP">ADD</field>
+                                    <value name="A">
+                                      <block type="variables_get" id="b0037">
+                                        <field name="VAR" id="v_score">score</field>
+                                      </block>
+                                    </value>
+                                    <value name="B">
+                                      <shadow type="math_number" id="n0038">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <next>
+                      <block type="controls_if" id="b0057">
+                        <comment pinned="false" h="105" w="520">Crash detection is deliberately very simple: because cars always lie exactly in one of three lanes, we do not need general rectangle collision calculations.</comment>
+                        <value name="IF0">
+                          <block type="logic_operation" id="b0048">
+                            <comment pinned="false" h="105" w="520">A collision requires two things at once: the obstacle must be low enough AND it must be in the same lane.</comment>
+                            <field name="OP">AND</field>
+                            <value name="A">
+                              <block type="logic_compare" id="b0044">
+                                <comment pinned="false" h="105" w="520">From Y=48, the eight-pixel oncoming car starts to overlap the player at the bottom.</comment>
+                                <field name="OP">GT</field>
+                                <value name="A">
+                                  <block type="variables_get" id="b0042">
+                                    <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <shadow type="math_number" id="n0043">
+                                    <field name="NUM">46</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="logic_compare" id="b0047">
+                                <comment pinned="false" h="105" w="520">A crash can happen only when both cars are in the same lane.</comment>
+                                <field name="OP">EQ</field>
+                                <value name="A">
+                                  <block type="variables_get" id="b0045">
+                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <block type="variables_get" id="b0046">
+                                    <field name="VAR" id="v_player_lane">player_lane</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="variables_set" id="b0050">
+                            <comment pinned="false" h="105" w="520">A crash ends the current streak and resets the score to zero.</comment>
+                            <field name="VAR" id="v_score">score</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="n0049">
+                                <field name="NUM">0</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="variables_set" id="b0052">
+                                <comment pinned="false" h="105" w="520">After a crash, we immediately start with a new car from the top.</comment>
+                                <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                <value name="VALUE">
+                                  <shadow type="math_number" id="n0051">
+                                    <field name="NUM">2</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="variables_set" id="b0056">
+                                    <comment pinned="false" h="105" w="520">The new attempt starts with a randomly chosen obstacle lane.</comment>
+                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                    <value name="VALUE">
+                                      <block type="math_random_int" id="b0053">
+                                        <value name="FROM">
+                                          <shadow type="math_number" id="n0054">
+                                            <field name="NUM">0</field>
+                                          </shadow>
+                                        </value>
+                                        <value name="TO">
+                                          <shadow type="math_number" id="n0055">
+                                            <field name="NUM">2</field>
+                                          </shadow>
+                                        </value>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="fb_fill" id="b0058">
+                            <comment pinned="false" h="105" w="520">At the start of drawing, we clear the previous frame. All following graphics blocks draw into a clean framebuffer.</comment>
+                            <field name="barva">0</field>
+                            <next>
+                              <block type="fb_rect_fill" id="b0059">
+                                <comment pinned="false" h="105" w="520">The first line separates the left and center lanes. For teaching simplicity, the road consists of only two thin vertical lines.</comment>
+                                <value name="px">
+                                  <shadow type="math_number" id="n0060">
+                                    <field name="NUM">42</field>
+                                  </shadow>
+                                </value>
+                                <value name="py">
+                                  <shadow type="math_number" id="n0061">
+                                    <field name="NUM">0</field>
+                                  </shadow>
+                                </value>
+                                <value name="sirka">
+                                  <shadow type="math_number" id="n0062">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <value name="vyska">
+                                  <shadow type="math_number" id="n0063">
+                                    <field name="NUM">64</field>
+                                  </shadow>
+                                </value>
+                                <value name="col">
+                                  <shadow type="math_number" id="n0064">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="fb_rect_fill" id="b0065">
+                                    <comment pinned="false" h="105" w="520">The second line separates the center and right lanes. The three lanes are approximately 42 px wide.</comment>
+                                    <value name="px">
+                                      <shadow type="math_number" id="n0066">
+                                        <field name="NUM">84</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="py">
+                                      <shadow type="math_number" id="n0067">
+                                        <field name="NUM">0</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="sirka">
+                                      <shadow type="math_number" id="n0068">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="vyska">
+                                      <shadow type="math_number" id="n0069">
+                                        <field name="NUM">64</field>
+                                      </shadow>
+                                    </value>
+                                    <value name="col">
+                                      <shadow type="math_number" id="n0070">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="fb_draw_pic" id="b0077">
+                                        <comment pinned="false" h="105" w="520">ONCOMING CAR BITMAP 11×8 px. The image is stored directly in the project as a bytearray, so the game needs no external file.
+
+  #######
+ #########
+##  ###  ##
+###########
+###########
+ ##     ##
+ ##     ##
+  #     #</comment>
+                                        <field name="name">DODGE_ENEMY</field>
+                                        <field name="alpha">-1</field>
+                                        <value name="px">
+                                          <block type="math_arithmetic" id="b0075">
+                                            <comment pinned="false" h="105" w="520">We convert the lane number to an X coordinate: x = lane × 42 + 15. We use the same formula for both cars.</comment>
+                                            <field name="OP">ADD</field>
+                                            <value name="A">
+                                              <block type="math_arithmetic" id="b0073">
+                                                <field name="OP">MULTIPLY</field>
+                                                <value name="A">
+                                                  <block type="variables_get" id="b0071">
+                                                    <field name="VAR" id="v_obstacle_lane">obstacle_lane</field>
+                                                  </block>
+                                                </value>
+                                                <value name="B">
+                                                  <shadow type="math_number" id="n0072">
+                                                    <field name="NUM">42</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </value>
+                                            <value name="B">
+                                              <shadow type="math_number" id="n0074">
+                                                <field name="NUM">15</field>
+                                              </shadow>
+                                            </value>
+                                          </block>
+                                        </value>
+                                        <value name="py">
+                                          <block type="variables_get" id="b0076">
+                                            <field name="VAR" id="v_obstacle_y">obstacle_y</field>
+                                          </block>
+                                        </value>
+                                        <value name="data">
+                                          <shadow type="text" id="t0078">
+                                            <field name="TEXT">bytearray(b'\x1c\x7e\xfb\x1b\x1f\x1f\x1f\x1b\xfb\x7e\x1c'), 11, 8</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="fb_draw_pic" id="b0084">
+                                            <comment pinned="false" h="105" w="520">PLAYER CAR BITMAP 11×8 px. The car is always near the bottom edge and changes only lanes. The bitmap is drawn after the obstacle, so the player is on top if they overlap.
+
+   #####
+  #######
+  ## # ##
+ #########
+### ### ###
+###########
+ ##     ##
+ ##     ##</comment>
+                                            <field name="name">DODGE_PLAYER</field>
+                                            <field name="alpha">-1</field>
+                                            <value name="px">
+                                              <block type="math_arithmetic" id="b0083">
+                                                <comment pinned="false" h="105" w="520">We use the same lane-to-pixel conversion for the player car.</comment>
+                                                <field name="OP">ADD</field>
+                                                <value name="A">
+                                                  <block type="math_arithmetic" id="b0081">
+                                                    <field name="OP">MULTIPLY</field>
+                                                    <value name="A">
+                                                      <block type="variables_get" id="b0079">
+                                                        <field name="VAR" id="v_player_lane">player_lane</field>
+                                                      </block>
+                                                    </value>
+                                                    <value name="B">
+                                                      <shadow type="math_number" id="n0080">
+                                                        <field name="NUM">42</field>
+                                                      </shadow>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                                <value name="B">
+                                                  <shadow type="math_number" id="n0082">
+                                                    <field name="NUM">15</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </value>
+                                            <value name="py">
+                                              <shadow type="math_number" id="n0085">
+                                                <field name="NUM">54</field>
+                                              </shadow>
+                                            </value>
+                                            <value name="data">
+                                              <shadow type="text" id="t0086">
+                                                <field name="TEXT">bytearray(b'\x30\xf8\xfe\x2f\x3b\x3f\x3b\x2f\xfe\xf8\x30'), 11, 8</field>
+                                              </shadow>
+                                            </value>
+                                            <next>
+                                              <block type="fb_rect_fill" id="b0092">
+                                                <comment pinned="false" h="105" w="520">The one-pixel line at the top is a minimalist score indicator. The longer the crash-free streak, the longer the line.</comment>
+                                                <value name="px">
+                                                  <shadow type="math_number" id="n0093">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="py">
+                                                  <shadow type="math_number" id="n0094">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="sirka">
+                                                  <block type="math_arithmetic" id="b0091">
+                                                    <field name="OP">ADD</field>
+                                                    <value name="A">
+                                                      <block type="math_modulo" id="b0089">
+                                                        <comment pinned="false" h="105" w="520">Modulo keeps the graphical score indicator within the display width even during a very long game.</comment>
+                                                        <value name="DIVIDEND">
+                                                          <block type="variables_get" id="b0087">
+                                                            <field name="VAR" id="v_score">score</field>
+                                                          </block>
+                                                        </value>
+                                                        <value name="DIVISOR">
+                                                          <shadow type="math_number" id="n0088">
+                                                            <field name="NUM">126</field>
+                                                          </shadow>
+                                                        </value>
+                                                      </block>
+                                                    </value>
+                                                    <value name="B">
+                                                      <shadow type="math_number" id="n0090">
+                                                        <field name="NUM">1</field>
+                                                      </shadow>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                                <value name="vyska">
+                                                  <shadow type="math_number" id="n0095">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <value name="col">
+                                                  <shadow type="math_number" id="n0096">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                                <next>
+                                                  <block type="oded_refresh" id="dodge_refresh">
+                                                    <comment pinned="false" h="105" w="520">We send the completed framebuffer to the OLED. Refresh is the last step of the game frame, so the display does not flicker while objects are drawn.</comment>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <!--ESPIDE_EXTENSIONS_BEGIN-->
+eyJ2ZXJzaW9uIjoxLCJwcm9jZXNzb3IiOiJTaW11bGF0b3IiLCJleHRlbnNpb25zIjpbXX0=
+<!--ESPIDE_EXTENSIONS_END-->
+</xml>

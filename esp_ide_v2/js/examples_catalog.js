@@ -38,6 +38,16 @@
         { labelKey: 'examples.items.display01', file: 'Display/01.blk' },
         { labelKey: 'examples.items.display02', file: 'Display/02.blk' }
       ]
+    },
+    {
+      labelKey: 'examples.categories.games',
+      items: [
+        { labelKey: 'examples.items.game01', file: 'Games/01.blk' },
+        { labelKey: 'examples.items.game02', file: 'Games/02.blk' },
+        { labelKey: 'examples.items.game03', file: 'Games/03.blk' },
+        { labelKey: 'examples.items.game04', file: 'Games/04.blk' },
+        { labelKey: 'examples.items.game05', file: 'Games/05.blk' }
+      ]
     }
   ];
 })();

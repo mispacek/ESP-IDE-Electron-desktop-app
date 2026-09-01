@@ -410,7 +410,8 @@
     "categories": {
       "basic": "Basic",
       "sensor": "Sensors",
-      "display": "Displays"
+      "display": "Displays",
+      "games": "Games"
     },
     "items": {
       "basic01": "Hello board, blinking LED",
@@ -424,7 +425,12 @@
       "sensor04": "USB joystick with ESP32-S3 and RPi Pico",
       "sensor05": "Setting the servomotor angle with a potentiometer",
       "display01": "NeoPixel rainbow",
-      "display02": "Displaying text on a 128×64 OLED"
+      "display02": "Displaying text on a 128×64 OLED",
+      "game01": "Dodge 3 Lanes",
+      "game02": "Flappy Bird",
+      "game03": "Pong",
+      "game04": "Arkanoid",
+      "game05": "Space Invaders"
     },
     "comingSoon": "Examples are coming soon",
     "loading": "Loading example…",
