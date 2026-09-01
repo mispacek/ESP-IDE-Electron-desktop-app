@@ -8,7 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { TOKEN_HEADER, shouldInjectToken, startLocalServer } = require('../electron/local-server');
+const { TOKEN_HEADER, shouldInjectToken, startLocalServer } = require('../electron/main/local-server');
 
 const appRoot = path.resolve(__dirname, '..');
 const smokeUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'espide-electron-smoke-'));
@@ -35,7 +35,7 @@ function createTestWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(appRoot, 'preload.js'),
+      preload: path.join(appRoot, 'electron', 'preload', 'main-preload.js'),
       sandbox: false,
     },
   });
@@ -52,13 +52,13 @@ function createTestWindow() {
 
 function collectLegacyStorageProbe() {
   return new Promise((resolve, reject) => {
-    const legacyUrl = pathToFileURL(path.join(appRoot, 'index.html')).href;
+    const legacyUrl = pathToFileURL(path.join(appRoot, 'electron', 'migration', 'index.html')).href;
     const legacyWindow = new BrowserWindow({
       show: false,
       webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
-        preload: path.join(appRoot, 'electron', 'legacy-storage-preload.js'),
+        preload: path.join(appRoot, 'electron', 'preload', 'legacy-storage-preload.js'),
         sandbox: false,
       },
     });
@@ -100,20 +100,20 @@ async function probePickerLocalization() {
   }
 
   const usbCs = await loadPicker(
-    'portPicker.html',
-    'pickerPreload.js',
+    'electron/ui/pickers/usb.html',
+    'electron/preload/usb-picker-preload.js',
     'cs-CZ',
     `({ lang: document.documentElement.lang, title: document.title, close: document.getElementById('closeBtn').textContent })`,
   );
   const bluetoothDe = await loadPicker(
-    'btPicker.html',
-    'btPickerPreload.js',
+    'electron/ui/pickers/bluetooth.html',
+    'electron/preload/bluetooth-picker-preload.js',
     'de-DE',
     `({ lang: document.documentElement.lang, title: document.title, close: document.getElementById('closeBtn').textContent, loading: document.getElementById('loadingText').textContent })`,
   );
   const fallbackEn = await loadPicker(
-    'btPicker.html',
-    'btPickerPreload.js',
+    'electron/ui/pickers/bluetooth.html',
+    'electron/preload/bluetooth-picker-preload.js',
     'fr-FR',
     `({ lang: document.documentElement.lang, title: document.title })`,
   );
@@ -135,7 +135,7 @@ async function waitForIde(window, appUrl) {
 async function run() {
   await app.whenReady();
   localServer = await startLocalServer({
-    ideRoot: appRoot,
+    ideRoot: path.join(appRoot, 'esp_ide_v2'),
     port: 0,
     simulatorRoot: path.join(appRoot, 'simulator_lite'),
     token,
@@ -164,28 +164,6 @@ async function run() {
   assert.equal(await unauthenticatedStatus(localServer.origin), 403);
   await waitForIde(firstWindow, appUrl);
   const result = await firstWindow.webContents.executeJavaScript(`(async () => {
-    const testWorker = (url, type) => new Promise((resolve) => {
-      const worker = new Worker(url, type ? { type } : undefined);
-      const timer = setTimeout(() => {
-        worker.terminate();
-        resolve({ timeout: true });
-      }, 5000);
-      worker.onmessage = (event) => {
-        clearTimeout(timer);
-        worker.terminate();
-        resolve(event.data);
-      };
-      worker.onerror = (event) => {
-        clearTimeout(timer);
-        worker.terminate();
-        resolve({ error: event.message || 'empty Worker error' });
-      };
-    });
-    const probeUrl = new URL('./tests/electron-worker-probe.js', location.href).href;
-    const probes = {
-      classic: await testWorker(probeUrl),
-      module: await testWorker(probeUrl, 'module'),
-    };
     const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
     const bridge = await ensureSimulatorBridge();
     await bridge.activate();
@@ -193,14 +171,21 @@ async function run() {
     await bridge.enterRawREPL();
     const raw = await bridge.execRawCommand("print('ELECTRON_SMOKE_OK')");
     await bridge.exitRawREPL();
+    const bodyFont = getComputedStyle(document.body).fontFamily;
     return {
       frameIsolated: frame.contentWindow.crossOriginIsolated,
       frameUrl: frame.src,
+      fontProbe: {
+        body: bodyFont,
+        selects: Array.from(document.querySelectorAll('select')).map((element) => ({
+          id: element.id,
+          fontFamily: getComputedStyle(element).fontFamily,
+        })),
+      },
       isSecureContext,
       language: settings.language,
       location: location.href,
       parentIsolated: crossOriginIsolated,
-      probes,
       raw,
     };
   })()`);
@@ -210,10 +195,10 @@ async function run() {
   assert.equal(result.isSecureContext, true);
   assert.equal(result.parentIsolated, true);
   assert.equal(result.frameIsolated, true);
+  assert.equal(result.fontProbe.selects.length > 0, true);
+  assert.equal(result.fontProbe.selects.every((select) => select.fontFamily === result.fontProbe.body), true);
   assert.equal(new URL(result.frameUrl).origin, localServer.origin);
   assert.equal(new URL(result.frameUrl).pathname, '/simulator_lite/index.html');
-  assert.equal(result.probes.classic.ok, true);
-  assert.equal(result.probes.module.ok, true);
   assert.match(result.raw, /ELECTRON_SMOKE_OK/);
 
   await firstWindow.webContents.executeJavaScript(`(() => {

@@ -21,7 +21,7 @@ jobs:
 
       - name: Nastav spustitelnost postinstall skriptu
         if: matrix.os == 'ubuntu-latest'
-        run: chmod +x postinstall.sh
+        run: chmod +x packaging/linux/postinstall.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v3

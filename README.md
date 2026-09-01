@@ -1,213 +1,180 @@
-# ESP IDE – Electron desktopová aplikace
+# ESP IDE — Electron desktop app
 
-ESP IDE je desktopový editor a učební prostředí pro MicroPython na deskách ESP a RP2. Nabízí vizuální programování v Blockly i textový Python editor, přímé připojení přes USB‑Serial nebo Bluetooth Low Energy, správu souborů na zařízení a průvodce instalací firmware i knihoven.
+This repository packages the current browser ESP IDE and Simulator Lite in a
+small cross-platform Electron shell. The editor and simulator remain ordinary
+web assets; Electron provides a local server, native USB/Bluetooth pickers,
+storage migration and installers for Windows, macOS and Linux.
 
----
+The two runtime directories are deliberately committed as versioned manual
+copies. A build never checks out or downloads a second ESP IDE repository.
 
-## Obsah
-- [Funkce](#funkce)
-- [Podporované desky](#podporované-desky)
-- [Požadavky](#požadavky)
-- [Rychlé spuštění z kódu](#rychlé-spuštění-z-kódu)
-- [Build instalátorů](#build-instalátorů)
-- [Jak s aplikací pracovat](#jak-s-aplikací-pracovat)
-- [Poznámky k systému a bezpečnosti](#poznámky-k-systému-a-bezpečnosti)
-- [FAQ](#faq)
-- [Příspěvky a hlášení chyb](#příspěvky-a-hlášení-chyb)
-- [O Autorovi](#autor)
+## What is included
 
----
+- Blockly and text-based MicroPython editing for ESP and RP2 boards.
+- Web Serial USB and Web Bluetooth connections through localized native
+  picker windows.
+- Simulator Lite running locally in a Worker with WebAssembly and
+  `SharedArrayBuffer` isolation.
+- English as the first-run desktop default when no saved language exists;
+  later English, Czech or German choices are persisted in local storage.
+- One-time migration of settings from older `file://` desktop builds.
+- Windows NSIS, Linux AppImage/DEB and macOS DMG/ZIP packaging.
 
-## Funkce
+The core editor and simulator assets are local. Sharing, the firmware and
+add-on catalog, documentation links and some telemetry still use `espide.eu`
+when those features are opened. This is therefore an offline-capable desktop
+build, not a fully air-gapped distribution.
 
-- **Dva režimy práce**  
-  - *Blockly* pro vizuální skládání programů.  
-  - *Text* s ACE editorem, záložkami, Undo/Redo a indikací rozpracovanosti.
-- **Správce souborů (File Manager):** prohlížení, upload/download, mazání a úpravy souborů na připojeném zařízení. Přenos respektuje limity USB/BLE.
-- **Připojení k zařízení:**  
-  - **USB (WebSerial)** – výběr portu přes vlastní *Port Picker*.  
-  - **Bluetooth LE** – výběr zařízení přes vlastní *BT Picker*; volba je skryta tam, kde deska BLE nepodporuje.
-- **Průvodci instalací:**  
-  - flash firmware (ESP32/ESP8266) nebo zobrazení pokynů pro UF2 (RP2),  
-  - následná instalace knihoven.
-  - instalátor firmware najdete zde : https://espide.eu/instalace_new/
-- **Rozšíření (Extensions):** přidání vlastních bloků a toolbox XML, uložení do `localStorage` a bezpečná integrace do UI.
-- **Changelog a verze v UI:** rychlý přehled novinek přímo v aplikaci.
-- **Vývojářské nástroje:** klávesa **F12** otevře/zavře DevTools.
+## Repository layout
 
----
+```text
+ESP-IDE-Electron-desktop-app/
+├─ esp_ide_v2/             manually pinned browser IDE runtime
+├─ simulator_lite/         manually pinned Simulator Lite runtime
+├─ electron/
+│  ├─ main/                main process, server, protocol and paths
+│  ├─ preload/             isolated bridges for IDE and pickers
+│  ├─ ui/                  splash and USB/Bluetooth picker pages
+│  └─ migration/           legacy localStorage origin document
+├─ packaging/              platform icons and installer files
+├─ scripts/                runtime and package verification
+├─ tests/                  Electron and packaging smoke tests
+├─ docs/                   contributor, legal and development documents
+├─ runtime-source.json     metadata for the pinned runtime copies
+├─ package.json
+└─ package-lock.json
+```
 
-## Podporované desky
+`node_modules/`, `dist/` and `.runtime/` are generated or local-only and are
+ignored by Git. `.runtime/` is used for temporary verification builds; it is
+not read by the application and is not uploaded to GitHub.
 
-- ESP32, ESP32‑C3, ESP32‑S3, ESP8266  
-- RP2040 (vč. Pico/Pico:ed) a další RP2 kompatibilní desky
+## Updating the pinned runtimes
 
-> BLE je dostupné na ESP32/C3/S3. U desek bez BLE je volba automaticky skryta.
+Replace the complete contents of `esp_ide_v2/` and `simulator_lite/` with the
+versions that should ship. Keep the directory names unchanged. Do not copy
+`node_modules`, `.git`, `.agents` or `.codex` into either runtime.
 
----
-
-## Požadavky
-
-- **Node.js LTS** (doporučeno 18+) a **npm**
-- **Git** (pro klonování repozitáře)
-- OS: **Windows**, **Linux**, nebo **macOS**
-
----
-
-## Rychlé spuštění z kódu
+The browser IDE must continue to reference the simulator as
+`../simulator_lite/`; this relative path is what keeps the web and desktop
+runtime compatible. After copying, run:
 
 ```bash
-git clone https://github.com/mispacek/ESP-IDE-Electron-desktop-app.git
-cd ESP-IDE-Electron-desktop-app
-npm install
+npm ci
+npm run verify:runtime
+npm run test:electron
+npm --prefix simulator_lite test
+```
+
+`verify:runtime` checks the required IDE, Worker/WASM, wrapper, icon and Linux
+packaging files. It also checks that the standalone Linux udev rules match the
+rules embedded in the DEB post-install script.
+
+## Development
+
+Requirements:
+
+- Node.js 20 or newer and npm.
+- Windows, Linux or macOS for running the desktop shell.
+- A macOS runner for a real macOS build and a Linux runner for Linux packages.
+
+Install dependencies and start the app:
+
+```bash
+npm ci
 npm start
 ```
 
-> `npm start` spouští Electron a načte hlavní okno s povolenými rozhraními pro WebSerial/BLE.
-
----
-
-## Build instalátorů
-
-Nejjednodušší je použít přednastavené skripty z `package.json`:
+Useful checks:
 
 ```bash
-# vše podle host OS
-npm run dist
-
-# cílené buildy
-npm run dist:win     # Windows (NSIS)
-npm run dist:linux   # Linux (AppImage + DEB)
-npm run dist:mac     # macOS (DMG/ZIP, hardened runtime)
+npm run verify:runtime
+npm run test:electron
+npm --prefix simulator_lite test
 ```
 
-Vnitřně se používá **electron‑builder**. Artefakty se pojmenovávají např.:  
-`ESP_IDE_<verze>_<os>_<arch>.<ext>`
-
-> Pozn.: U DEB probíhá `postinstall` krok. macOS build používá hardened runtime a entitlements včetně popisu pro Bluetooth.
-
----
-
-## Jak s aplikací pracovat
-
-1. **Volba procesoru při startu**  
-   Zvolte cílovou desku (ESP32, ESP32C3, ESP32S3, ESP8266, RP2040, Pico:ed). Volba ovlivní toolbox a dostupnost BLE.
-
-2. **Připojení k desce**  
-   - **USB:** klikněte na tlačítko USB, otevře se *Port Picker* s výběrem sériového portu.  
-   - **BLE:** u desek s BLE klikněte na tlačítko BLE, zobrazí se *BT Picker* a proběhne připojení k REPL.
-
-3. **Blockly ↔ Text**  
-   Přepínejte mezi vizuálním a textovým režimem. Textový editor používá ACE, pamatuje rozpracované soubory i otevřené záložky.
-
-4. **Správa souborů**  
-   Otevřete File Manager. Nahrávejte soubory do zařízení, stahujte je, mažte a editujte. Přenos je přizpůsoben USB/BLE kanálu.
-
-5. **Instalace firmware a knihoven**  
-   Spusťte průvodce v menu.  
-   - ESP32/ESP8266: flash přímo z aplikace.  
-   - RP2: zobrazení pokynů pro UF2; po potvrzení pokračuje instalace knihoven.
-
-6. **Rozšíření (extensions)**  
-   Nahrajte/zkopírujte JS a XML bloků, povolte je a nechte zaintegrovat do toolboxu. Stav se ukládá do `localStorage`.
-
----
-
-## Poznámky k systému a bezpečnosti
-
-- **WebSerial a oprávnění:** aplikace využívá experimentální webové funkce a vlastní výběr portu uvnitř aplikace.
-- **BLE výběr:** události `select-bluetooth-device` a `bluetooth-device-added` jsou mapované na vlastní *BT Picker* a řízené zavírání okna.
-- **Linux parametry:** pro spolehlivý přístup k USB se používá `--disable-serial-blocklist` a na některých distribucích může být nutné upravit udev pravidla.
-- **Hlavní okno:** `contextIsolation: true`, renderer bez Node integrace. Splash okno je izolované.
-
----
-
-## FAQ
-
-**USB zařízení se nezobrazuje na Linuxu**  
-Zkontrolujte udev pravidla pro USB‑serial adaptéry. Některá prostředí vyžadují spuštění s `--disable-serial-blocklist`. U DEB probíhá `postinstall`, AppImage může vyžadovat manuální úpravy.
-
-**Nevidím BLE volbu**  
-Zvolená deska BLE nepodporuje (např. ESP8266, RP2040). Změňte volbu procesoru v menu.
-
-**Kde zapnu DevTools?**  
-Klávesa **F12**.
-
-**Jak vyčistit lokální data aplikace (cache, nastavení)**  
-Smažte složku *userData* pro aplikaci „ESP IDE“:  
-- Windows: `%APPDATA%/ESP IDE/`  
-- Linux: `~/.config/ESP IDE/`  
-- macOS: `~/Library/Application Support/ESP IDE/`
-
----
-
-## Příspěvky a hlášení chyb
-
-- Vytvořte **Issue** s jasným popisem problému a kroky k reprodukci.  
-- U **pull requestů** popište záměr, dopad na uživatele a případné změny v build procesu nebo oprávněních.
-
----
-
-## autor
-
-- **Autor:** Milan Špaček, programátor a nadšenec do vzdělávání dětí.
-- Celé prostředí tvoří ve svém volném čase pro děti na zájmovém kroužku Energie Jinak  https://www.energiejinak.cz/
-
-
-
-
-
-# ESP-IDE-Electron-desktop-app
-ESP-IDE-Offline-desktop-app
-
-## Manual setup for serial port access
-
-If you install the application manually or run it from sources, configure the
-permissions for serial ports with the following commands:
+On Windows, an unpacked package can be checked after a build with:
 
 ```bash
-sudo cp 99-espide-serial.rules /etc/udev/rules.d/
-sudo chmod 644 /etc/udev/rules.d/99-espide-serial.rules
-sudo usermod -aG dialout <username>
+npm run verify:package -- "dist/win-unpacked/resources/app.asar"
+npm run test:packaged -- "dist/win-unpacked/ESP IDE.exe"
+```
+
+The packaged smoke test starts only the executable passed to it, uses a
+temporary profile and verifies that the protected local server starts.
+
+## Building installers
+
+```bash
+npm run dist:win       # Windows NSIS, x64 and ia32
+npm run dist:linux     # Linux AppImage and DEB, x64
+npm run dist:mac       # macOS universal DMG and ZIP
+```
+
+All artifacts are written to `dist/` and use the form
+`ESP_IDE_<version>_<platform>_<arch>.<extension>`.
+
+GitHub Actions keeps the existing release flow: one checkout, `npm ci`, then
+the matching `dist:*` script on each runner. The workflow does not download a
+second source repository. Before publishing a tag, update the version in
+`package.json`, the root package entry in `package-lock.json`, and the visible
+version text in `electron/ui/splash/index.html` when applicable.
+
+The wrapper is stored in `app.asar`; the two runtime copies are placed outside
+the archive under the packaged app's `resources/` directory. This makes the
+local server's file and Worker/WASM paths explicit and inspectable, following
+electron-builder's app-content model.
+
+## Runtime and security model
+
+The main process serves the local IDE at `http://127.0.0.1:<port>/` and keeps a
+random per-process token in memory. Requests without the exact host, token and
+same-origin context are rejected. The renderer has context isolation and no
+Node integration. COOP/COEP response headers provide the secure isolated
+context required by Simulator Lite.
+
+The protocol mapper in `electron/main/protocol-handler.js` only exposes the
+`esp_ide_v2` and `simulator_lite` virtual roots and rejects traversal. The
+browser IDE itself remains the same code path used by the web deployment.
+
+## USB, Bluetooth and Linux permissions
+
+Web Serial and Web Bluetooth support depends on the operating system and the
+board. The repository contains localized picker windows and the macOS
+Bluetooth entitlement. CI cannot prove a physical board connection.
+
+The DEB post-install script installs udev rules for common USB-serial devices.
+For a manual Linux/AppImage installation:
+
+```bash
+sudo install -m 644 packaging/linux/99-espide-serial.rules /etc/udev/rules.d/
+sudo usermod -aG dialout "$USER"
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-These steps are executed automatically by `postinstall.sh` when installing the
-`.deb` package.
+Log out and in again after changing the `dialout` group.
 
-## Installation
+## Language and picker behavior
 
-Download the installer for your platform from the release page.  File names have
-the following format:
+The desktop preload seeds `userSettings.language` with `en` only when no saved
+language is available. Existing settings are preserved, and the USB/Bluetooth
+pickers receive the currently active IDE language with English fallback.
 
-```
-ESP_IDE_<version>_<platform>.<extension>
-```
+## UI consistency
 
-Use the file that matches your operating system:
+The shared UI font is defined by `--ui-font-family` in the runtime
+`index.html`. Native `select` controls explicitly use that same stack, including
+the processor, language, layout and picker-related dialogs. If you update the
+browser runtime, keep the byte-identical `esp_ide_v2/index.html` copy in this
+repository synchronized and bump its `APP_VERSION` for the service worker.
 
-### Windows
+## Documentation and license
 
-Run the installer `ESP_IDE_<version>_win_<arch>.exe` and follow the prompts.
-Select the `x64` file for 64‑bit systems or `ia32` for 32‑bit.
+- [Contributing](docs/CONTRIBUTING.md)
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md)
+- [Contributor terms](docs/CLA.md)
+- [Trademark policy](docs/TRADEMARK.md)
+- [License](LICENSE.md)
 
-### Linux
-
-On Debian‑based systems install the `.deb` package:
-
-```bash
-sudo dpkg -i ESP_IDE_<version>_amd64.deb
-```
-
-For other distributions use the AppImage. Make it executable and run it:
-
-```bash
-chmod +x ESP_IDE_<version>_linux_x64.AppImage
-./ESP_IDE_<version>_linux_x64.AppImage
-```
-
-### macOS
-
-Mount `ESP_IDE_<version>_mac_universal.dmg` and drag the application to the
-Applications folder. Alternatively unpack the zip archive with the same prefix.
+Press F12 in the running app to open or close DevTools.

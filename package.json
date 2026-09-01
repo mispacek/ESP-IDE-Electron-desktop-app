@@ -2,13 +2,17 @@
   "name": "esp_ide",
   "productName": "ESP IDE",
   "version": "2.1.0",
-  "main": "main.js",
+  "main": "electron/main/main.js",
   "scripts": {
-      "start": "electron .",
-      "dist": "electron-builder",
-      "dist:win": "electron-builder --win --x64 --ia32",
-      "dist:linux": "electron-builder --linux --publish never",
-      "dist:mac": "electron-builder --mac --universal"
+      "start": "npm run verify:runtime && electron .",
+      "test:electron": "node --test tests/electron-runtime.test.cjs",
+      "test:packaged": "node tests/electron-packaged-smoke.cjs",
+      "verify:runtime": "node scripts/verify-runtime.mjs",
+      "verify:package": "node scripts/verify-package.mjs",
+      "dist": "npm run verify:runtime && electron-builder",
+      "dist:win": "npm run verify:runtime && electron-builder --win --x64 --ia32",
+      "dist:linux": "npm run verify:runtime && electron-builder --linux --publish never",
+      "dist:mac": "npm run verify:runtime && electron-builder --mac --universal"
   },
   "devDependencies": {
     "electron": "^30.5.1",
@@ -20,21 +24,67 @@
     "asar": true,
     "compression": "maximum",
     "files": [
-      "**/*",
-      "!node_modules/*.md",
-      "!**/tests/**"
+      "electron/**/*",
+      "!electron/migration/**",
+      {
+        "from": "electron/migration",
+        "to": ".",
+        "filter": ["index.html"]
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "esp_ide_v2",
+        "to": "esp_ide_v2",
+        "filter": [
+          "css/**/*",
+          "examples/**/*",
+          "i18n/**/*",
+          "js/**/*",
+          "!**/*.test.cjs",
+          "media/**/*",
+          "*.html",
+          "*.txt",
+          "*.webmanifest",
+          "favicon.ico",
+          "sw.js",
+          "toolbox*.xml"
+        ]
+      },
+      {
+        "from": "simulator_lite",
+        "to": "simulator_lite",
+        "filter": [
+          "assets/**/*",
+          "config/**/*",
+          "core/**/*",
+          "filesystem/**/*",
+          "runtime/**/*",
+          "vendor/**/*",
+          "app.js",
+          "embed.js",
+          "frame-bridge.js",
+          "http-proxy.php",
+          "ide-bridge.js",
+          "index.html",
+          "simulator.css",
+          "toolbox_Simulator.xml",
+          "worker.js"
+        ]
+      }
     ],
     "artifactName": "ESP_IDE_${version}_${os}_${arch}.${ext}",
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "packaging/windows/icon.ico"
     },
     "mac": {
       "hardenedRuntime": true,
-      "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist",
+      "icon": "packaging/macos/icon.png",
+      "entitlements": "packaging/macos/entitlements.plist",
+      "entitlementsInherit": "packaging/macos/entitlements.plist",
       "extendInfo": {
-        "NSBluetoothAlwaysUsageDescription": "Aplikace potřebuje Bluetooth pro připojení k desce."
+        "NSBluetoothAlwaysUsageDescription": "ESP IDE needs Bluetooth to connect to supported boards."
       },
       "target": [
         "dmg",
@@ -51,6 +101,7 @@
     "linux": {
        "executableName": "esp-ide",
        "category": "Development",
+       "icon": "packaging/linux/icon.png",
        "maintainer": "Milan Špaček <[espide@email.cz]>",
        "target": [
          { "target": "AppImage", "arch": ["x64"] },
@@ -62,11 +113,11 @@
        }
      },
      "deb": {
-        "afterInstall": "postinstall.sh"
+        "afterInstall": "packaging/linux/postinstall.sh"
      }
   },
   "keywords": [],
   "author": "Milan Špaček <[espide@email.cz]>",
   "license": "ISC",
-  "description": "Vývojové prostředí ESP IDE pro Windows, Linux a macOS"
+  "description": "ESP IDE development environment for Windows, Linux and macOS"
 }

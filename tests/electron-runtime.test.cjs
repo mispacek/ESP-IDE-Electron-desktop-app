@@ -3,13 +3,14 @@
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 const http = require('node:http');
+const path = require('node:path');
 const test = require('node:test');
 const {
   createEspideProtocolHandler,
   getMimeType,
   mapEspideUrl,
   staticHeaders,
-} = require('../electron/protocol-handler');
+} = require('../electron/main/protocol-handler');
 const {
   MAX_RESPONSE_BYTES,
   createHttpProxyHandler,
@@ -17,22 +18,23 @@ const {
   isPublicIPv4,
   resolvePublicIPv4,
   validateTarget,
-} = require('../electron/http-proxy');
+} = require('../electron/main/http-proxy');
 const {
   LOOPBACK_HOST,
   TOKEN_HEADER,
   shouldInjectToken,
   startLocalServer,
-} = require('../electron/local-server');
+} = require('../electron/main/local-server');
 const {
   importLegacyStorageIfEmpty,
   seedDefaultLanguage,
-} = require('../preload');
+} = require('../electron/preload/main-preload');
 const {
   MESSAGES: PICKER_MESSAGES,
   getMessages: getPickerMessages,
   normalizeLanguage: normalizePickerLanguage,
-} = require('../electron/picker-i18n');
+} = require('../electron/ui/pickers/picker-i18n');
+const { createRuntimePaths } = require('../electron/main/runtime-paths');
 
 class MemoryStorage {
   constructor(initial = {}) {
@@ -48,6 +50,29 @@ const roots = {
   ideRoot: 'C:/package',
   simulatorRoot: 'C:/package/simulator_lite',
 };
+const pathForTest = (...segments) => path.resolve(...segments);
+
+test('runtime paths separate the wrapper from the two manually copied runtimes', () => {
+  const mainDirectory = pathForTest('project', 'electron', 'main');
+  const development = createRuntimePaths({
+    app: { isPackaged: false },
+    mainDirectory,
+    resourcesPath: pathForTest('unused'),
+  });
+  assert.equal(development.projectRoot, pathForTest('project'));
+  assert.equal(development.ideRoot, pathForTest('project', 'esp_ide_v2'));
+  assert.equal(development.simulatorRoot, pathForTest('project', 'simulator_lite'));
+  assert.equal(development.mainPreload, pathForTest('project', 'electron', 'preload', 'main-preload.js'));
+
+  const packaged = createRuntimePaths({
+    app: { isPackaged: true, getAppPath: () => pathForTest('resources', 'app.asar') },
+    mainDirectory,
+    resourcesPath: pathForTest('resources'),
+  });
+  assert.equal(packaged.ideRoot, pathForTest('resources', 'esp_ide_v2'));
+  assert.equal(packaged.simulatorRoot, pathForTest('resources', 'simulator_lite'));
+  assert.equal(packaged.legacyIndex, pathForTest('resources', 'app.asar', 'index.html'));
+});
 
 test('maps only the virtual app roots and rejects encoded traversal', () => {
   const ide = mapEspideUrl('espide://app/esp_ide_v2/index.html', roots);

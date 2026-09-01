@@ -1,0 +1,10 @@
+{
+  "espIde": {
+    "path": "esp_ide_v2",
+    "source": "manual copy of espide.eu/esp_ide_v2"
+  },
+  "simulatorLite": {
+    "path": "simulator_lite",
+    "source": "manual copy of espide.eu/simulator_lite"
+  }
+}
