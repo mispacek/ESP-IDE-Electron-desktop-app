@@ -1,4 +1,4 @@
-# ESP IDE — Electron desktop app
+# ESP IDE - Electron desktop app
 
 This repository packages the current browser ESP IDE and Simulator Lite in a
 small cross-platform Electron shell. The editor and simulator remain ordinary
