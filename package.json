@@ -11,16 +11,23 @@
       "verify:package": "node scripts/verify-package.mjs",
       "dist": "npm run verify:runtime && electron-builder",
       "dist:win": "npm run verify:runtime && electron-builder --win --x64 --ia32",
+      "dist:store": "npm run verify:runtime && electron-builder --win appx --x64 --publish never",
       "dist:linux": "npm run verify:runtime && electron-builder --linux --publish never",
       "dist:mac": "npm run verify:runtime && electron-builder --mac --universal"
   },
   "devDependencies": {
-    "electron": "^30.5.1",
-    "electron-builder": "^25.1.8",
+    "electron": "30.5.1",
+    "electron-builder": "26.15.7",
     "electron-packager": "^17.1.2"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   },
   "build": {
     "appId": "eu.espide.desktop",
+    "directories": {
+      "buildResources": "packaging/windows"
+    },
     "asar": true,
     "compression": "maximum",
     "files": [
@@ -78,6 +85,18 @@
       "target": "nsis",
       "icon": "packaging/windows/icon.ico"
     },
+    "appx": {
+      "applicationId": "ESPIDE",
+      "identityName": "Milanpaek.ESPIDE",
+      "publisher": "CN=FBC6FA75-1477-48C9-9623-0AE68E21D1EA",
+      "publisherDisplayName": "Milan Špaček",
+      "displayName": "ESP IDE",
+      "languages": [
+        "en-US",
+        "cs-CZ"
+      ],
+      "backgroundColor": "#ffffff"
+    },
     "mac": {
       "hardenedRuntime": true,
       "icon": "packaging/macos/icon.png",
@@ -100,17 +119,14 @@
     },
     "linux": {
        "executableName": "esp-ide",
-       "category": "Development",
+       "category": "Development;Electronics;",
        "icon": "packaging/linux/icon.png",
        "maintainer": "Milan Špaček <[espide@email.cz]>",
        "target": [
          { "target": "AppImage", "arch": ["x64"] },
          { "target": "deb",      "arch": ["x64"] }
        ],
-       "executableArgs": ["--no-sandbox", "--disable-serial-blocklist"],
-       "desktop": {
-        "Categories": "Development;Electronics;"
-       }
+       "executableArgs": ["--no-sandbox", "--disable-serial-blocklist"]
      },
      "deb": {
         "afterInstall": "packaging/linux/postinstall.sh"
