@@ -47,6 +47,12 @@ function staticHeaders(kind, filePath) {
     'cross-origin-resource-policy': 'same-origin',
     'x-content-type-options': 'nosniff',
   };
+  if (kind === 'ide' && path.extname(filePath).toLowerCase() === '.html') {
+    // Firmware installation runs in a trusted espide.eu iframe. The parent
+    // document must explicitly delegate Web Serial before Chromium will even
+    // ask Electron for a device permission.
+    headers['permissions-policy'] = 'serial=(self "https://espide.eu" "https://www.espide.eu")';
+  }
   return headers;
 }
 

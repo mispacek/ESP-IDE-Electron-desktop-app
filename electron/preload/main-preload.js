@@ -35,7 +35,17 @@ function seedDefaultLanguage(storage) {
   }
 }
 
-module.exports = { importLegacyStorageIfEmpty, seedDefaultLanguage };
+function delegateFirmwareInstallerSerial(documentObject) {
+  const frame = documentObject && documentObject.getElementById('fw_install_frame');
+  if (!frame) return false;
+  // Permissions Policy has two layers for cross-origin frames: the parent
+  // response header and the iframe container policy. Keep the delegation
+  // limited to the two trusted firmware origins.
+  frame.setAttribute('allow', 'serial https://espide.eu https://www.espide.eu');
+  return true;
+}
+
+module.exports = { delegateFirmwareInstallerSerial, importLegacyStorageIfEmpty, seedDefaultLanguage };
 
 if (process.type === 'renderer') {
   const { contextBridge, ipcRenderer } = require('electron');
@@ -51,6 +61,13 @@ if (process.type === 'renderer') {
     try { seedDefaultLanguage(window.localStorage); } catch (_) {}
   }
   if (migration.success) ipcRenderer.send('espide:legacy-storage-confirmed', migration);
+
+  const installSerialDelegation = () => delegateFirmwareInstallerSerial(window.document);
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', installSerialDelegation, { once: true });
+  } else {
+    installSerialDelegation();
+  }
 
   contextBridge.exposeInMainWorld('webSerialOK', true);
 
