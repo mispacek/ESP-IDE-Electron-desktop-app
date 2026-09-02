@@ -71,6 +71,12 @@ if (process.type === 'renderer') {
 
   contextBridge.exposeInMainWorld('webSerialOK', true);
 
+  // Let the shared web UI disable integrations that must not run in the
+  // packaged desktop application (for example Google Analytics).
+  contextBridge.exposeInMainWorld('espideEnvironment', {
+    runtime: 'electron',
+  });
+
   contextBridge.exposeInMainWorld('webSerialAPI', {
     getPorts:  ()            => navigator.serial.getPorts(),
     requestPort: (filters)   => navigator.serial.requestPort(filters)

@@ -191,15 +191,23 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
-  <!-- Google Analytics tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-N9Q5VE157X"></script>
+  <!-- Google Analytics is disabled only in the Electron desktop application. -->
   <script>
+    (() => {
+      const isElectron = window.espideEnvironment?.runtime === 'electron';
+      if (isElectron) return;
+
       window.dataLayer = window.dataLayer || [];
       // Send a Google Analytics event.
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', 'G-N9Q5VE157X');
 
-      gtag('config', 'G-N9Q5VE157X');
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=G-N9Q5VE157X';
+      document.head.appendChild(script);
+    })();
   </script>
 
 

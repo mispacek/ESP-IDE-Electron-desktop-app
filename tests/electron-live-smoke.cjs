@@ -175,6 +175,8 @@ async function run() {
     return {
       frameIsolated: frame.contentWindow.crossOriginIsolated,
       frameUrl: frame.src,
+      electronRuntime: window.espideEnvironment?.runtime,
+      googleAnalyticsScripts: document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]').length,
       fontProbe: {
         body: bodyFont,
         selects: Array.from(document.querySelectorAll('select')).map((element) => ({
@@ -191,6 +193,8 @@ async function run() {
   })()`);
 
   assert.equal(result.location, appUrl);
+  assert.equal(result.electronRuntime, 'electron');
+  assert.equal(result.googleAnalyticsScripts, 0);
   assert.equal(result.language, 'en');
   assert.equal(result.isSecureContext, true);
   assert.equal(result.parentIsolated, true);
