@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/3d7944fe-cff1-40bd-8378-f2904fbfd07b" />
+
 # ESP IDE - Electron desktop app
 
 This repository packages the current browser ESP IDE and Simulator Lite in a
